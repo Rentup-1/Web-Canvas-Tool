@@ -50,40 +50,59 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
       );
 
     case "text": {
+      const borderRadius = element.borderRadius || {};
+      const cornerRadius = [
+        borderRadius.topLeft || 0,
+        borderRadius.topRight || 0,
+        borderRadius.bottomRight || 0,
+        borderRadius.bottomLeft || 0,
+      ];
       return (
-        <Text
-          ref={ref}
-          x={element.x}
-          y={element.y}
-          text={element.text}
-          fill={element.fill}
-          padding={element.padding}
-          fontSize={element.fontSize}
-          fontFamily={element.fontFamily || "Arial"}
-          fillAfterStrokeEnabled
-          draggable
-          onClick={onSelect}
-          onDragMove={(e) => onChange({ x: e.target.x(), y: e.target.y() })}
-          onTransform={(e) => {
-            const node = e.target;
-            const scaleX = node.scaleX();
-            const scaleY = node.scaleY();
-            const avgScale = (scaleX + scaleY) / 2;
+        <>
+          {element.background && (
+            <Rect
+              x={element.x}
+              y={element.y}
+              width={element.width}
+              height={element.height}
+              fill={element.background}
+              opacity={element.opacity}
+              cornerRadius={cornerRadius}
+            />
+          )}
+          <Text
+            ref={ref}
+            x={element.x}
+            y={element.y}
+            text={element.text}
+            fill={element.fill}
+            padding={element.padding}
+            fontSize={element.fontSize}
+            fontFamily={element.fontFamily || "Arial"}
+            fillAfterStrokeEnabled
+            draggable
+            onClick={onSelect}
+            onDragMove={(e) => onChange({ x: e.target.x(), y: e.target.y() })}
+            onTransform={(e) => {
+              const node = e.target;
+              const scaleX = node.scaleX();
+              const scaleY = node.scaleY();
+              const avgScale = (scaleX + scaleY) / 2;
 
-            onChange({
-              x: node.x(),
-              y: node.y(),
-              width: node.width() * scaleX,
-              height: node.height() * scaleY,
-              rotation: node.rotation(),
-              fontSize: (element.fontSize || 24) * avgScale,
-            });
+              onChange({
+                x: node.x(),
+                y: node.y(),
+                width: node.width() * scaleX,
+                height: node.height() * scaleY,
+                rotation: node.rotation(),
+                fontSize: (element.fontSize || 24) * avgScale,
+              });
 
-            node.scaleX(1);
-            node.scaleY(1);
-          }}
-          background={element.background}
-        />
+              node.scaleX(1);
+              node.scaleY(1);
+            }}
+          />
+        </>
       );
     }
 

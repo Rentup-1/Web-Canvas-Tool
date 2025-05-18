@@ -23,6 +23,12 @@ export interface CanvasElement {
   backgroundBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   label?: string;
+  borderRadius?: {
+    topLeft?: number;
+    topRight?: number;
+    bottomRight?: number;
+    bottomLeft?: number;
+  };
 
   // frame specific
   stroke?: string;

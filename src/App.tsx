@@ -26,7 +26,7 @@ function App() {
         </main>
 
         {/* Properties Panel */}
-        <aside className="w-80  border-l p-4">
+        <aside className="w-80  border-l p-4 overflow-y-auto">
           <PropertiesPanel />
         </aside>
       </div>
