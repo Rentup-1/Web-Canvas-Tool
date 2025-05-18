@@ -1,4 +1,4 @@
-export type ElementType = "rect" | "text" | "image";
+export type ElementType = "rect" | "text" | "image" | "frame";
 
 export interface CanvasElement {
   id: string;
@@ -11,6 +11,7 @@ export interface CanvasElement {
   selected?: boolean;
   fill?: string;
   opacity?: number;
+  name?: string;
 
   // Text specific
   text?: string;
@@ -23,6 +24,22 @@ export interface CanvasElement {
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   label?: string;
 
+  // frame specific
+  stroke?: string;
+  strokeWidth?: number;
+  dash?: number[];
+  frameId?: string | null;
+  
   // Image specific
   src?: string;
+  
 }
+
+export interface Frame {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  type: "frame" | string;
+};

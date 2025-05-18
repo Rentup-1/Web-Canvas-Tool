@@ -28,6 +28,7 @@ export function Toolbar() {
     <div className="flex flex-col gap-4 mb-4">
       <ToolbarButton label="Add Rectangle" onClick={() => dispatch(addElement({ type: "rect" }))} />
       <ToolbarButton label="Add Text" onClick={() => dispatch(addElement({ type: "text" }))} />
+      <ToolbarButton label="Add Frame" onClick={() => dispatch(addElement({ type: "frame" }))} />
       <UploadButton label="Upload Image" onFileSelect={handleImageUpload} />
     </div>
   );

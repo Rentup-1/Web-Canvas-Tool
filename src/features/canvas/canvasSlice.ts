@@ -14,6 +14,7 @@ const canvasSlice = createSlice({
   name: "canvas",
   initialState,
   reducers: {
+
     addElement: (state, action: PayloadAction<{ type: ElementType }>) => {
       const base = {
         id: nanoid(),
@@ -44,12 +45,27 @@ const canvasSlice = createSlice({
             fill: "#333",
           };
           break;
+        case "frame":
+          newElement = {
+            ...base,
+            type: "frame",
+            name: "Frame",
+            fill: "transparent",
+            stroke: "#DDD",
+            strokeWidth: 1,
+            dash: [5, 5],
+            id: nanoid(),
+          };
+          break;
         default:
           throw new Error(`Unsupported element type: ${action.payload.type}`);
       }
 
       state.elements.push(newElement);
     },
+
+    // add image on canvas here
+    
     addImageElement: (state, action: PayloadAction<{ src: string; width: number; height: number }>) => {
       const { src, width, height } = action.payload;
 

@@ -1,7 +1,8 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { Rect, Text, Image as KonvaImage } from "react-konva";
-import { type CanvasElement } from "../features/canvas/types";
+import { type CanvasElement, type Frame } from "../features/canvas/types";
 import useImage from "use-image";
+import { useSelector } from "react-redux";
 
 interface Props {
   element: CanvasElement;
@@ -10,7 +11,12 @@ interface Props {
   onChange: (updates: Partial<CanvasElement>) => void;
 }
 
+
+
 export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onChange }, ref) => {
+  const elements = useSelector((store:any) => store.canvas.elements);
+  const [isOverFrame, setIsOverFrame] = useState(false);
+
   switch (element.type) {
     case "rect":
       return (
@@ -21,6 +27,9 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
           width={element.width}
           height={element.height}
           fill={element.fill}
+          stroke={element.stroke}
+          strokeWidth={element.strokeWidth}
+          dash={element.dash}
           rotation={element.rotation}
           draggable
           onClick={onSelect}
@@ -78,6 +87,44 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
       );
     }
 
+    case "frame": {
+      const isFrame = element.type === "frame";
+      
+      return (
+        <Rect
+          ref={ref}
+          x={element.x}
+          y={element.y}
+          width={element.width}
+          height={element.height}
+          fill={element.fill}
+          stroke={isFrame ? (isOverFrame ? "blue" : "#000") : element.stroke}
+          strokeWidth={element.strokeWidth}
+          dash={element.dash}
+          rotation={element.rotation}
+          draggable
+          onClick={onSelect}
+          onTransform={(e) => {
+            const node = e.target;
+            const newWidth = node.width() * node.scaleX();
+            const newHeight = node.height() * node.scaleY();
+
+            onChange({
+              x: node.x(),
+              y: node.y(),
+              width: newWidth,
+              height: newHeight,
+              rotation: node.rotation(),
+            });
+
+            node.scaleX(1);
+            node.scaleY(1);
+          }}
+      />
+
+      );
+    }
+
     case "image": {
       const [image] = useImage(element.src || "");
 
@@ -89,10 +136,9 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
           y={element.y}
           width={element.width}
           height={element.height}
-          draggable
+          draggable={!element.frameId}
           rotation={element.rotation}
           onClick={onSelect}
-          onDragMove={(e) => onChange({ x: e.target.x(), y: e.target.y() })}
           onTransform={(e) => {
             const node = e.target;
             onChange({
@@ -105,6 +151,57 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
             node.scaleX(1);
             node.scaleY(1);
           }}
+
+          onDragMove={(e) => {
+            const imgX = e.target.x();
+            const imgY = e.target.y();
+            const imgW = e.target.width();
+            const imgH = e.target.height();
+
+            const centerX = imgX + imgW / 2;
+            const centerY = imgY + imgH / 2;
+            const overFrame = elements.find((f : Frame) =>
+              centerX >= f.x &&
+              centerX <= f.x + f.width &&
+              centerY >= f.y &&
+              centerY <= f.y + f.height
+            );
+
+            setIsOverFrame(!!overFrame);
+          }}
+
+          onDragEnd={(e) => {
+            const imgX = e.target.x();
+            const imgY = e.target.y();
+            const imgW = e.target.width();
+            const imgH = e.target.height();
+
+            const centerX = imgX + imgW / 2;
+            const centerY = imgY + imgH / 2;
+
+            const frame = elements.find((el:Frame) => el.type === "frame" &&
+                centerX >= el.x &&
+                centerX <= el.x + el.width &&
+                centerY >= el.y &&
+                centerY <= el.y + el.height
+            );
+
+            if (frame) {
+              onChange({
+                x: frame.x,
+                y: frame.y,
+                width: frame.width,
+                height: frame.height,
+                frameId: frame.id,
+              });
+            } else {
+              onChange({ x: imgX, y: imgY, frameId: null });
+            }
+
+            setIsOverFrame(false);
+          }}
+
+
         />
       );
     }
