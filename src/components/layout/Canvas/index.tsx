@@ -1,8 +1,8 @@
 import { Stage, Layer, Transformer } from "react-konva";
 import { useRef, useEffect } from "react";
-import { useAppSelector, useAppDispatch } from "../hooks";
-import { selectElement, updateElement } from "../features/canvas/canvasSlice";
-import { ElementRenderer } from "./ElementRenderer";
+import { useAppSelector, useAppDispatch } from "../../../hooks";
+import { selectElement, updateElement } from "../../../features/canvas/canvasSlice";
+import { ElementRenderer } from "../../ui/ElementRenderer";
 
 export function Canvas() {
   const elements = useAppSelector((state) => state.canvas.elements);

@@ -76,8 +76,26 @@ const canvasSlice = createSlice({
         Object.assign(element, action.payload.updates);
       }
     },
+
+    moveElementUp: (state, action) => {
+      const index = state.elements.findIndex((el) => el.id === action.payload);
+      if (index < state.elements.length - 1) {
+        const temp = state.elements[index];
+        state.elements[index] = state.elements[index + 1];
+        state.elements[index + 1] = temp;
+      }
+    },
+    moveElementDown: (state, action) => {
+      const index = state.elements.findIndex((el) => el.id === action.payload);
+      if (index > 0) {
+        const temp = state.elements[index];
+        state.elements[index] = state.elements[index - 1];
+        state.elements[index - 1] = temp;
+      }
+    },
   },
 });
 
-export const { addElement, addImageElement, selectElement, updateElement } = canvasSlice.actions;
+export const { addElement, addImageElement, selectElement, updateElement, moveElementDown, moveElementUp } =
+  canvasSlice.actions;
 export default canvasSlice.reducer;

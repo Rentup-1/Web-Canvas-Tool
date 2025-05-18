@@ -1,10 +1,10 @@
-import { useAppDispatch, useAppSelector } from "../hooks";
-import { updateElement } from "../features/canvas/canvasSlice";
-import { type CanvasElement } from "../features/canvas/types";
-import { TextInput } from "./ui/TextInput";
-import { ColorInput } from "./ui/ColorInput";
-import { SelectInput } from "./ui/SelectInput";
-import { InputRange } from "./ui/InputRange";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { updateElement } from "../../features/canvas/canvasSlice";
+import { type CanvasElement } from "../../features/canvas/types";
+import { TextInput } from "../ui/controlled-inputs/TextInput";
+import { ColorInput } from "../ui/controlled-inputs/ColorInput";
+import { SelectInput } from "../ui/controlled-inputs/SelectInput";
+import { InputRange } from "../ui/controlled-inputs/InputRange";
 
 export const BRAND_OPTIONS: ["primary", "secondary", "additional", "fixed"] = [
   "primary",
@@ -170,6 +170,13 @@ export function PropertiesPanel() {
               }
             />
           </div>
+          {/* 
+          <SelectInput
+            label="Text Alignment"
+            value={element.align || "left"}
+            onChange={(val) => update({ align: val as "left" | "center" | "right" })}
+            options={["left", "center", "right"]}
+          /> */}
 
           <TextInput
             label="Label"

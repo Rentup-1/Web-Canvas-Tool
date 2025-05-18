@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { Rect, Text, Image as KonvaImage } from "react-konva";
-import { type CanvasElement } from "../features/canvas/types";
+import { type CanvasElement } from "../../features/canvas/types";
 import useImage from "use-image";
 
 interface Props {
@@ -70,6 +70,7 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
             padding={element.padding}
             fontSize={element.fontSize}
             fontFamily={element.fontFamily || "Arial"}
+            // align={element.align || "left"}
             fillAfterStrokeEnabled
             draggable
             onClick={onSelect}
