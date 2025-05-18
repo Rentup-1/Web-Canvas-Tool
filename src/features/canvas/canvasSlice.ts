@@ -1,13 +1,23 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { type CanvasElement, type ElementType } from "./types";
+import { type AspectRatio, type CanvasElement, type ElementType } from "./types";
 import { nanoid } from "nanoid";
 
 interface CanvasState {
   elements: CanvasElement[];
+  past: CanvasElement[][];
+  future: CanvasElement[][];
+  stageWidth: number;
+  stageHeight: number;
+  aspectRatio?: AspectRatio;
 }
 
 const initialState: CanvasState = {
   elements: [],
+  past: [],
+  future: [],
+  stageWidth: 1000,
+  stageHeight: 600,
+  aspectRatio: "9:16",
 };
 
 const canvasSlice = createSlice({
@@ -65,15 +75,36 @@ const canvasSlice = createSlice({
         src,
       });
     },
+
     selectElement: (state, action: PayloadAction<string>) => {
       state.elements.forEach((el) => {
         el.selected = el.id === action.payload;
       });
     },
-    updateElement: (state, action: PayloadAction<{ id: string; updates: Partial<CanvasElement> }>) => {
-      const element = state.elements.find((el) => el.id === action.payload.id);
-      if (element) {
-        Object.assign(element, action.payload.updates);
+
+    updateElement: (state, action) => {
+      state.past.push(state.elements.map((el) => ({ ...el })));
+      state.future = [];
+
+      const { id, updates } = action.payload;
+      const index = state.elements.findIndex((el) => el.id === id);
+      if (index !== -1) {
+        state.elements[index] = { ...state.elements[index], ...updates };
+      }
+    },
+
+    undo: (state) => {
+      if (state.past.length > 0) {
+        const previous = state.past.pop();
+        state.future.unshift(state.elements.map((el) => ({ ...el })));
+        state.elements = previous!;
+      }
+    },
+    redo: (state) => {
+      if (state.future.length > 0) {
+        const next = state.future.shift();
+        state.past.push(state.elements.map((el) => ({ ...el })));
+        state.elements = next!;
       }
     },
 
@@ -93,9 +124,31 @@ const canvasSlice = createSlice({
         state.elements[index - 1] = temp;
       }
     },
+
+    setStageSize: (state, action: PayloadAction<{ width: number; height: number }>) => {
+      state.stageWidth = action.payload.width;
+      state.stageHeight = action.payload.height;
+    },
+    setAspectRatio: (state, action: PayloadAction<AspectRatio | undefined>) => {
+      state.aspectRatio = action.payload;
+    },
+    setElements: (state, action: PayloadAction<CanvasElement[]>) => {
+      state.elements = action.payload;
+    },
   },
 });
 
-export const { addElement, addImageElement, selectElement, updateElement, moveElementDown, moveElementUp } =
-  canvasSlice.actions;
+export const {
+  addElement,
+  addImageElement,
+  selectElement,
+  updateElement,
+  moveElementDown,
+  moveElementUp,
+  undo,
+  redo,
+  setStageSize,
+  setAspectRatio,
+  setElements,
+} = canvasSlice.actions;
 export default canvasSlice.reducer;

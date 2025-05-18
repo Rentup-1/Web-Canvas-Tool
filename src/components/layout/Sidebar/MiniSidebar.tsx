@@ -1,4 +1,4 @@
-import { FaTextWidth, FaImage, FaLayerGroup } from "react-icons/fa";
+import { FaTextWidth, FaImage, FaLayerGroup, FaFileImport, FaFileExport, FaHistory } from "react-icons/fa";
 
 export function MiniSidebar({
   activePanel,
@@ -11,6 +11,9 @@ export function MiniSidebar({
     { id: "text", icon: <FaTextWidth />, label: "Text" },
     { id: "upload", icon: <FaImage />, label: "Upload" },
     { id: "layers", icon: <FaLayerGroup />, label: "Layers" },
+    { id: "history", icon: <FaHistory />, label: "History" },
+    { id: "import", icon: <FaFileImport />, label: "Import" },
+    { id: "export", icon: <FaFileExport />, label: "Export" },
   ];
 
   return (

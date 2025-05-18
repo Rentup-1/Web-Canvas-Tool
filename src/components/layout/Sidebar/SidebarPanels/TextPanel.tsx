@@ -1,5 +1,5 @@
-import { addElement } from "../../../features/canvas/canvasSlice";
-import { useAppDispatch } from "../../../hooks";
+import { addElement } from "../../../../features/canvas/canvasSlice";
+import { useAppDispatch } from "../../../../hooks/useRedux";
 
 export function TextPanel() {
   const dispatch = useAppDispatch();

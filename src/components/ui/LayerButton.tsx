@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayerPanel } from "./panels/LayerPanel";
+import { LayerPanel } from "../layout/Sidebar/SidebarPanels/LayerPanel";
 
 export function LayerButton() {
   const [showLayers, setShowLayers] = useState(false);

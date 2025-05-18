@@ -58,6 +58,7 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
               height={element.height}
               fill={element.background}
               opacity={element.opacity}
+              rotation={element.rotation}
               cornerRadius={cornerRadius}
             />
           )}

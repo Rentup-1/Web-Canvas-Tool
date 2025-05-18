@@ -33,3 +33,5 @@ export interface CanvasElement {
   // Image specific
   src?: string;
 }
+
+export type AspectRatio = "1:1" | "9:16";

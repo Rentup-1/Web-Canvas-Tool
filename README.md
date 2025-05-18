@@ -1,19 +1,3 @@
-Done! Now You Can:
-Add rectangles and text blocks
-
-Drag and transform them
-
-Manage state using Redux Toolkit
-
-➕ Next Additions
-Properties panel to edit color, text, font
-
-Layer panel
-
-Export (PNG, SVG)
-
-Undo/Redo
-
 Building a design tool like **Canva** or **Polotno** is a big but exciting project. Since you're using **React**, **Konva**, and **TypeScript**, you're already aligned with a solid tech stack for 2D canvas-based design tools. Here's a breakdown of what features to build and how to implement them:
 
 ---

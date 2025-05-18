@@ -1,5 +1,5 @@
-import { useAppDispatch, useAppSelector } from "../../../hooks";
-import { selectElement, moveElementUp, moveElementDown } from "../../../features/canvas/canvasSlice";
+import { useAppDispatch, useAppSelector } from "../../../../hooks/useRedux";
+import { selectElement, moveElementUp, moveElementDown } from "../../../../features/canvas/canvasSlice";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 
 export function LayerPanel() {
