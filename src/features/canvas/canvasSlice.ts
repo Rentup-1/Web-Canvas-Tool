@@ -89,6 +89,8 @@ const canvasSlice = createSlice({
         rotation: 0,
         selected: false,
         src,
+        originalWidth: width,
+        originalHeight: height
       });
     },
 

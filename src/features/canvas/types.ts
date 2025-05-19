@@ -1,4 +1,5 @@
 export type ElementType = "rect" | "text" | "image" | "frame";
+export type FitMode = "fill" | "fit" | "stretch";
 
 export interface CanvasElement {
   id: string;
@@ -39,6 +40,9 @@ export interface CanvasElement {
   
   // Image specific
   src?: string;
+  fitMode?: FitMode; // default "fill"
+  originalWidth?: number;
+  originalHeight?: number
   
 }
 

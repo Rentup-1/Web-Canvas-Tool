@@ -1,12 +1,8 @@
 import { forwardRef, useState } from "react";
-import { Rect, Text, Image as KonvaImage } from "react-konva";
-<<<<<<< HEAD:src/components/ElementRenderer.tsx
-import { type CanvasElement, type Frame } from "../features/canvas/types";
-=======
-import { type CanvasElement } from "../../features/canvas/types";
->>>>>>> e5fa3177fbe1b83d6cd70bcdbb280578f6dc3d9b:src/components/ui/ElementRenderer.tsx
+import { Rect, Text, Image as KonvaImage, Group } from "react-konva";
 import useImage from "use-image";
 import { useSelector } from "react-redux";
+import type { CanvasElement } from "../../features/canvas/types";
 
 interface Props {
   element: CanvasElement;
@@ -14,8 +10,6 @@ interface Props {
   onSelect: () => void;
   onChange: (updates: Partial<CanvasElement>) => void;
 }
-
-
 
 export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onChange }, ref) => {
   const elements = useSelector((store:any) => store.canvas.elements);
@@ -151,85 +145,253 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
     }
 
     case "image": {
-      const [image] = useImage(element.src || "");
+    const [image] = useImage(element.src || "");
+    const frame = elements.find((f: CanvasElement) => f.id === element.frameId);
+    let wasOverFrame = false; // خليها خارج الكومبوننت أو في useRef لو هتعملها persistent
 
+    if (frame) {
       return (
-        <KonvaImage
-          ref={ref}
-          image={image}
-          x={element.x}
-          y={element.y}
-          width={element.width}
-          height={element.height}
-          draggable={!element.frameId}
-          rotation={element.rotation}
-          onClick={onSelect}
-          onTransform={(e) => {
-            const node = e.target;
-            onChange({
-              x: node.x(),
-              y: node.y(),
-              width: node.width() * node.scaleX(),
-              height: node.height() * node.scaleY(),
-              rotation: node.rotation(),
-            });
-            node.scaleX(1);
-            node.scaleY(1);
-          }}
+        <Group
+          x={frame.x}
+          y={frame.y}
+          clipFunc={(ctx) => {
+            ctx.rect(0, 0, frame.width, frame.height);
+          }}>
 
-          onDragMove={(e) => {
-            const imgX = e.target.x();
-            const imgY = e.target.y();
-            const imgW = e.target.width();
-            const imgH = e.target.height();
+          <KonvaImage
+            ref={ref}
+            image={image}
+            x={element.x - frame.x} // نحرك الصورة بالنسبة للفريم
+            y={element.y - frame.y}
+            width={element.width}
+            height={element.height}
+            draggable
+            onClick={onSelect}
+            onDragMove={(e) => {
+              const imageNode = e.target;
+              const newX = imageNode.x();
+              const newY = imageNode.y();
 
-            const centerX = imgX + imgW / 2;
-            const centerY = imgY + imgH / 2;
-            const overFrame = elements.find((f : Frame) =>
-              centerX >= f.x &&
-              centerX <= f.x + f.width &&
-              centerY >= f.y &&
-              centerY <= f.y + f.height
-            );
+              onChange({ x: newX + frame.x, y: newY + frame.y });
+            }}
+            onTransform={(e) => {
+              const node = e.target;
+              const newWidth = node.width() * node.scaleX();
+              const newHeight = node.height() * node.scaleY();
+              const newX = node.x();
+              const newY = node.y();
 
-            setIsOverFrame(!!overFrame);
-          }}
-
-          onDragEnd={(e) => {
-            const imgX = e.target.x();
-            const imgY = e.target.y();
-            const imgW = e.target.width();
-            const imgH = e.target.height();
-
-            const centerX = imgX + imgW / 2;
-            const centerY = imgY + imgH / 2;
-
-            const frame = elements.find((el:Frame) => el.type === "frame" &&
-                centerX >= el.x &&
-                centerX <= el.x + el.width &&
-                centerY >= el.y &&
-                centerY <= el.y + el.height
-            );
-
-            if (frame) {
               onChange({
-                x: frame.x,
-                y: frame.y,
-                width: frame.width,
-                height: frame.height,
-                frameId: frame.id,
+                x: newX + frame.x,
+                y: newY + frame.y,
+                width: newWidth,
+                height: newHeight,
+                rotation: node.rotation(),
               });
-            } else {
-              onChange({ x: imgX, y: imgY, frameId: null });
-            }
 
-            setIsOverFrame(false);
-          }}
+              node.scaleX(1);
+              node.scaleY(1);
+            }}
+          />
+        </Group>
 
-
-        />
       );
     }
+
+    return (
+      <KonvaImage
+        ref={ref}
+        image={image}
+        x={element.x}
+        y={element.y}
+        width={element.width}
+        height={element.height}
+        draggable
+        onClick={onSelect}
+        // باقي الأحداث زي ما هي
+        onTransform={(e) => {
+          const node = e.target;
+          const newWidth = node.width() * node.scaleX();
+          const newHeight = node.height() * node.scaleY();
+          const newX = node.x();
+          const newY = node.y();
+
+          const frame = elements.find((f:CanvasElement) => f.id === element.frameId);
+          if (frame) {
+            const isInside =
+              newX >= frame.x &&
+              newY >= frame.y &&
+              newX + newWidth <= frame.x + frame.width &&
+              newY + newHeight <= frame.y + frame.height;
+
+            if (!isInside) {
+              node.scaleX(1);
+              node.scaleY(1);
+              node.x(element.x);
+              node.y(element.y);
+              return;
+            }
+          }
+
+          onChange({
+            x: newX,
+            y: newY,
+            width: newWidth,
+            height: newHeight,
+            rotation: node.rotation(),
+          });
+
+          node.scaleX(1);
+          node.scaleY(1);
+        }}
+
+        onDragMove={(e) => {
+          const imageNode = e.target;
+          const imgX = imageNode.x();
+          const imgY = imageNode.y();
+          const imgW = imageNode.width();
+          const imgH = imageNode.height();
+
+          const frame = elements.find((f:CanvasElement) => f.id === element.frameId);
+          if (!frame) return;
+
+          const newRight = imgX + imgW;
+          const newBottom = imgY + imgH;
+
+          const isInside =
+            imgX >= frame.x &&
+            imgY >= frame.y &&
+            newRight <= frame.x + frame.width &&
+            newBottom <= frame.y + frame.height;
+
+          if (!isInside) {
+            imageNode.x(element.x);
+            imageNode.y(element.y);
+            wasOverFrame = false;
+          } else {
+            if (!wasOverFrame) {
+              const frameAspect = frame.width / frame.height;
+              const imgAspect = imgW / imgH;
+
+              let newWidth, newHeight, offsetX, offsetY;
+
+              switch (element.fitMode) {
+                case "fit":
+                  if (imgAspect > frameAspect) {
+                    newWidth = frame.width;
+                    newHeight = frame.width / imgAspect;
+                  } else {
+                    newHeight = frame.height;
+                    newWidth = frame.height * imgAspect;
+                  }
+                  break;
+
+                case "fill":
+                default:
+                  if (imgAspect < frameAspect) {
+                    newWidth = frame.width;
+                    newHeight = frame.width / imgAspect;
+                  } else {
+                    newHeight = frame.height;
+                    newWidth = frame.height * imgAspect;
+                  }
+                  break;
+
+                case "stretch":
+                  newWidth = frame.width;
+                  newHeight = frame.height;
+                  break;
+              }
+
+              offsetX = (frame.width - newWidth) / 2;
+              offsetY = (frame.height - newHeight) / 2;
+
+              onChange({
+                x: frame.x + offsetX,
+                y: frame.y + offsetY,
+                width: newWidth,
+                height: newHeight,
+                frameId: frame.id,
+              });
+
+              wasOverFrame = true;
+            }
+          }
+        }}
+
+        onDragEnd={(e) => {
+          const img = e.target;
+          const imgW = img.width();
+          const imgH = img.height();
+
+          const centerX = img.x() + imgW / 2;
+          const centerY = img.y() + imgH / 2;
+
+          const frame = elements.find(
+            (el: CanvasElement) =>
+              el.type === "frame" &&
+              centerX >= el.x &&
+              centerX <= el.x + el.width &&
+              centerY >= el.y &&
+              centerY <= el.y + el.height
+          );
+
+          if (frame) {
+          const frameAspect = frame.width / frame.height;
+          const imgAspect = imgW / imgH;
+
+          let newWidth, newHeight, offsetX, offsetY;
+
+          switch (element.fitMode) {
+            case "fit":
+              if (imgAspect > frameAspect) {
+                newWidth = frame.width;
+                newHeight = frame.width / imgAspect;
+              } else {
+                newHeight = frame.height;
+                newWidth = frame.height * imgAspect;
+              }
+              break;
+
+            case "fill":
+            default:
+              if (imgAspect < frameAspect) {
+                newWidth = frame.width;
+                newHeight = frame.width / imgAspect;
+              } else {
+                newHeight = frame.height;
+                newWidth = frame.height * imgAspect;
+              }
+              break;
+
+            case "stretch":
+              newWidth = frame.width;
+              newHeight = frame.height;
+              break;
+          }
+
+          offsetX = (frame.width - newWidth) / 2;
+          offsetY = (frame.height - newHeight) / 2;
+
+          onChange({
+            x: frame.x + offsetX,
+            y: frame.y + offsetY,
+            width: newWidth,
+            height: newHeight,
+            frameId: frame.id,
+          });
+
+          } else {
+            onChange({ x: img.x(), y: img.y(), frameId: null });
+          }
+
+          setIsOverFrame(false);
+        }}
+
+    />
+  );
+}
+
 
     default:
       return null;

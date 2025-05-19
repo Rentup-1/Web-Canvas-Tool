@@ -7,6 +7,7 @@ import { SelectInput } from "../ui/controlled-inputs/SelectInput";
 import { InputRange } from "../ui/controlled-inputs/InputRange";
 import { CanvasSettings } from "../ui/controlled-inputs/CanvasSettings";
 import { AspectRatioSelector } from "../ui/controlled-inputs/ApectRatioSelector";
+import { useSelector } from "react-redux";
 
 export const BRAND_OPTIONS: ["primary", "secondary", "additional", "fixed"] = [
   "primary",
@@ -17,14 +18,152 @@ export const BRAND_OPTIONS: ["primary", "secondary", "additional", "fixed"] = [
 
 export function PropertiesPanel() {
   const element = useAppSelector((state) => state.canvas.elements.find((el) => el.selected));
+  const elements = useSelector((store:any) => store.canvas.elements);
   const dispatch = useAppDispatch();
 
   if (!element) return null;
-
+  console.log(element);
+  
   const update = (updates: Partial<CanvasElement>) => {
     dispatch(updateElement({ id: element.id, updates }));
   };
 
+  // const onFitModeChange = (e) => {
+  //   const newFitMode = e.target.value;
+  //   dispatch(updateElement({
+  //     id: element.id,
+  //     updates: { fitMode: newFitMode }
+  //   }));
+  // };
+
+  
+  // const handleFitModeChange = (e) => {
+  //   const newFitMode = e.target.value;
+
+  //   const frame = elements.find(f => f.id === element.frameId);
+
+  //   // نستخدم أبعاد الصورة اللي في العنصر نفسه
+  //   const imgW = element.width;
+  //   const imgH = element.height;
+
+  //   if (frame && imgW && imgH) {
+  //     const frameAspect = frame.width / frame.height;
+  //     const imgAspect = imgW / imgH;
+
+  //     let newWidth, newHeight, offsetX, offsetY;
+
+  //     switch (newFitMode) {
+  //       case "fit":
+  //         if (imgAspect > frameAspect) {
+  //           newWidth = frame.width;
+  //           newHeight = frame.width / imgAspect;
+  //         } else {
+  //           newHeight = frame.height;
+  //           newWidth = frame.height * imgAspect;
+  //         }
+  //         break;
+  //       case "fill":
+  //       default:
+  //         if (imgAspect < frameAspect) {
+  //           newWidth = frame.width;
+  //           newHeight = frame.width / imgAspect;
+  //         } else {
+  //           newHeight = frame.height;
+  //           newWidth = frame.height * imgAspect;
+  //         }
+  //         break;
+  //       case "stretch":
+  //         newWidth = frame.width;
+  //         newHeight = frame.height;
+  //         break;
+  //     }
+
+  //     offsetX = (frame.width - newWidth) / 2;
+  //     offsetY = (frame.height - newHeight) / 2;
+
+  //     dispatch(updateElement({
+  //       id: element.id,
+  //       updates: {
+  //         fitMode: newFitMode,
+  //         x: frame.x + offsetX,
+  //         y: frame.y + offsetY,
+  //         width: newWidth,
+  //         height: newHeight,
+  //       }
+  //     }));
+  //   } else {
+  //     dispatch(updateElement({
+  //       id: element.id,
+  //       updates: { fitMode: newFitMode }
+  //     }));
+  //   }
+  // };
+
+  const handleFitModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const newFitMode = e.target.value;
+
+  const frame = elements.find((f:CanvasElement) => f.id === element.frameId);
+
+  const imgW = element.originalWidth;  // ✅ مش element.width
+  const imgH = element.originalHeight; // ✅ مش element.height
+
+  if (frame && imgW && imgH) {
+    const frameAspect = frame.width / frame.height;
+    const imgAspect = imgW / imgH;
+
+    let newWidth, newHeight, offsetX, offsetY;
+
+    switch (newFitMode) {
+      case "fit":
+        if (imgAspect > frameAspect) {
+          newWidth = frame.width;
+          newHeight = frame.width / imgAspect;
+        } else {
+          newHeight = frame.height;
+          newWidth = frame.height * imgAspect;
+        }
+        break;
+
+      case "fill":
+      default:
+        if (imgAspect < frameAspect) {
+          newWidth = frame.width;
+          newHeight = frame.width / imgAspect;
+        } else {
+          newHeight = frame.height;
+          newWidth = frame.height * imgAspect;
+        }
+        break;
+
+      case "stretch":
+        newWidth = frame.width;
+        newHeight = frame.height;
+        break;
+    }
+
+    offsetX = (frame.width - newWidth) / 2;
+    offsetY = (frame.height - newHeight) / 2;
+
+    dispatch(updateElement({
+      id: element.id,
+      updates: {
+        fitMode: newFitMode,
+        x: frame.x + offsetX,
+        y: frame.y + offsetY,
+        width: newWidth,
+        height: newHeight,
+      }
+    }));
+  } else {
+    dispatch(updateElement({
+      id: element.id,
+      updates: { fitMode: newFitMode }
+    }));
+  }
+  };
+
+
+  
   return (
     <div className="p-4 shadow space-y-5">
       <h2 className="text-xl font-semibold">Properties</h2>
@@ -213,10 +352,18 @@ export function PropertiesPanel() {
 
       {/* Image Preview */}
       {element.type === "image" && element.src && (
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Image Preview</label>
-          <img src={element.src} alt="Preview" className="w-full h-auto rounded border" />
-        </div>
+        <>
+          <label>Image Fit Mode:</label>
+          <select onChange={handleFitModeChange}>
+            <option value="fill">Fill</option>
+            <option value="fit">Fit</option>
+            <option value="stretch">Stretch</option>
+          </select>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Image Preview</label>
+            <img src={element.src} alt="Preview" className="w-full h-auto rounded border" />
+          </div>
+        </>
       )}
     </div>
   );
