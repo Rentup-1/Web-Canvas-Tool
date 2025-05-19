@@ -1,11 +1,12 @@
 import { Stage, Layer, Transformer } from "react-konva";
 import { useRef, useEffect } from "react";
-import { useAppSelector, useAppDispatch } from "../hooks";
-import { selectElement, updateElement } from "../features/canvas/canvasSlice";
-import { ElementRenderer } from "./ElementRenderer";
+import { useAppSelector, useAppDispatch } from "../../../hooks/useRedux";
+import { selectElement, updateElement } from "../../../features/canvas/canvasSlice";
+import { ElementRenderer } from "../../ui/ElementRenderer";
 
 export function Canvas() {
   const elements = useAppSelector((state) => state.canvas.elements);
+  const { stageWidth, stageHeight } = useAppSelector((state) => state.canvas);
   const dispatch = useAppDispatch();
 
   const selectedNodeRef = useRef<any>(null);
@@ -19,7 +20,7 @@ export function Canvas() {
   }, [elements]);
 
   return (
-    <Stage width={1000} height={600} style={{ border: "1px solid #ccc" }}>
+    <Stage width={stageWidth} height={stageHeight} style={{ border: "1px solid #ccc" }}>
       <Layer>
         {elements.map((el) => (
           <ElementRenderer

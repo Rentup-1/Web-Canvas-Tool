@@ -8,8 +8,8 @@ interface SelectInputProps {
 export function SelectInput({ label, value, onChange, options }: SelectInputProps) {
   return (
     <div className="flex flex-col space-y-1">
-      {label && <label className="text-sm font-medium">{label}</label>}
-      <select className="border rounded px-2 py-1 text-sm" value={value} onChange={(e) => onChange(e.target.value)}>
+      {label && <label className="fancy-label">{label}</label>}
+      <select className="fancy-select" value={value} onChange={(e) => onChange(e.target.value)}>
         {options.map((opt) => (
           <option key={opt} value={opt}>
             {opt}

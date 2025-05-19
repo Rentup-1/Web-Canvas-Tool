@@ -1,6 +1,10 @@
 import { forwardRef, useState } from "react";
 import { Rect, Text, Image as KonvaImage } from "react-konva";
+<<<<<<< HEAD:src/components/ElementRenderer.tsx
 import { type CanvasElement, type Frame } from "../features/canvas/types";
+=======
+import { type CanvasElement } from "../../features/canvas/types";
+>>>>>>> e5fa3177fbe1b83d6cd70bcdbb280578f6dc3d9b:src/components/ui/ElementRenderer.tsx
 import useImage from "use-image";
 import { useSelector } from "react-redux";
 
@@ -67,6 +71,7 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
               height={element.height}
               fill={element.background}
               opacity={element.opacity}
+              rotation={element.rotation}
               cornerRadius={cornerRadius}
             />
           )}
@@ -79,6 +84,7 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
             padding={element.padding}
             fontSize={element.fontSize}
             fontFamily={element.fontFamily || "Arial"}
+            // align={element.align || "left"}
             fillAfterStrokeEnabled
             draggable
             onClick={onSelect}

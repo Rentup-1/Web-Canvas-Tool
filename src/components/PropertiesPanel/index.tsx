@@ -1,10 +1,12 @@
-import { useAppDispatch, useAppSelector } from "../hooks";
-import { updateElement } from "../features/canvas/canvasSlice";
-import { type CanvasElement } from "../features/canvas/types";
-import { TextInput } from "./ui/TextInput";
-import { ColorInput } from "./ui/ColorInput";
-import { SelectInput } from "./ui/SelectInput";
-import { InputRange } from "./ui/InputRange";
+import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
+import { updateElement } from "../../features/canvas/canvasSlice";
+import { type CanvasElement } from "../../features/canvas/types";
+import { TextInput } from "../ui/controlled-inputs/TextInput";
+import { ColorInput } from "../ui/controlled-inputs/ColorInput";
+import { SelectInput } from "../ui/controlled-inputs/SelectInput";
+import { InputRange } from "../ui/controlled-inputs/InputRange";
+import { CanvasSettings } from "../ui/controlled-inputs/CanvasSettings";
+import { AspectRatioSelector } from "../ui/controlled-inputs/ApectRatioSelector";
 
 export const BRAND_OPTIONS: ["primary", "secondary", "additional", "fixed"] = [
   "primary",
@@ -27,36 +29,40 @@ export function PropertiesPanel() {
     <div className="p-4 shadow space-y-5">
       <h2 className="text-xl font-semibold">Properties</h2>
 
+      {/* Canvas Settings: Width, Height */}
+      <CanvasSettings />
+      <AspectRatioSelector />
+
       {/* Shared: Position, Rotation */}
       <div className="grid grid-cols-2 gap-4">
         <TextInput
           label="X"
           type="number"
-          value={element.x.toFixed(2)}
+          value={element?.x?.toFixed(2)}
           onChange={(val) => update({ x: parseFloat(val) })}
         />
         <TextInput
           label="Y"
           type="number"
-          value={element.y.toFixed(2)}
+          value={element?.y?.toFixed(2)}
           onChange={(val) => update({ y: parseFloat(val) })}
         />
         <TextInput
           label="Width"
           type="number"
-          value={element.width.toFixed(2)}
+          value={element?.width?.toFixed(2)}
           onChange={(val) => update({ width: parseFloat(val) })}
         />
         <TextInput
           label="Height"
           type="number"
-          value={element.height.toFixed(2)}
+          value={element?.height?.toFixed(2)}
           onChange={(val) => update({ height: parseFloat(val) })}
         />
         <TextInput
           label="Rotation"
           type="number"
-          value={element.rotation.toFixed(2)}
+          value={element?.rotation?.toFixed(2)}
           onChange={(val) => update({ rotation: parseFloat(val) })}
         />
       </div>
@@ -170,6 +176,13 @@ export function PropertiesPanel() {
               }
             />
           </div>
+          {/* 
+          <SelectInput
+            label="Text Alignment"
+            value={element.align || "left"}
+            onChange={(val) => update({ align: val as "left" | "center" | "right" })}
+            options={["left", "center", "right"]}
+          /> */}
 
           <TextInput
             label="Label"

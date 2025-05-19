@@ -23,6 +23,7 @@ export interface CanvasElement {
   backgroundBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   label?: string;
+  // align?: "left" | "center" | "right";
   borderRadius?: {
     topLeft?: number;
     topRight?: number;
@@ -41,11 +42,4 @@ export interface CanvasElement {
   
 }
 
-export interface Frame {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  type: "frame" | string;
-};
+export type AspectRatio = "1:1" | "9:16";
