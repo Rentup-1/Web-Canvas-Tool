@@ -73,12 +73,16 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
             ref={ref}
             x={element.x}
             y={element.y}
+            width={element.width}
+            height={element.height}
             text={element.text}
             fill={element.fill}
             padding={element.padding}
             fontSize={element.fontSize}
+            align={element.align || "left"}
+            verticalAlign={element.verticalAlign || "middle"}
             fontFamily={element.fontFamily || "Arial"}
-            // align={element.align || "left"}
+            wrap="word"
             fillAfterStrokeEnabled
             draggable
             onClick={onSelect}
@@ -87,7 +91,7 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
               const node = e.target;
               const scaleX = node.scaleX();
               const scaleY = node.scaleY();
-              const avgScale = (scaleX + scaleY) / 2;
+              // const avgScale = (scaleX + scaleY) / 2;
 
               onChange({
                 x: node.x(),
@@ -95,7 +99,7 @@ export const ElementRenderer = forwardRef<any, Props>(({ element, onSelect, onCh
                 width: node.width() * scaleX,
                 height: node.height() * scaleY,
                 rotation: node.rotation(),
-                fontSize: (element.fontSize || 24) * avgScale,
+                // fontSize: (element.fontSize || 24) * avgScale,
               });
 
               node.scaleX(1);
