@@ -22,7 +22,8 @@ export interface CanvasElement {
   backgroundBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   label?: string;
-  // align?: "left" | "center" | "right";
+  align?: "left" | "center" | "right";
+  verticalAlign?: "top" | "middle" | "bottom";
   borderRadius?: {
     topLeft?: number;
     topRight?: number;

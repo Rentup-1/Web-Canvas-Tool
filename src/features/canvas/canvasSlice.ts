@@ -30,7 +30,7 @@ const canvasSlice = createSlice({
         x: 100,
         y: 100,
         width: 150,
-        height: 100,
+        height: 30,
         rotation: 0,
         selected: false,
       };
@@ -51,7 +51,7 @@ const canvasSlice = createSlice({
             type: "text",
             text: "Edit me",
             fontSize: 24,
-            fill: "#333",
+            fill: "#333333",
           };
           break;
         default:

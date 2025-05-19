@@ -115,6 +115,18 @@ export function PropertiesPanel() {
               "Impact",
             ]}
           />
+          <SelectInput
+            label="Horizontal Alignment"
+            value={element.align || "left"}
+            onChange={(val) => update({ align: val as "left" | "center" | "right" | undefined })}
+            options={["left", "center", "right"]}
+          />
+          <SelectInput
+            label="Vertical Alignment"
+            value={element.verticalAlign || "left"}
+            onChange={(val) => update({ verticalAlign: val as "top" | "middle" | "bottom" | undefined })}
+            options={["top", "middle", "bottom"]}
+          />
           <TextInput
             label="Padding"
             type="number"
