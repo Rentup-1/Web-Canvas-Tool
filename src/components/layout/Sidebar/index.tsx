@@ -1,6 +1,7 @@
 import { LayerPanel } from "./SidebarPanels/LayerPanel";
 import { TextPanel } from "./SidebarPanels/TextPanel";
 import { UploadPanel } from "./SidebarPanels/UploadPanel";
+import { ShapesPanel } from "./SidebarPanels/ShapesPanel";
 import { HistoryControls } from "../history";
 
 export function SidebarPanel({ activePanel }: { activePanel: string | null }) {
@@ -14,6 +15,7 @@ export function SidebarPanel({ activePanel }: { activePanel: string | null }) {
       {activePanel === "upload" && <UploadPanel />}
       {activePanel === "layers" && <LayerPanel />}
       {activePanel === "history" && <HistoryControls />}
+      {activePanel === "shapes" && <ShapesPanel />}
     </aside>
   );
 }

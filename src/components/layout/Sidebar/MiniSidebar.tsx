@@ -1,4 +1,12 @@
-import { FaTextWidth, FaImage, FaLayerGroup, FaFileImport, FaFileExport, FaHistory } from "react-icons/fa";
+import {
+  FaTextWidth,
+  FaImage,
+  FaLayerGroup,
+  FaFileImport,
+  FaFileExport,
+  FaHistory,
+  FaShapes,
+} from "react-icons/fa";
 
 export function MiniSidebar({
   activePanel,
@@ -14,6 +22,7 @@ export function MiniSidebar({
     { id: "history", icon: <FaHistory />, label: "History" },
     { id: "import", icon: <FaFileImport />, label: "Import" },
     { id: "export", icon: <FaFileExport />, label: "Export" },
+    { id: "shapes", icon: <FaShapes />, label: "Shapes" },
   ];
 
   return (
@@ -22,8 +31,12 @@ export function MiniSidebar({
         <button
           key={btn.id}
           title={btn.label}
-          onClick={() => setActivePanel(activePanel === btn.id ? null : (btn.id as any))}
-          className={`fancy-button ${activePanel === btn.id ? "fancy-button-hovered" : ""}`}
+          onClick={() =>
+            setActivePanel(activePanel === btn.id ? null : (btn.id as any))
+          }
+          className={`fancy-button ${
+            activePanel === btn.id ? "fancy-button-hovered" : ""
+          }`}
         >
           {btn.icon}
         </button>

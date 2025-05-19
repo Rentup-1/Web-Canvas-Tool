@@ -5,10 +5,16 @@ interface InputRangeProps {
   className?: string;
 }
 
-export const InputRange: React.FC<InputRangeProps> = ({ value, onChange, className }) => {
+export const InputRange: React.FC<InputRangeProps> = ({
+  value,
+  onChange,
+  className,
+}) => {
   return (
     <div>
-      <label className={`fancy-label ${className}`}>Opacity {Math.ceil(value * 100)}%</label>
+      <label className={`fancy-label ${className}`}>
+        Opacity {Math.ceil(value * 100)}%
+      </label>
       <input
         type="range"
         min={0}
