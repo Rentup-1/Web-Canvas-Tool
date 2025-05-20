@@ -8,6 +8,7 @@ import { InputRange } from "../ui/controlled-inputs/InputRange";
 import { CanvasSettings } from "../ui/controlled-inputs/CanvasSettings";
 import { AspectRatioSelector } from "../ui/controlled-inputs/ApectRatioSelector";
 import { useSelector } from "react-redux";
+import { TagInput } from "../ui/controlled-inputs/TagsInput";
 
 export const BRAND_OPTIONS: ["primary", "secondary", "additional", "fixed"] = [
   "primary",
@@ -360,6 +361,150 @@ export function PropertiesPanel() {
             options={BRAND_OPTIONS}
           />
         </>
+      )}
+
+      {element.type === "frame" && (
+        <>
+          <h2>Frame data</h2>
+          <TextInput label="Label" value={element.text || ""} onChange={(val) => update({ text: val })} />
+          <TagInput
+            label="Tags"
+            value={element.tags || []}
+            onChange={(newTags) => update({ tags: newTags })}
+          />
+
+
+        </>
+        // <>
+        //   <TextInput label="Text" value={element.text || ""} onChange={(val) => update({ text: val })} />
+        //   <TextInput
+        //     label="Font Size"
+        //     type="number"
+        //     value={parseInt(element.fontSize!.toString())}
+        //     onChange={(val) => update({ fontSize: parseInt(val) })}
+        //   />
+        //   <SelectInput
+        //     label="Font Family"
+        //     value={element.fontFamily || "Arial"}
+        //     onChange={(val) => update({ fontFamily: val })}
+        //     options={[
+        //       "Arial",
+        //       "Helvetica",
+        //       "Georgia",
+        //       "Times New Roman",
+        //       "Courier New",
+        //       "Comic Sans MS",
+        //       "Trebuchet MS",
+        //       "Verdana",
+        //       "Impact",
+        //     ]}
+        //   />
+        //   <SelectInput
+        //     label="Horizontal Alignment"
+        //     value={element.align || "left"}
+        //     onChange={(val) => update({ align: val as "left" | "center" | "right" | undefined })}
+        //     options={["left", "center", "right"]}
+        //   />
+        //   <SelectInput
+        //     label="Vertical Alignment"
+        //     value={element.verticalAlign || "left"}
+        //     onChange={(val) => update({ verticalAlign: val as "top" | "middle" | "bottom" | undefined })}
+        //     options={["top", "middle", "bottom"]}
+        //   />
+        //   <TextInput
+        //     label="Padding"
+        //     type="number"
+        //     value={element.padding ?? 10}
+        //     onChange={(val) => update({ padding: parseFloat(val) })}
+        //   />
+
+        //   <div className="grid grid-cols-2 gap-4">
+        //     <TextInput
+        //       label="Top Left Radius"
+        //       type="number"
+        //       value={element.borderRadius?.topLeft ?? 0}
+        //       onChange={(val) =>
+        //         update({
+        //           borderRadius: {
+        //             ...element.borderRadius,
+        //             topLeft: parseFloat(val),
+        //           },
+        //         })
+        //       }
+        //     />
+        //     <TextInput
+        //       label="Top Right Radius"
+        //       type="number"
+        //       value={element.borderRadius?.topRight ?? 0}
+        //       onChange={(val) =>
+        //         update({
+        //           borderRadius: {
+        //             ...element.borderRadius,
+        //             topRight: parseFloat(val),
+        //           },
+        //         })
+        //       }
+        //     />
+        //     <TextInput
+        //       label="Bottom Right Radius"
+        //       type="number"
+        //       value={element.borderRadius?.bottomRight ?? 0}
+        //       onChange={(val) =>
+        //         update({
+        //           borderRadius: {
+        //             ...element.borderRadius,
+        //             bottomRight: parseFloat(val),
+        //           },
+        //         })
+        //       }
+        //     />
+        //     <TextInput
+        //       label="Bottom Left Radius"
+        //       type="number"
+        //       value={element.borderRadius?.bottomLeft ?? 0}
+        //       onChange={(val) =>
+        //         update({
+        //           borderRadius: {
+        //             ...element.borderRadius,
+        //             bottomLeft: parseFloat(val),
+        //           },
+        //         })
+        //       }
+        //     />
+        //   </div>
+        //   {/* 
+        //   <SelectInput
+        //     label="Text Alignment"
+        //     value={element.align || "left"}
+        //     onChange={(val) => update({ align: val as "left" | "center" | "right" })}
+        //     options={["left", "center", "right"]}
+        //   /> */}
+
+        //   <TextInput
+        //     label="Label"
+        //     type="text"
+        //     value={element.label ?? "Give me label"}
+        //     onChange={(val) => update({ label: val })}
+        //   />
+        //   <SelectInput
+        //     label="Branding Color"
+        //     value={element.colorBrandingType ?? ""}
+        //     onChange={(val) => update({ colorBrandingType: val as any })}
+        //     options={BRAND_OPTIONS}
+        //   />
+        //   <SelectInput
+        //     label="Branding Background"
+        //     value={element.backgroundBrandingType ?? ""}
+        //     onChange={(val) => update({ backgroundBrandingType: val as any })}
+        //     options={BRAND_OPTIONS}
+        //   />
+        //   <SelectInput
+        //     label="Branding Font"
+        //     value={element.fontBrandingType ?? ""}
+        //     onChange={(val) => update({ fontBrandingType: val as any })}
+        //     options={BRAND_OPTIONS}
+        //   />
+        // </>
       )}
 
       {/* Image Preview */}

@@ -58,6 +58,8 @@ const canvasSlice = createSlice({
         case "frame":
           newElement = {
             ...base,
+            width: 200,
+            height: 200,
             type: "frame",
             name: "Frame",
             fill: "transparent",
