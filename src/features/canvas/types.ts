@@ -38,7 +38,7 @@ export interface CanvasElement {
   strokeWidth?: number;
   dash?: number[];
   frameId?: string | null;
-  tags?:[]
+  tags?:string[]
   
   // Image specific
   src?: string;
