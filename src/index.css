@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -117,4 +117,16 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.input-text {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.select-input {
+  padding: 4px;
+  color: #ccc;
+  background-color: var(--color-background);
 }

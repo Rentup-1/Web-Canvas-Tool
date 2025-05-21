@@ -9,8 +9,8 @@ interface TextInputProps {
 export function TextInput({ label, value, onChange, type = "text", className = "" }: TextInputProps) {
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      {label && <label className="fancy-label">{label}</label>}
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="fancy-input" />
+      {label && <label>{label}</label>}
+      <input type={type} className="input-text" value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
