@@ -1,0 +1,46 @@
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+
+interface UiState {
+  activeCategory: string
+  mainSidebarOpen: boolean
+  propertiesSidebarOpen: boolean
+}
+
+const initialState: UiState = {
+  activeCategory: "shapes",
+  mainSidebarOpen: true,
+  propertiesSidebarOpen: true,
+}
+
+const uiSlice = createSlice({
+  name: "ui",
+  initialState,
+  reducers: {
+    setActiveCategory: (state, action: PayloadAction<string>) => {
+      state.activeCategory = action.payload
+      state.mainSidebarOpen = true // Open main sidebar when category is selected
+    },
+    toggleMainSidebar: (state) => {
+      state.mainSidebarOpen = !state.mainSidebarOpen
+    },
+    togglePropertiesSidebar: (state) => {
+      state.propertiesSidebarOpen = !state.propertiesSidebarOpen
+    },
+    setMainSidebarOpen: (state, action: PayloadAction<boolean>) => {
+      state.mainSidebarOpen = action.payload
+    },
+    setPropertiesSidebarOpen: (state, action: PayloadAction<boolean>) => {
+      state.propertiesSidebarOpen = action.payload
+    },
+  },
+})
+
+export const {
+  setActiveCategory,
+  toggleMainSidebar,
+  togglePropertiesSidebar,
+  setMainSidebarOpen,
+  setPropertiesSidebarOpen,
+} = uiSlice.actions
+
+export default uiSlice.reducer

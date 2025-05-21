@@ -3,21 +3,25 @@ import { Canvas } from "./components/layout/Canvas";
 import { PropertiesPanel } from "./components/PropertiesPanel";
 import { MiniSidebar } from "./components/layout/Sidebar/MiniSidebar";
 import { SidebarPanel } from "./components/layout/Sidebar";
+import Navbar from "./components/Navbar";
 
 function App() {
-  const [activePanel, setActivePanel] = useState<null | "text" | "upload" | "layers">(null);
+  const [activePanel, setActivePanel] = useState<
+    null | "text" | "upload" | "layers"
+  >(null);
 
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="h-14 bg-white shadow flex items-center px-6">
-        <h1 className="text-xl font-semibold text-gray-800">🎨 Mini Canva Clone</h1>
-      </header>
+      <Navbar />
 
       {/* Main Layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Mini Sidebar */}
-        <MiniSidebar activePanel={activePanel} setActivePanel={setActivePanel} />
+        <MiniSidebar
+          activePanel={activePanel}
+          setActivePanel={setActivePanel}
+        />
 
         {/* Sidebar Panel Content */}
         <SidebarPanel activePanel={activePanel} />
