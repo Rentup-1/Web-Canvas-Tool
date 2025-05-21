@@ -23,7 +23,7 @@ function App() {
         <SidebarPanel activePanel={activePanel} />
 
         {/* Canvas Area */}
-        <main className="flex-1 p-4 overflow-auto flex justify-center items-start">
+        <main className="flex-1 p-4 overflow-auto flex justify-center items-center">
           <div className="bg-white shadow-lg rounded-md">
             <Canvas />
           </div>
