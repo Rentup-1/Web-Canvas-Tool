@@ -4,11 +4,10 @@ import { PropertiesPanel } from "./components/PropertiesPanel";
 import { MiniSidebar } from "./components/layout/Sidebar/MiniSidebar";
 import { SidebarPanel } from "./components/layout/Sidebar";
 import Navbar from "./components/Navbar";
+import LeftSideBar from "./components/LeftSideBar";
 
 function App() {
-  const [activePanel, setActivePanel] = useState<
-    null | "text" | "upload" | "layers"
-  >(null);
+  const [activePanel] = useState<null | "text" | "upload" | "layers">(null);
 
   return (
     <div className="h-screen flex flex-col">
@@ -17,11 +16,7 @@ function App() {
 
       {/* Main Layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Mini Sidebar */}
-        <MiniSidebar
-          activePanel={activePanel}
-          setActivePanel={setActivePanel}
-        />
+        <LeftSideBar />
 
         {/* Sidebar Panel Content */}
         <SidebarPanel activePanel={activePanel} />
