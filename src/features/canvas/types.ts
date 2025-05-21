@@ -38,14 +38,13 @@ export interface CanvasElement {
   strokeWidth?: number;
   dash?: number[];
   frameId?: string | null;
-  tags?:string[]
-  
+  tags?: string[];
+
   // Image specific
   src?: string;
   fitMode?: FitMode; // default "fill"
   originalWidth?: number;
-  originalHeight?: number
-  
+  originalHeight?: number;
 }
 
 export type AspectRatio = "1:1" | "9:16";
