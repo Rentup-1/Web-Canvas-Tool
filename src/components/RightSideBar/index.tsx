@@ -3,11 +3,15 @@ import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { togglePropertiesSidebar } from "@/features/ui/uiSlice";
 import { Button } from "../ui/Button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { ShapeProperties } from "../RightPanels/ShapeProperties";
 
 const RightSideBar: FC = () => {
   const dispatch = useAppDispatch();
   const propertiesSidebarOpen = useAppSelector(
     (state) => state.ui.propertiesSidebarOpen
+  );
+  const selectedElement = useAppSelector((state) =>
+    state.canvas.elements.find((el) => el.selected)
   );
   if (!propertiesSidebarOpen) {
     return (
@@ -25,7 +29,7 @@ const RightSideBar: FC = () => {
   }
 
   return (
-    <div className="h-full min-w-64 max-w-2xs bg-card border-l overflow-y-auto">
+    <div className="h-full w-64 bg-card border-l overflow-y-auto">
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="text-lg font-semibold">Properties</h2>
         <Button
@@ -38,10 +42,13 @@ const RightSideBar: FC = () => {
         </Button>
       </div>
 
-      {/* <div className="p-4">
-        {!selectedElement && <CanvasSettings />}
-        {selectedElement && <ShapeProperties element={selectedElement} />}
-      </div> */}
+      <div className="p-4">
+        {selectedElement &&
+          selectedElement.type !== "text" &&
+          selectedElement.type !== "image" && (
+            <ShapeProperties element={selectedElement} />
+          )}
+      </div>
     </div>
   );
 };
