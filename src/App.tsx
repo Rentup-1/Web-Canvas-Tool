@@ -5,6 +5,7 @@ import { MiniSidebar } from "./components/layout/Sidebar/MiniSidebar";
 import { SidebarPanel } from "./components/layout/Sidebar";
 import Navbar from "./components/Navbar";
 import LeftSideBar from "./components/LeftSideBar";
+import RightSideBar from "./components/RightSideBar";
 
 function App() {
   const [activePanel] = useState<null | "text" | "upload" | "layers">(null);
@@ -27,11 +28,7 @@ function App() {
             <Canvas />
           </div>
         </main>
-
-        {/* Properties Panel */}
-        <aside className="w-80 border-l p-4 overflow-y-auto">
-          <PropertiesPanel />
-        </aside>
+        <RightSideBar />
       </div>
     </div>
   );
