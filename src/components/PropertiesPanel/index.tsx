@@ -374,7 +374,7 @@ export function PropertiesPanel() {
           <TextInput
             label="Font Size"
             type="number"
-            value={parseInt(element.fontSize!.toString())}
+            value={parseInt(element.fontSize?.toString() || "")}
             onChange={(val) => update({ fontSize: parseInt(val) })}
           />
           <SelectInput
