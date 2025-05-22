@@ -1,5 +1,3 @@
-"use client";
-
 import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 import { updateElement } from "../../features/canvas/canvasSlice";
 import type {
@@ -17,7 +15,12 @@ import { CanvasSettings } from "../ui/controlled-inputs/CanvasSettings";
 import { AspectRatioSelector } from "../ui/controlled-inputs/ApectRatioSelector";
 import { useState, useEffect } from "react";
 
-export const BRAND_OPTIONS: BrandingType[] = ["primary", "secondary", "additional", "fixed"];
+export const BRAND_OPTIONS: BrandingType[] = [
+  "primary",
+  "secondary",
+  "additional",
+  "fixed",
+];
 export const FONT_FAMILY_OPTIONS = [
   "Arial",
   "Helvetica",
@@ -41,7 +44,11 @@ function ShapeStyleControls({
   return (
     <>
       <div className="flex items-center gap-4">
-        <ColorInput label="Fill Color" value={element.fill ?? "#000000"} onChange={(val) => update({ fill: val })} />
+        <ColorInput
+          label="Fill Color"
+          value={element.fill ?? "#000000"}
+          onChange={(val) => update({ fill: val })}
+        />
         <ColorInput
           label="Stroke Color"
           value={element.stroke ?? "#000000"}
@@ -76,7 +83,9 @@ function ShapeStyleControls({
         <SelectInput
           label="Stroke Branding"
           value={element.strokeBrandingType ?? "fixed"}
-          onChange={(val) => update({ strokeBrandingType: val as BrandingType })}
+          onChange={(val) =>
+            update({ strokeBrandingType: val as BrandingType })
+          }
           options={BRAND_OPTIONS}
         />
       </div>
@@ -98,7 +107,9 @@ function RectangleCornerControls({
   useEffect(() => {
     const br = element.borderRadius || {};
     const hasIndividualCorners =
-      br.topLeft !== br.topRight || br.topLeft !== br.bottomRight || br.topLeft !== br.bottomLeft;
+      br.topLeft !== br.topRight ||
+      br.topLeft !== br.bottomRight ||
+      br.topLeft !== br.bottomLeft;
 
     if (hasIndividualCorners) {
       setIndividualCorners(true);
@@ -225,9 +236,9 @@ function RectangleCornerControls({
 }
 
 export function PropertiesPanel() {
-  const element = useAppSelector((state) => state.canvas.elements.find((el) => el.selected)) as
-    | CanvasElement
-    | undefined;
+  const element = useAppSelector((state) =>
+    state.canvas.elements.find((el) => el.selected)
+  ) as CanvasElement | undefined;
   const dispatch = useAppDispatch();
 
   if (!element) {
@@ -259,10 +270,6 @@ export function PropertiesPanel() {
 
   return (
     <div className="p-4 shadow space-y-5">
-      {/* Canvas Settings: Width, Height */}
-      <CanvasSettings />
-      <AspectRatioSelector />
-
       {/* Shared: Position, Rotation */}
       <div className="grid grid-cols-2 gap-4">
         <TextInput
@@ -298,9 +305,13 @@ export function PropertiesPanel() {
       </div>
 
       {/* Common styling for all elements except images */}
-      {!isImageElement(element) && <ShapeStyleControls element={element} update={update} />}
+      {!isImageElement(element) && (
+        <ShapeStyleControls element={element} update={update} />
+      )}
 
-      {isRectangleElement(element) && <RectangleCornerControls element={element} update={update} />}
+      {isRectangleElement(element) && (
+        <RectangleCornerControls element={element} update={update} />
+      )}
 
       {/* Text-specific Fields */}
       {isTextElement(element) && (
@@ -326,7 +337,9 @@ export function PropertiesPanel() {
           <TextInput
             label="Font Size"
             type="number"
-            value={(parseInt(element.fontSize!.toString() || "") ?? 24).toString()}
+            value={(
+              parseInt(element.fontSize!.toString() || "") ?? 24
+            ).toString()}
             onChange={(val) =>
               update({
                 fontSize: Number.parseInt(val),
@@ -336,14 +349,18 @@ export function PropertiesPanel() {
           <SelectInput
             label="Font Family"
             value={element.fontFamily ?? "Arial"}
-            onChange={(val) => update({ fontFamily: val } as Partial<CanvasTextElement>)}
+            onChange={(val) =>
+              update({ fontFamily: val } as Partial<CanvasTextElement>)
+            }
             options={Array.from(FONT_FAMILY_OPTIONS)}
           />
           <TextInput
             label="Padding"
             type="number"
             value={(element.padding ?? 10).toString()}
-            onChange={(val) => update<CanvasTextElement>({ padding: Number.parseFloat(val) })}
+            onChange={(val) =>
+              update<CanvasTextElement>({ padding: Number.parseFloat(val) })
+            }
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -444,7 +461,11 @@ export function PropertiesPanel() {
       {isImageElement(element) && element.src && (
         <div className="space-y-1">
           <label className="text-sm font-medium">Image Preview</label>
-          <img src={element.src || "/placeholder.svg"} alt="Preview" className="w-full h-auto rounded border" />
+          <img
+            src={element.src || "/placeholder.svg"}
+            alt="Preview"
+            className="w-full h-auto rounded border"
+          />
         </div>
       )}
       {isImageElement(element) && (

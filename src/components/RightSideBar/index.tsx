@@ -4,7 +4,9 @@ import { togglePropertiesSidebar } from "@/features/ui/uiSlice";
 import { Button } from "../ui/Button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { ShapeProperties } from "../RightPanels/ShapeProperties";
-
+import { PropertiesPanel } from "../PropertiesPanel";
+import CanvasProperties from "../RightPanels/CanvasProperties";
+import TextProperties from "../RightPanels/TextProperties";
 const RightSideBar: FC = () => {
   const dispatch = useAppDispatch();
   const propertiesSidebarOpen = useAppSelector(
@@ -48,6 +50,10 @@ const RightSideBar: FC = () => {
           selectedElement.type !== "image" && (
             <ShapeProperties element={selectedElement} />
           )}
+        {!selectedElement && <CanvasProperties />}
+        {selectedElement?.type === "text" && (
+          <TextProperties element={selectedElement} />
+        )}
       </div>
     </div>
   );
