@@ -69,7 +69,7 @@ function ShapeStyleControls({
           value={element.opacity ?? 1}
           onChange={(val) =>
             update({
-              opacity: Math.min(1, Math.max(0, Number.parseFloat(val))),
+              opacity: Math.min(1, Math.max(0, val)),
             })
           }
           className="w-full"
@@ -468,7 +468,7 @@ export function PropertiesPanel() {
           value={element.opacity ?? 1}
           onChange={(val) =>
             update({
-              opacity: Math.min(1, Math.max(0, Number.parseFloat(val))),
+              opacity: Math.min(1, Math.max(0, val)),
             })
           }
           className="w-full"
