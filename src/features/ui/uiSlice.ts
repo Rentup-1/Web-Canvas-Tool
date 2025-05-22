@@ -1,39 +1,41 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+
+export type ActiveCategoryType = "shapes" | "text" | "layers";
 
 interface UiState {
-  activeCategory: string
-  mainSidebarOpen: boolean
-  propertiesSidebarOpen: boolean
+  activeCategory: ActiveCategoryType;
+  mainSidebarOpen: boolean;
+  propertiesSidebarOpen: boolean;
 }
 
 const initialState: UiState = {
   activeCategory: "shapes",
   mainSidebarOpen: true,
   propertiesSidebarOpen: true,
-}
+};
 
 const uiSlice = createSlice({
   name: "ui",
   initialState,
   reducers: {
-    setActiveCategory: (state, action: PayloadAction<string>) => {
-      state.activeCategory = action.payload
-      state.mainSidebarOpen = true // Open main sidebar when category is selected
+    setActiveCategory: (state, action: PayloadAction<ActiveCategoryType>) => {
+      state.activeCategory = action.payload;
+      state.mainSidebarOpen = true; // Open main sidebar when category is selected
     },
     toggleMainSidebar: (state) => {
-      state.mainSidebarOpen = !state.mainSidebarOpen
+      state.mainSidebarOpen = !state.mainSidebarOpen;
     },
     togglePropertiesSidebar: (state) => {
-      state.propertiesSidebarOpen = !state.propertiesSidebarOpen
+      state.propertiesSidebarOpen = !state.propertiesSidebarOpen;
     },
     setMainSidebarOpen: (state, action: PayloadAction<boolean>) => {
-      state.mainSidebarOpen = action.payload
+      state.mainSidebarOpen = action.payload;
     },
     setPropertiesSidebarOpen: (state, action: PayloadAction<boolean>) => {
-      state.propertiesSidebarOpen = action.payload
+      state.propertiesSidebarOpen = action.payload;
     },
   },
-})
+});
 
 export const {
   setActiveCategory,
@@ -41,6 +43,6 @@ export const {
   togglePropertiesSidebar,
   setMainSidebarOpen,
   setPropertiesSidebarOpen,
-} = uiSlice.actions
+} = uiSlice.actions;
 
-export default uiSlice.reducer
+export default uiSlice.reducer;

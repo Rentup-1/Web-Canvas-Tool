@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Canvas } from "./components/layout/Canvas";
-import { PropertiesPanel } from "./components/PropertiesPanel";
-import { MiniSidebar } from "./components/layout/Sidebar/MiniSidebar";
 import { SidebarPanel } from "./components/layout/Sidebar";
 import Navbar from "./components/Navbar";
 import LeftSideBar from "./components/LeftSideBar";
