@@ -7,7 +7,7 @@ import { GoVideo } from "react-icons/go";
 import { IoLayers } from "react-icons/io5";
 import { BsStars } from "react-icons/bs";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import { setActiveCategory, toggleMainSidebar } from "@/features/ui/uiSlice";
+import { setActiveCategory, toggleMainSidebar, type ActiveCategoryType } from "@/features/ui/uiSlice";
 import { Button } from "@/components/ui/Button";
 import { IoIosArrowForward } from "react-icons/io";
 import { LuFrame } from "react-icons/lu";
@@ -30,7 +30,7 @@ const CategorySidebar: FC = () => {
   const activeCategory = useAppSelector((state) => state.ui.activeCategory);
   const mainSidebarOpen = useAppSelector((state) => state.ui.mainSidebarOpen);
 
-  const handleCategoryClick = (categoryId: string) => {
+  const handleCategoryClick = (categoryId: ActiveCategoryType) => {
     dispatch(setActiveCategory(categoryId));
   };
 
@@ -42,7 +42,7 @@ const CategorySidebar: FC = () => {
           className={`flex flex-col items-center justify-center px-2 py-4 hover:bg-accent transition-colors w-full ${
             activeCategory === category.id ? "bg-accent" : ""
           }`}
-          onClick={() => handleCategoryClick(category.id)}
+          onClick={() => handleCategoryClick(category.id as ActiveCategoryType)}
         >
           <category.icon className="h-5 w-5" />
           <span className="capitalize">{category.label}</span>

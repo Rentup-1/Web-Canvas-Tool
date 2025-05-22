@@ -6,6 +6,18 @@ import { ColorInput } from "@/components/ui/controlled-inputs/ColorInput";
 import { InputRange } from "@/components/ui/controlled-inputs/InputRange";
 import { useState, useEffect } from "react";
 import { SelectInput } from "@/components/ui/controlled-inputs/SelectInput";
+import { FaH, FaW, FaX, FaY } from "react-icons/fa6";
+import { MdOutlineScreenRotationAlt } from "react-icons/md";
+import { BsBorderWidth } from "react-icons/bs";
+import { Button } from "@/components/ui/Button";
+import { FaLock, FaUnlock } from "react-icons/fa";
+import {
+  RxCornerBottomLeft,
+  RxCornerBottomRight,
+  RxCorners,
+  RxCornerTopLeft,
+  RxCornerTopRight,
+} from "react-icons/rx";
 
 const BRANDING_OPTIONS = [
   "primary",
@@ -45,175 +57,191 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
     <div className="space-y-4">
       {/* Common Shape Properties */}
       <div className="space-y-2">
-        <h3 className="text-sm font-medium">Position & Size</h3>
-        <div className="grid grid-cols-2 gap-7">
-          <TextInput
-            label="X"
-            type="number"
-            value={element.x.toFixed(0)}
-            onChange={(val) => update({ x: Number.parseFloat(val) })}
-          />
-          <TextInput
-            label="Y"
-            type="number"
-            value={element.y.toFixed(0)}
-            onChange={(val) => update({ y: Number.parseFloat(val) })}
-          />
-          <TextInput
-            label="Width"
-            type="number"
-            value={element.width.toFixed(0)}
-            onChange={(val) => update({ width: Number.parseFloat(val) })}
-          />
-          <TextInput
-            label="Height"
-            type="number"
-            value={element.height.toFixed(0)}
-            onChange={(val) => update({ height: Number.parseFloat(val) })}
-          />
-          <TextInput
-            label="Rotation"
-            type="number"
-            value={(element.rotation ?? 0).toFixed(0)}
-            onChange={(val) => update({ rotation: Number.parseFloat(val) })}
-          />
-          <div className="col-span-full">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-x-4 col-span-full items-center text-sm">
+            <h4 className="col-span-full mb-2">Position</h4>
+            <TextInput
+              label={<FaX />}
+              type="number"
+              id="x"
+              value={element.x.toFixed(0)}
+              onChange={(val) => update({ x: Number.parseFloat(val) })}
+            />
+            <TextInput
+              label={<FaY />}
+              type="number"
+              value={element.y.toFixed(0)}
+              onChange={(val) => update({ y: Number.parseFloat(val) })}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 col-span-full items-center text-sm">
+            <h4 className="col-span-full mb-2">Width & height</h4>
+            <TextInput
+              label={<FaW />}
+              type="number"
+              value={element.width.toFixed(0)}
+              onChange={(val) => update({ width: Number.parseFloat(val) })}
+            />
+            <TextInput
+              label={<FaH />}
+              type="number"
+              value={element.height.toFixed(0)}
+              onChange={(val) => update({ height: Number.parseFloat(val) })}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 col-span-full items-center text-sm">
+            <h4 className="col-span-full mb-2">Rotation</h4>
+            <TextInput
+              label={<MdOutlineScreenRotationAlt />}
+              type="number"
+              value={(element.rotation ?? 0).toFixed(0)}
+              onChange={(val) => update({ rotation: Number.parseFloat(val) })}
+            />
+          </div>
+          <div className="col-span-full my-2">
             <InputRange
               label="Opacity"
               value={element.opacity ?? 1}
-              onChange={(val) => update({ opacity: Number.parseFloat(val) })}
+              onChange={(val) => update({ opacity: val })}
             />
           </div>
-          <ColorInput
-            label="Fill Color"
-            value={element.fill ?? "#000000"}
-            onChange={(val) => update({ fill: val })}
-          />
-          <SelectInput
-            label="Fill Branding"
-            value={element.fillBrandingType ?? "fixed"}
-            onChange={(val) =>
-              update({
-                fillBrandingType: val as (typeof BRANDING_OPTIONS)[number],
-              })
-            }
-            options={BRANDING_OPTIONS as unknown as string[]}
-          />
-          <ColorInput
-            label="Stroke Color"
-            value={element.stroke ?? "#000000"}
-            onChange={(val) => update({ stroke: val })}
-          />
-          <SelectInput
-            label="Stroke Branding"
-            value={element.strokeBrandingType ?? "fixed"}
-            onChange={(val) =>
-              update({
-                strokeBrandingType: val as (typeof BRANDING_OPTIONS)[number],
-              })
-            }
-            options={BRANDING_OPTIONS as unknown as string[]}
-          />
-          <TextInput
-            label="Stroke Width"
-            type="number"
-            value={element.strokeWidth?.toString() ?? "0"}
-            onChange={(val) => update({ strokeWidth: Number.parseFloat(val) })}
-          />
+          <div className="grid grid-cols-2 col-span-full gap-4 my-2">
+            <ColorInput
+              label="Fill Color"
+              value={element.fill ?? "#000000"}
+              onChange={(val) => update({ fill: val })}
+            />
+            <ColorInput
+              label="Stroke Color"
+              value={element.stroke ?? "#000000"}
+              onChange={(val) => update({ stroke: val })}
+            />
+            <SelectInput
+              label="Fill Branding"
+              value={element.fillBrandingType ?? "fixed"}
+              onChange={(val) =>
+                update({
+                  fillBrandingType: val as (typeof BRANDING_OPTIONS)[number],
+                })
+              }
+              options={BRANDING_OPTIONS as unknown as string[]}
+            />
+            <SelectInput
+              label="Stroke Branding"
+              value={element.strokeBrandingType ?? "fixed"}
+              onChange={(val) =>
+                update({
+                  strokeBrandingType: val as (typeof BRANDING_OPTIONS)[number],
+                })
+              }
+              options={BRANDING_OPTIONS as unknown as string[]}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-4 col-span-full items-center text-sm">
+            <h4 className="col-span-full mb-2">Stroke Width</h4>
+            <TextInput
+              label={<BsBorderWidth />}
+              type="number"
+              min={0}
+              value={element.strokeWidth?.toString() ?? "0"}
+              onChange={(val) =>
+                update({ strokeWidth: Number.parseFloat(val) })
+              }
+            />
+          </div>
         </div>
       </div>
 
       {/* Rectangle Corner Radius */}
       {isRectangleElement(element) && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Corner Radius</h3>
-          <div className="flex items-center mb-4">
-            <input
-              type="checkbox"
-              id="individualCorners"
-              checked={individualCorners}
-              onChange={(e) => setIndividualCorners(e.target.checked)}
-              className="mr-2"
-            />
-            <label htmlFor="individualCorners" className="text-sm">
-              Edit corners individually
-            </label>
-          </div>
+          <h4 className="text-sm font-medium">Corner Radius</h4>
 
-          {!individualCorners ? (
-            <TextInput
-              label="All Corners"
-              type="number"
-              value={((element.cornerRadius as number) || 0).toString()}
-              onChange={(val) => {
-                const radius = Number.parseFloat(val);
-                update<RectangleShape>({
-                  cornerRadius: radius,
-                  borderRadius: {
-                    topLeft: radius,
-                    topRight: radius,
-                    bottomRight: radius,
-                    bottomLeft: radius,
-                  },
-                });
-              }}
-            />
-          ) : (
-            <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-row-reverse gap-4 items-center mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIndividualCorners(!individualCorners)}
+              aria-label="Toggle C"
+            >
+              {individualCorners === false ? <FaLock /> : <FaUnlock />}
+            </Button>
+            {!individualCorners ? (
               <TextInput
-                label="Top Left"
+                label={<RxCorners />}
                 type="number"
-                value={(element.borderRadius?.topLeft ?? 0).toString()}
-                onChange={(val) =>
+                value={((element.cornerRadius as number) || 0).toString()}
+                onChange={(val) => {
+                  const radius = Number.parseFloat(val);
                   update<RectangleShape>({
+                    cornerRadius: radius,
                     borderRadius: {
-                      ...element.borderRadius,
-                      topLeft: Number.parseFloat(val),
+                      topLeft: radius,
+                      topRight: radius,
+                      bottomRight: radius,
+                      bottomLeft: radius,
                     },
-                  })
-                }
+                  });
+                }}
               />
-              <TextInput
-                label="Top Right"
-                type="number"
-                value={(element.borderRadius?.topRight ?? 0).toString()}
-                onChange={(val) =>
-                  update<RectangleShape>({
-                    borderRadius: {
-                      ...element.borderRadius,
-                      topRight: Number.parseFloat(val),
-                    },
-                  })
-                }
-              />
-              <TextInput
-                label="Bottom Right"
-                type="number"
-                value={(element.borderRadius?.bottomRight ?? 0).toString()}
-                onChange={(val) =>
-                  update<RectangleShape>({
-                    borderRadius: {
-                      ...element.borderRadius,
-                      bottomRight: Number.parseFloat(val),
-                    },
-                  })
-                }
-              />
-              <TextInput
-                label="Bottom Left"
-                type="number"
-                value={(element.borderRadius?.bottomLeft ?? 0).toString()}
-                onChange={(val) =>
-                  update<RectangleShape>({
-                    borderRadius: {
-                      ...element.borderRadius,
-                      bottomLeft: Number.parseFloat(val),
-                    },
-                  })
-                }
-              />
-            </div>
-          )}
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <TextInput
+                  label={<RxCornerTopLeft />}
+                  type="number"
+                  value={(element.borderRadius?.topLeft ?? 0).toString()}
+                  onChange={(val) =>
+                    update<RectangleShape>({
+                      borderRadius: {
+                        ...element.borderRadius,
+                        topLeft: Number.parseFloat(val),
+                      },
+                    })
+                  }
+                />
+                <TextInput
+                  label={<RxCornerTopRight />}
+                  type="number"
+                  value={(element.borderRadius?.topRight ?? 0).toString()}
+                  onChange={(val) =>
+                    update<RectangleShape>({
+                      borderRadius: {
+                        ...element.borderRadius,
+                        topRight: Number.parseFloat(val),
+                      },
+                    })
+                  }
+                />
+                <TextInput
+                  label={<RxCornerBottomLeft />}
+                  type="number"
+                  value={(element.borderRadius?.bottomLeft ?? 0).toString()}
+                  onChange={(val) =>
+                    update<RectangleShape>({
+                      borderRadius: {
+                        ...element.borderRadius,
+                        bottomLeft: Number.parseFloat(val),
+                      },
+                    })
+                  }
+                />
+                <TextInput
+                  label={<RxCornerBottomRight />}
+                  type="number"
+                  value={(element.borderRadius?.bottomRight ?? 0).toString()}
+                  onChange={(val) =>
+                    update<RectangleShape>({
+                      borderRadius: {
+                        ...element.borderRadius,
+                        bottomRight: Number.parseFloat(val),
+                      },
+                    })
+                  }
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

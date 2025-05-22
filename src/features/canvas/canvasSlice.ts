@@ -1,6 +1,6 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-import { nanoid } from "nanoid"
-import type { AspectRatio, ElementType } from "./types"
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { nanoid } from "nanoid";
+import type { AspectRatio, ElementType } from "./types";
 import type {
   CanvasElement,
   CanvasTextElement,
@@ -17,15 +17,15 @@ import type {
   WedgeShape,
   RingShape,
   ArrowShape,
-} from "./types"
+} from "./types";
 
 interface CanvasState {
-  elements: CanvasElement[]
-  past: CanvasElement[][]
-  future: CanvasElement[][]
-  stageWidth: number
-  stageHeight: number
-  aspectRatio?: AspectRatio
+  elements: CanvasElement[];
+  past: CanvasElement[][];
+  future: CanvasElement[][];
+  stageWidth: number;
+  stageHeight: number;
+  aspectRatio?: AspectRatio;
 }
 
 const initialState: CanvasState = {
@@ -35,7 +35,7 @@ const initialState: CanvasState = {
   stageWidth: 1000,
   stageHeight: 600,
   aspectRatio: "9:16",
-}
+};
 
 const createBaseElement = (): Omit<CanvasElement, "type"> => ({
   id: nanoid(),
@@ -47,15 +47,15 @@ const createBaseElement = (): Omit<CanvasElement, "type"> => ({
   selected: false,
   fill: "#00A8E8",
   opacity: 1,
-})
+});
 
 const canvasSlice = createSlice({
   name: "canvas",
   initialState,
   reducers: {
     addElement: (state, action: PayloadAction<{ type: ElementType }>) => {
-      const base = createBaseElement()
-      let newElement: CanvasElement
+      const base = createBaseElement();
+      let newElement: CanvasElement;
 
       switch (action.payload.type) {
         case "text":
@@ -64,7 +64,7 @@ const canvasSlice = createSlice({
             type: "text",
             text: "Edit me",
             fontSize: 24,
-            fill: "#333",
+            fill: "#333333",
             background: undefined,
             fontFamily: "Arial",
             padding: 0,
@@ -189,8 +189,8 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as RegularPolygonShape
-          break
+          } as RegularPolygonShape;
+          break;
 
         case "arc":
           newElement = {
@@ -203,8 +203,8 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as ArcShape
-          break
+          } as ArcShape;
+          break;
 
         case "wedge":
           newElement = {
@@ -216,8 +216,8 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as WedgeShape
-          break
+          } as WedgeShape;
+          break;
 
         case "ring":
           newElement = {
@@ -229,8 +229,8 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as RingShape
-          break
+          } as RingShape;
+          break;
 
         case "arrow":
           newElement = {
@@ -243,8 +243,8 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as ArrowShape
-          break
+          } as ArrowShape;
+          break;
 
         case "custom":
           newElement = {
@@ -255,16 +255,16 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as CustomShape
-          break
+          } as CustomShape;
+          break;
 
         default:
-          throw new Error(`Unsupported element type: ${action.payload.type}`)
+          throw new Error(`Unsupported element type: ${action.payload.type}`);
       }
 
-      state.past.push(state.elements.map((el) => ({ ...el })))
-      state.future = []
-      state.elements.push(newElement)
+      state.past.push(state.elements.map((el) => ({ ...el })));
+      state.future = [];
+      state.elements.push(newElement);
     },
 
     addImageElement: (state, action: PayloadAction<{ src: string; width: number; height: number }>) => {
@@ -288,89 +288,89 @@ const canvasSlice = createSlice({
 
     selectElement: (state, action: PayloadAction<string | null>) => {
       state.elements.forEach((el) => {
-        el.selected = el.id === action.payload
-      })
+        el.selected = el.id === action.payload;
+      });
     },
 
     updateElement: (state, action: PayloadAction<{ id: string; updates: Partial<CanvasElement> }>) => {
       const { id, updates } = action.payload
       const index = state.elements.findIndex((el) => el.id === id)
       if (index !== -1) {
-        state.past.push(state.elements.map((el) => ({ ...el })))
-        state.future = []
-        state.elements[index] = { ...state.elements[index], ...updates }
+        state.past.push(state.elements.map((el) => ({ ...el })));
+        state.future = [];
+        state.elements[index] = { ...state.elements[index], ...updates };
       }
     },
 
     deleteSelectedElement: (state) => {
-      const selectedIndex = state.elements.findIndex((el) => el.selected)
+      const selectedIndex = state.elements.findIndex((el) => el.selected);
       if (selectedIndex !== -1) {
-        state.past.push(state.elements.map((el) => ({ ...el })))
-        state.future = []
-        state.elements.splice(selectedIndex, 1)
+        state.past.push(state.elements.map((el) => ({ ...el })));
+        state.future = [];
+        state.elements.splice(selectedIndex, 1);
       }
     },
 
     undo: (state) => {
       if (state.past.length > 0) {
-        const previous = state.past.pop()
+        const previous = state.past.pop();
         if (previous) {
-          state.future.unshift(state.elements.map((el) => ({ ...el })))
-          state.elements = previous
+          state.future.unshift(state.elements.map((el) => ({ ...el })));
+          state.elements = previous;
         }
       }
     },
 
     redo: (state) => {
       if (state.future.length > 0) {
-        const next = state.future.shift()
+        const next = state.future.shift();
         if (next) {
-          state.past.push(state.elements.map((el) => ({ ...el })))
-          state.elements = next
+          state.past.push(state.elements.map((el) => ({ ...el })));
+          state.elements = next;
         }
       }
     },
 
     moveElementUp: (state, action: PayloadAction<string>) => {
-      const index = state.elements.findIndex((el) => el.id === action.payload)
+      const index = state.elements.findIndex((el) => el.id === action.payload);
       if (index < state.elements.length - 1) {
-        state.past.push(state.elements.map((el) => ({ ...el })))
-        state.future = []
-        ;[state.elements[index], state.elements[index + 1]] = [state.elements[index + 1], state.elements[index]]
+        state.past.push(state.elements.map((el) => ({ ...el })));
+        state.future = [];
+        [state.elements[index], state.elements[index + 1]] = [state.elements[index + 1], state.elements[index]];
       }
     },
 
     moveElementDown: (state, action: PayloadAction<string>) => {
-      const index = state.elements.findIndex((el) => el.id === action.payload)
+      const index = state.elements.findIndex((el) => el.id === action.payload);
       if (index > 0) {
-        state.past.push(state.elements.map((el) => ({ ...el })))
-        state.future = []
-        ;[state.elements[index], state.elements[index - 1]] = [state.elements[index - 1], state.elements[index]]
+        state.past.push(state.elements.map((el) => ({ ...el })));
+        state.future = [];
+        [state.elements[index], state.elements[index - 1]] = [state.elements[index - 1], state.elements[index]];
       }
     },
 
     setStageSize: (state, action: PayloadAction<{ width: number; height: number }>) => {
-      state.stageWidth = action.payload.width
-      state.stageHeight = action.payload.height
+      state.stageWidth = action.payload.width;
+      state.stageHeight = action.payload.height;
     },
 
     setAspectRatio: (state, action: PayloadAction<AspectRatio | undefined>) => {
-      state.aspectRatio = action.payload
+      state.aspectRatio = action.payload;
     },
 
     setElements: (state, action: PayloadAction<CanvasElement[]>) => {
-      state.past.push(state.elements.map((el) => ({ ...el })))
-      state.future = []
-      state.elements = action.payload
+      state.past.push(state.elements.map((el) => ({ ...el })));
+      state.future = [];
+      state.elements = action.payload;
     },
 
     clearCanvas: (state) => {
-      state.past.push(state.elements.map((el) => ({ ...el })))
-      state.future = []
-      state.elements = []
+      state.past.push(state.elements.map((el) => ({ ...el })));
+      state.future = [];
+      state.elements = [];
     },
   },
-})
+});
 
 export const {
   addElement,
@@ -386,6 +386,6 @@ export const {
   setAspectRatio,
   setElements,
   clearCanvas,
-} = canvasSlice.actions
+} = canvasSlice.actions;
 
-export default canvasSlice.reducer
+export default canvasSlice.reducer;

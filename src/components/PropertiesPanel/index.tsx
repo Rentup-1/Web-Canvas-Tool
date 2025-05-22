@@ -17,12 +17,7 @@ import { CanvasSettings } from "../ui/controlled-inputs/CanvasSettings";
 import { AspectRatioSelector } from "../ui/controlled-inputs/ApectRatioSelector";
 import { useState, useEffect } from "react";
 
-export const BRAND_OPTIONS: BrandingType[] = [
-  "primary",
-  "secondary",
-  "additional",
-  "fixed",
-];
+export const BRAND_OPTIONS: BrandingType[] = ["primary", "secondary", "additional", "fixed"];
 export const FONT_FAMILY_OPTIONS = [
   "Arial",
   "Helvetica",
@@ -46,11 +41,7 @@ function ShapeStyleControls({
   return (
     <>
       <div className="flex items-center gap-4">
-        <ColorInput
-          label="Fill Color"
-          value={element.fill ?? "#000000"}
-          onChange={(val) => update({ fill: val })}
-        />
+        <ColorInput label="Fill Color" value={element.fill ?? "#000000"} onChange={(val) => update({ fill: val })} />
         <ColorInput
           label="Stroke Color"
           value={element.stroke ?? "#000000"}
@@ -69,7 +60,7 @@ function ShapeStyleControls({
           value={element.opacity ?? 1}
           onChange={(val) =>
             update({
-              opacity: Math.min(1, Math.max(0, Number.parseFloat(val))),
+              opacity: Math.min(1, Math.max(0, val)),
             })
           }
           className="w-full"
@@ -85,9 +76,7 @@ function ShapeStyleControls({
         <SelectInput
           label="Stroke Branding"
           value={element.strokeBrandingType ?? "fixed"}
-          onChange={(val) =>
-            update({ strokeBrandingType: val as BrandingType })
-          }
+          onChange={(val) => update({ strokeBrandingType: val as BrandingType })}
           options={BRAND_OPTIONS}
         />
       </div>
@@ -109,9 +98,7 @@ function RectangleCornerControls({
   useEffect(() => {
     const br = element.borderRadius || {};
     const hasIndividualCorners =
-      br.topLeft !== br.topRight ||
-      br.topLeft !== br.bottomRight ||
-      br.topLeft !== br.bottomLeft;
+      br.topLeft !== br.topRight || br.topLeft !== br.bottomRight || br.topLeft !== br.bottomLeft;
 
     if (hasIndividualCorners) {
       setIndividualCorners(true);
@@ -238,15 +225,14 @@ function RectangleCornerControls({
 }
 
 export function PropertiesPanel() {
-  const element = useAppSelector((state) =>
-    state.canvas.elements.find((el) => el.selected)
-  ) as CanvasElement | undefined;
+  const element = useAppSelector((state) => state.canvas.elements.find((el) => el.selected)) as
+    | CanvasElement
+    | undefined;
   const dispatch = useAppDispatch();
 
   if (!element) {
     return (
       <div className="p-4 shadow">
-        <h2 className="text-xl font-semibold">Properties</h2>
         <p className="mt-4 text-gray-500">No element selected</p>
       </div>
     );
@@ -273,8 +259,6 @@ export function PropertiesPanel() {
 
   return (
     <div className="p-4 shadow space-y-5">
-      <h2 className="text-xl font-semibold">Properties</h2>
-
       {/* Canvas Settings: Width, Height */}
       <CanvasSettings />
       <AspectRatioSelector />
@@ -314,17 +298,26 @@ export function PropertiesPanel() {
       </div>
 
       {/* Common styling for all elements except images */}
-      {!isImageElement(element) && (
-        <ShapeStyleControls element={element} update={update} />
-      )}
+      {!isImageElement(element) && <ShapeStyleControls element={element} update={update} />}
 
-      {isRectangleElement(element) && (
-        <RectangleCornerControls element={element} update={update} />
-      )}
+      {isRectangleElement(element) && <RectangleCornerControls element={element} update={update} />}
 
       {/* Text-specific Fields */}
       {isTextElement(element) && (
         <>
+          <div className="flex items-center gap-4">
+            <ColorInput
+              label="Text Color"
+              value={element.fill ?? "#000000"}
+              onChange={(val) => update({ fill: val })}
+            />
+            <ColorInput
+              label="Background"
+              value={element.stroke ?? "#000000"}
+              onChange={(val) => update({ background: val })}
+            />
+          </div>
+
           <TextInput
             label="Text"
             value={element.text ?? ""}
@@ -333,7 +326,7 @@ export function PropertiesPanel() {
           <TextInput
             label="Font Size"
             type="number"
-            value={(element.fontSize ?? 24).toString()}
+            value={(parseInt(element.fontSize!.toString() || "") ?? 24).toString()}
             onChange={(val) =>
               update({
                 fontSize: Number.parseInt(val),
@@ -343,18 +336,14 @@ export function PropertiesPanel() {
           <SelectInput
             label="Font Family"
             value={element.fontFamily ?? "Arial"}
-            onChange={(val) =>
-              update({ fontFamily: val } as Partial<CanvasTextElement>)
-            }
+            onChange={(val) => update({ fontFamily: val } as Partial<CanvasTextElement>)}
             options={Array.from(FONT_FAMILY_OPTIONS)}
           />
           <TextInput
             label="Padding"
             type="number"
             value={(element.padding ?? 10).toString()}
-            onChange={(val) =>
-              update<CanvasTextElement>({ padding: Number.parseFloat(val) })
-            }
+            onChange={(val) => update<CanvasTextElement>({ padding: Number.parseFloat(val) })}
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -455,11 +444,7 @@ export function PropertiesPanel() {
       {isImageElement(element) && element.src && (
         <div className="space-y-1">
           <label className="text-sm font-medium">Image Preview</label>
-          <img
-            src={element.src || "/placeholder.svg"}
-            alt="Preview"
-            className="w-full h-auto rounded border"
-          />
+          <img src={element.src || "/placeholder.svg"} alt="Preview" className="w-full h-auto rounded border" />
         </div>
       )}
       {isImageElement(element) && (
@@ -468,7 +453,7 @@ export function PropertiesPanel() {
           value={element.opacity ?? 1}
           onChange={(val) =>
             update({
-              opacity: Math.min(1, Math.max(0, Number.parseFloat(val))),
+              opacity: Math.min(1, Math.max(0, val)),
             })
           }
           className="w-full"
