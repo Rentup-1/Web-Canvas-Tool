@@ -73,15 +73,30 @@ const canvasSlice = createSlice({
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
           } as CanvasTextElement
-          break
+          break;
 
-        case "image":
+        case "frame":
           newElement = {
             ...base,
-            type: "image",
-            src: "",
-          } as CanvasImageElement
-          break
+            type: "frame",
+            width: 250,
+            height: 200,
+            stroke: "#000",       
+            strokeWidth: 1,           
+            fill: "transparent",       
+            dash: [5, 5],
+            label: "",
+            tags: []
+          } as CanvasElement;
+          break;
+
+        // case "image":
+        //   newElement = {
+        //     ...base,
+        //     type: "image",
+        //     src: "",
+        //   } as CanvasImageElement
+        //   break;
 
         case "circle":
           newElement = {
@@ -93,7 +108,7 @@ const canvasSlice = createSlice({
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
           } as CircleShape
-          break
+          break;
 
         case "rectangle":
           newElement = {
@@ -111,7 +126,7 @@ const canvasSlice = createSlice({
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
           } as RectangleShape
-          break
+          break;
 
         case "ellipse":
           newElement = {
@@ -124,7 +139,7 @@ const canvasSlice = createSlice({
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
           } as EllipseShape
-          break
+          break;
 
         case "line":
           newElement = {
@@ -136,7 +151,7 @@ const canvasSlice = createSlice({
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
           } as LineShape
-          break
+          break;
 
         case "triangle":
           newElement = {
@@ -148,7 +163,7 @@ const canvasSlice = createSlice({
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
           } as TriangleShape
-          break
+          break;
 
         case "star":
           newElement = {
@@ -162,7 +177,7 @@ const canvasSlice = createSlice({
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
           } as StarShape
-          break
+          break;
 
         case "regularPolygon":
           newElement = {
@@ -252,20 +267,24 @@ const canvasSlice = createSlice({
       state.elements.push(newElement)
     },
 
-    addImageElement: (state, action: PayloadAction<{ src: string; width?: number; height?: number }>) => {
-      const { src, width = 200, height = 200 } = action.payload
-      const newElement: CanvasImageElement = {
-        ...createBaseElement(),
+    addImageElement: (state, action: PayloadAction<{ src: string; width: number; height: number }>) => {
+      const { src, width, height } = action.payload;
+
+      state.elements.push({
+        id: nanoid(),
         type: "image",
+        x: 150,
+        y: 150,
         width,
         height,
+        rotation: 0,
+        selected: false,
         src,
-      }
-
-      state.past.push(state.elements.map((el) => ({ ...el })))
-      state.future = []
-      state.elements.push(newElement)
+        originalWidth: width,
+        originalHeight: height
+      });
     },
+
 
     selectElement: (state, action: PayloadAction<string | null>) => {
       state.elements.forEach((el) => {
@@ -276,7 +295,6 @@ const canvasSlice = createSlice({
     updateElement: (state, action: PayloadAction<{ id: string; updates: Partial<CanvasElement> }>) => {
       const { id, updates } = action.payload
       const index = state.elements.findIndex((el) => el.id === id)
-
       if (index !== -1) {
         state.past.push(state.elements.map((el) => ({ ...el })))
         state.future = []

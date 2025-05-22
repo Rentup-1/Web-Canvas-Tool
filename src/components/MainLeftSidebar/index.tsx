@@ -1,6 +1,8 @@
 import { useAppSelector } from "@/hooks/useRedux";
 import type { FC } from "react";
 import { ShapesPanel } from "../LeftPanels/Shapes";
+import { FramePanel } from "../layout/Sidebar/SidebarPanels/FramePanel";
+import { UploadPanel } from "../layout/Sidebar/SidebarPanels/UploadPanel";
 
 const MainSidebar: FC = () => {
   const { activeCategory } = useAppSelector((state) => state.ui);
@@ -12,6 +14,8 @@ const MainSidebar: FC = () => {
           {activeCategory}
         </h2>
         {activeCategory === "shapes" && <ShapesPanel />}
+        {activeCategory === "frame" && <FramePanel />}
+        {activeCategory === "upload" && <UploadPanel />}
       </div>
     </div>
   );
