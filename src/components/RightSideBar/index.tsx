@@ -4,9 +4,24 @@ import { togglePropertiesSidebar } from "@/features/ui/uiSlice";
 import { Button } from "../ui/Button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { ShapeProperties } from "../RightPanels/ShapeProperties";
-import { PropertiesPanel } from "../PropertiesPanel";
-import CanvasProperties from "../RightPanels/CanvasProperties";
-import TextProperties from "../RightPanels/TextProperties";
+import { FrameProperties } from "../RightPanels/FrameProperties";
+import { ImageProperties } from "../RightPanels/ImageProperties";
+
+const shapes = [
+  "circle",
+  "rectangle",
+  "ellipse",
+  "line",
+  "triangle",
+  "star",
+  "regularPolygon",
+  "arc",
+  "wedge",
+  "ring",
+  "arrow",
+  "custom",
+];
+
 const RightSideBar: FC = () => {
   const dispatch = useAppDispatch();
   const propertiesSidebarOpen = useAppSelector(
@@ -46,13 +61,18 @@ const RightSideBar: FC = () => {
 
       <div className="p-4">
         {selectedElement &&
-          selectedElement.type !== "text" &&
-          selectedElement.type !== "image" && (
-            <ShapeProperties element={selectedElement} />
+          shapes.map(
+            (el) =>
+              el.includes(selectedElement.type) && (
+                <ShapeProperties element={selectedElement} />
+              )
           )}
-        {!selectedElement && <CanvasProperties />}
-        {selectedElement?.type === "text" && (
-          <TextProperties element={selectedElement} />
+
+        {selectedElement && selectedElement.type == "frame" && (
+          <FrameProperties element={selectedElement} />
+        )}
+        {selectedElement && selectedElement.type == "image" && (
+          <ImageProperties element={selectedElement} />
         )}
       </div>
     </div>

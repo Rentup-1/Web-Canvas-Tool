@@ -7,6 +7,7 @@ import {
   FaHistory,
   FaShapes,
 } from "react-icons/fa";
+import { LuFrame } from "react-icons/lu";
 
 export function MiniSidebar({
   activePanel,
@@ -17,6 +18,7 @@ export function MiniSidebar({
 }) {
   const buttons = [
     { id: "text", icon: <FaTextWidth />, label: "Text" },
+    { id: "frame", icon: <LuFrame />, label: "Frame" },
     { id: "upload", icon: <FaImage />, label: "Upload" },
     { id: "layers", icon: <FaLayerGroup />, label: "Layers" },
     { id: "history", icon: <FaHistory />, label: "History" },

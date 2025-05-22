@@ -1,5 +1,6 @@
 export type ElementType =
   | "text"
+  | "frame"
   | "image"
   | "circle"
   | "rectangle"
@@ -14,23 +15,34 @@ export type ElementType =
   | "ring"
   | "arrow";
 
+  export type FitMode = "fill" | "fit" | "stretch";
+
 export interface CanvasElement {
-  id: string;
-  type: ElementType;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-  background?: string;
-  label?: string;
-  selected?: boolean;
-  fill?: string;
-  opacity?: number;
-  stroke?: string;
-  strokeWidth?: number;
-  fillBrandingType?: BrandingType;
-  strokeBrandingType?: BrandingType;
+  id: string
+  type: ElementType
+  x: number
+  y: number
+  width: number
+  height: number
+  rotation: number
+  selected?: boolean
+  fill?: string
+  opacity?: number
+  stroke?: string
+  strokeWidth?: number
+  fillBrandingType?: BrandingType
+  strokeBrandingType?: BrandingType
+  // frame specific
+  dash?: number[];
+  frameId?: string | null;
+  tags?:string[];
+  label?:string;
+
+  // img
+  src?:string;
+  fitMode?:FitMode,
+  originalWidth?: number;
+  originalHeight?: number
 }
 
 export interface CanvasTextElement extends CanvasElement {
@@ -53,8 +65,11 @@ export interface CanvasTextElement extends CanvasElement {
 }
 
 export interface CanvasImageElement extends CanvasElement {
-  type: "image";
+  type: "image"
   src?: string;
+  fitMode?: FitMode; // default "fill"
+  originalWidth?: number;
+  originalHeight?: number
 }
 
 // ===== Shapes Elements =====

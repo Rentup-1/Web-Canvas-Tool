@@ -3,6 +3,7 @@ import { TextPanel } from "./SidebarPanels/TextPanel";
 import { UploadPanel } from "./SidebarPanels/UploadPanel";
 import { ShapesPanel } from "./SidebarPanels/ShapesPanel";
 import { HistoryControls } from "../history";
+import { FramePanel } from "./SidebarPanels/FramePanel";
 
 export function SidebarPanel({ activePanel }: { activePanel: string | null }) {
   return (
@@ -12,6 +13,7 @@ export function SidebarPanel({ activePanel }: { activePanel: string | null }) {
       }`}
     >
       {activePanel === "text" && <TextPanel />}
+      {activePanel === "frame" && <FramePanel />}
       {activePanel === "upload" && <UploadPanel />}
       {activePanel === "layers" && <LayerPanel />}
       {activePanel === "history" && <HistoryControls />}

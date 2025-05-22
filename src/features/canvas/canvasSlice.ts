@@ -72,16 +72,31 @@ const canvasSlice = createSlice({
             strokeWidth: 0,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as CanvasTextElement;
+          } as CanvasTextElement
           break;
 
-        case "image":
+        case "frame":
           newElement = {
             ...base,
-            type: "image",
-            src: "",
-          } as CanvasImageElement;
+            type: "frame",
+            width: 250,
+            height: 200,
+            stroke: "#000",       
+            strokeWidth: 1,           
+            fill: "transparent",       
+            dash: [5, 5],
+            label: "",
+            tags: []
+          } as CanvasElement;
           break;
+
+        // case "image":
+        //   newElement = {
+        //     ...base,
+        //     type: "image",
+        //     src: "",
+        //   } as CanvasImageElement
+        //   break;
 
         case "circle":
           newElement = {
@@ -92,7 +107,7 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as CircleShape;
+          } as CircleShape
           break;
 
         case "rectangle":
@@ -110,7 +125,7 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as RectangleShape;
+          } as RectangleShape
           break;
 
         case "ellipse":
@@ -123,7 +138,7 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as EllipseShape;
+          } as EllipseShape
           break;
 
         case "line":
@@ -135,7 +150,7 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as LineShape;
+          } as LineShape
           break;
 
         case "triangle":
@@ -147,7 +162,7 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as TriangleShape;
+          } as TriangleShape
           break;
 
         case "star":
@@ -161,7 +176,7 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as StarShape;
+          } as StarShape
           break;
 
         case "regularPolygon":
@@ -252,20 +267,24 @@ const canvasSlice = createSlice({
       state.elements.push(newElement);
     },
 
-    addImageElement: (state, action: PayloadAction<{ src: string; width?: number; height?: number }>) => {
-      const { src, width = 200, height = 200 } = action.payload;
-      const newElement: CanvasImageElement = {
-        ...createBaseElement(),
+    addImageElement: (state, action: PayloadAction<{ src: string; width: number; height: number }>) => {
+      const { src, width, height } = action.payload;
+
+      state.elements.push({
+        id: nanoid(),
         type: "image",
+        x: 150,
+        y: 150,
         width,
         height,
+        rotation: 0,
+        selected: false,
         src,
-      };
-
-      state.past.push(state.elements.map((el) => ({ ...el })));
-      state.future = [];
-      state.elements.push(newElement);
+        originalWidth: width,
+        originalHeight: height
+      });
     },
+
 
     selectElement: (state, action: PayloadAction<string | null>) => {
       state.elements.forEach((el) => {
@@ -274,9 +293,8 @@ const canvasSlice = createSlice({
     },
 
     updateElement: (state, action: PayloadAction<{ id: string; updates: Partial<CanvasElement> }>) => {
-      const { id, updates } = action.payload;
-      const index = state.elements.findIndex((el) => el.id === id);
-
+      const { id, updates } = action.payload
+      const index = state.elements.findIndex((el) => el.id === id)
       if (index !== -1) {
         state.past.push(state.elements.map((el) => ({ ...el })));
         state.future = [];
