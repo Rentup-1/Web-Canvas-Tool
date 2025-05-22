@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { addImageElement } from "../../../../features/canvas/canvasSlice";
+import { addImageElement } from "../../features/canvas/canvasSlice";
 import { FaCloudUploadAlt } from "react-icons/fa";
 
 export function UploadPanel() {

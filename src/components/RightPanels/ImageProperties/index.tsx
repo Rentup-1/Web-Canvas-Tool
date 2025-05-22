@@ -108,12 +108,12 @@ export function ImageProperties({ element }: { element: CanvasElement }) {
             value={element.height.toFixed(0)}
             onChange={(val) => update({ height: Number.parseFloat(val) })}
           />
-          <TextInput
+          {/* <TextInput
             label="Rotation"
             type="number"
             value={(element.rotation ?? 0).toFixed(0)}
             onChange={(val) => update({ rotation: Number.parseFloat(val) })}
-          />
+          /> */}
           <div className="col-span-full">
             <TextInput
                 label="Label"

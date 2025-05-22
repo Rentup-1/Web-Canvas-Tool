@@ -1,9 +1,11 @@
 import { LayerPanel } from "./SidebarPanels/LayerPanel";
 import { TextPanel } from "./SidebarPanels/TextPanel";
-import { UploadPanel } from "./SidebarPanels/UploadPanel";
+import { UploadPanel } from "../../LeftPanels/UploadPanel";
 import { ShapesPanel } from "./SidebarPanels/ShapesPanel";
 import { HistoryControls } from "../history";
-import { FramePanel } from "./SidebarPanels/FramePanel";
+import { FramePanel } from "@/components/LeftPanels/FramePanel";
+// import { FramePanel } from "./SidebarPanels/FramePanel";
+
 
 export function SidebarPanel({ activePanel }: { activePanel: string | null }) {
   return (
