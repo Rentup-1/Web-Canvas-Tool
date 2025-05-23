@@ -27,7 +27,10 @@ export function exportAsJSON(elements: CanvasElement[]) {
 }
 
 // Import canvas elements from JSON
-export function importFromJSON(file: File, onLoad: (elements: CanvasElement[]) => void) {
+export function importFromJSON(
+  file: File,
+  onLoad: (elements: CanvasElement[]) => void
+) {
   const reader = new FileReader();
   reader.onload = () => {
     try {

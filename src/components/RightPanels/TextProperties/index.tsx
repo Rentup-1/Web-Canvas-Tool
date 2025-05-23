@@ -84,7 +84,7 @@ export default function TextProperties({
             <ColorInput
               label="Background"
               value={element.stroke ?? "#000000"}
-              onChange={(val) => update({ background: val })}
+              onChange={(val) => update({ stroke: val })}
             />
           </div>
 
