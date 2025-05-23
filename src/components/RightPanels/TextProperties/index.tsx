@@ -8,6 +8,9 @@ import type {
   CanvasTextElement,
 } from "@/features/canvas/types";
 import { useAppDispatch } from "@/hooks/useRedux";
+import PositionProperties from "../CommonProperties/PositionProperties";
+import ScaleProperties from "../CommonProperties/ScaleProperties";
+import RotationProperties from "../CommonProperties/RotationProperties";
 
 // Utility type guard for text elements
 function isTextElement(element: CanvasElement): element is CanvasTextElement {
@@ -40,42 +43,13 @@ export default function TextProperties({
     dispatch(updateElement({ id: element.id, updates }));
   };
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-4">
-        <TextInput
-          label="X"
-          type="number"
-          value={element.x.toFixed(2)}
-          onChange={(val) => update({ x: Number.parseFloat(val) })}
-        />
-        <TextInput
-          label="Y"
-          type="number"
-          value={element.y.toFixed(2)}
-          onChange={(val) => update({ y: Number.parseFloat(val) })}
-        />
-        <TextInput
-          label="Width"
-          type="number"
-          value={element.width.toFixed(2)}
-          onChange={(val) => update({ width: Number.parseFloat(val) })}
-        />
-        <TextInput
-          label="Height"
-          type="number"
-          value={element.height.toFixed(2)}
-          onChange={(val) => update({ height: Number.parseFloat(val) })}
-        />
-        <TextInput
-          label="Rotation"
-          type="number"
-          value={(element.rotation ?? 0).toFixed(2)}
-          onChange={(val) => update({ rotation: Number.parseFloat(val) })}
-        />
-      </div>
+    <div className="space-y-4">
+      <PositionProperties element={element} />
+      <ScaleProperties element={element} />
+      <RotationProperties element={element} />
       {isTextElement(element) && (
         <>
-          <div className="flex items-center gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <ColorInput
               label="Text Color"
               value={element.fill ?? "#000000"}
