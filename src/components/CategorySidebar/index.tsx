@@ -1,13 +1,22 @@
 import type { FC } from "react";
-
-import { FaFolder, FaImage, FaImages, FaQrcode, FaShapes } from "react-icons/fa";
+import {
+  FaFolder,
+  FaImage,
+  FaImages,
+  FaQrcode,
+  FaShapes,
+} from "react-icons/fa";
 import { HiTemplate } from "react-icons/hi";
 import { CgFormatText } from "react-icons/cg";
 import { GoVideo } from "react-icons/go";
 import { IoLayers } from "react-icons/io5";
 import { BsStars } from "react-icons/bs";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import { setActiveCategory, toggleMainSidebar, type ActiveCategoryType } from "@/features/ui/uiSlice";
+import {
+  setActiveCategory,
+  toggleMainSidebar,
+  type ActiveCategoryType,
+} from "@/features/ui/uiSlice";
 import { Button } from "@/components/ui/Button";
 import { IoIosArrowForward } from "react-icons/io";
 import { LuFrame } from "react-icons/lu";
@@ -16,8 +25,8 @@ const categories = [
   { id: "designes", icon: FaFolder, label: "my designs" },
   { id: "templates", icon: HiTemplate, label: "templates" },
   { id: "text", icon: CgFormatText, label: "text" },
-  { id: "frame", icon: LuFrame , label: "Frame" },
-  { id: "upload", icon: FaImage , label: "Upload" },
+  { id: "frame", icon: LuFrame, label: "Frame" },
+  { id: "upload", icon: FaImage, label: "Upload" },
   { id: "shapes", icon: FaShapes, label: "shapes" },
   { id: "videos", icon: GoVideo, label: "videos" },
   { id: "layers", icon: IoLayers, label: "layers" },
