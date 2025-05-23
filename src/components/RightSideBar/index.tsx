@@ -7,6 +7,7 @@ import { ShapeProperties } from "../RightPanels/ShapeProperties";
 import { FrameProperties } from "../RightPanels/FrameProperties";
 import { ImageProperties } from "../RightPanels/ImageProperties";
 import TextProperties from "../RightPanels/TextProperties";
+import CanvasProperties from "../RightPanels/CanvasProperties";
 
 const shapes = [
   "circle",
@@ -61,6 +62,7 @@ const RightSideBar: FC = () => {
       </div>
 
       <div className="p-4">
+        {!selectedElement && <CanvasProperties />}
         {selectedElement &&
           shapes.map(
             (el) =>
