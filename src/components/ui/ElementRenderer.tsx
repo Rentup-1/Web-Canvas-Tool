@@ -38,6 +38,9 @@ import { useSelector } from "react-redux";
 import useImage from "use-image";
 import { updateElement } from "@/features/canvas/canvasSlice";
 import { useAppDispatch } from "@/hooks/useRedux";
+import { Html } from 'react-konva-utils';
+import * as MdIcons from 'react-icons/md';
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 interface Props {
   element: CanvasElementUnion;
@@ -529,26 +532,44 @@ export const ElementRenderer = forwardRef<any, Props>(
 
       />
     );
-    }
+      }
 
-      // case "image":
-      //   const imageElement = element as CanvasImageElement;
-      //   return (
-      //     <KonvaImage
-      //       ref={ref}
-      //       image={image ?? undefined}
-      //       x={imageElement.x}
-      //       y={imageElement.y}
-      //       width={imageElement.width}
-      //       height={imageElement.height}
-      //       draggable
-      //       rotation={imageElement.rotation}
-      //       opacity={imageElement.opacity}
-      //       onClick={onSelect}
-      //       onDragMove={(e) => onChange({ x: e.target.x(), y: e.target.y() })}
-      //       onTransform={(e) => handleTransform(e.target, element, onChange)}
-      //     />
-      //   );
+      case "icon": {
+        const IconComponent = MdIcons[element.iconName as keyof typeof MdIcons];
+        console.log(IconComponent);
+        
+        return (
+          <Html
+            groupProps={{
+              x: element.x,
+              y: element.y,
+              draggable: true,
+              onDragMove: (e) => {
+                const node = e.target;
+                const newX = node.x();
+                const newY = node.y();
+                dispatch(updateElement({ id: element.id, updates: { x: newX, y: newY } }));
+              },
+              onClick: onSelect,
+            }}
+          >
+            <div
+              style={{
+                width: element.width,
+                height: element.height,
+                fontSize: element.width,
+                color: element.color || 'black',
+                border: "2px solid #000",
+                cursor: 'move',
+              }}
+            >
+              <Icon icon="mdi:home" width={50} height={50} color="#000000" />
+              {/* {IconComponent ? <IconComponent color={element.color || "black"} /> : null} */}
+            </div>
+          </Html>
+        );
+      }
+
 
       case "circle":
         const circleElement = element as CircleShape;

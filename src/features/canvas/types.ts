@@ -13,9 +13,12 @@ export type ElementType =
   | "arc"
   | "wedge"
   | "ring"
-  | "arrow";
+  | "arrow"
+  | "icon"; 
 
-  export type FitMode = "fill" | "fit" | "stretch";
+
+
+    export type FitMode = "fill" | "fit" | "stretch";
 
 export interface CanvasElement {
   id: string
@@ -37,12 +40,17 @@ export interface CanvasElement {
   frameId?: string | null;
   tags?:string[];
   label?:string;
-
+  
   // img
   src?:string;
   fitMode?:FitMode,
   originalWidth?: number;
-  originalHeight?: number
+  originalHeight?: number;
+
+  // icons
+  icon?:string
+  iconName?:string
+  color?:string
 }
 
 export interface CanvasTextElement extends CanvasElement {

@@ -90,6 +90,17 @@ const canvasSlice = createSlice({
           } as CanvasElement;
           break;
 
+        case "icon":
+          newElement = {
+            ...base,
+            type: "icon",
+            iconName: "mdi:home", // اسم الأيقونة من API
+            width: 50,
+            height: 50,
+            color: '#000000' // ✅ اللون
+          } as CanvasElement;
+        break;
+
         // case "image":
         //   newElement = {
         //     ...base,

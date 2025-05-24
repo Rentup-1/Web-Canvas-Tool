@@ -1,8 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { addElement } from "@/features/canvas/canvasSlice";
 import { useAppDispatch } from "@/hooks/useRedux";
-// import { addElement } from "../../../../features/canvas/canvasSlice";
-// import { useAppDispatch } from "../../../../hooks/useRedux";
 import { LuFrame } from "react-icons/lu";
 
 export function FramePanel() {

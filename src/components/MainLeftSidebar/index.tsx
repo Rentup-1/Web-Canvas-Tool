@@ -5,6 +5,7 @@ import { TextPanel } from "../LeftPanels/TextPanel";
 import { LayerPanel } from "../LeftPanels/LayerPanel";
 import { FramePanel } from "../LeftPanels/FramePanel";
 import { UploadPanel } from "../LeftPanels/UploadPanel";
+import { IconsPanel } from "../LeftPanels/IconsPanel";
 
 const MainSidebar: FC = () => {
   const { activeCategory } = useAppSelector((state) => state.ui);
@@ -18,6 +19,7 @@ const MainSidebar: FC = () => {
         {activeCategory === "upload" && <UploadPanel />}
         {activeCategory === "text" && <TextPanel />}
         {activeCategory === "layers" && <LayerPanel />}
+        {activeCategory === "icons" && <IconsPanel />}
       </div>
     </div>
   );

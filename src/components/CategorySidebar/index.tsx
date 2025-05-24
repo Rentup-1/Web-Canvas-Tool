@@ -11,6 +11,7 @@ import { setActiveCategory, toggleMainSidebar, type ActiveCategoryType } from "@
 import { Button } from "@/components/ui/Button";
 import { IoIosArrowForward } from "react-icons/io";
 import { LuFrame } from "react-icons/lu";
+import { TbIcons } from "react-icons/tb";
 
 const categories = [
   { id: "designes", icon: FaFolder, label: "my designs" },
@@ -19,6 +20,7 @@ const categories = [
   { id: "frame", icon: LuFrame , label: "Frame" },
   { id: "upload", icon: FaImage , label: "Upload" },
   { id: "shapes", icon: FaShapes, label: "shapes" },
+  { id: "icons", icon: TbIcons, label: "Icons" },
   { id: "videos", icon: GoVideo, label: "videos" },
   { id: "layers", icon: IoLayers, label: "layers" },
   { id: "qrCode", icon: FaQrcode, label: "qr code" },
