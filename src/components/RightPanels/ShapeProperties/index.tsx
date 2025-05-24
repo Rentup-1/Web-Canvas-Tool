@@ -6,8 +6,6 @@ import { ColorInput } from "@/components/ui/controlled-inputs/ColorInput";
 import { InputRange } from "@/components/ui/controlled-inputs/InputRange";
 import { useState, useEffect } from "react";
 import { SelectInput } from "@/components/ui/controlled-inputs/SelectInput";
-import { FaH, FaW, FaX, FaY } from "react-icons/fa6";
-import { MdOutlineScreenRotationAlt } from "react-icons/md";
 import { BsBorderWidth } from "react-icons/bs";
 import { Button } from "@/components/ui/Button";
 import { FaLock, FaUnlock } from "react-icons/fa";
@@ -18,6 +16,9 @@ import {
   RxCornerTopLeft,
   RxCornerTopRight,
 } from "react-icons/rx";
+import PositionProperties from "../CommonProperties/PositionProperties";
+import ScaleProperties from "../CommonProperties/ScaleProperties";
+import RotationProperties from "../CommonProperties/RotationProperties";
 
 const BRANDING_OPTIONS = [
   "primary",
@@ -56,48 +57,11 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
   return (
     <div className="space-y-4">
       {/* Common Shape Properties */}
+      <PositionProperties element={element} />
+      <ScaleProperties element={element} />
+      <RotationProperties element={element} />
       <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2">
-          <div className="grid grid-cols-2 gap-x-4 col-span-full items-center text-sm">
-            <h4 className="col-span-full mb-2">Position</h4>
-            <TextInput
-              label={<FaX />}
-              type="number"
-              id="x"
-              value={element.x.toFixed(0)}
-              onChange={(val) => update({ x: Number.parseFloat(val) })}
-            />
-            <TextInput
-              label={<FaY />}
-              type="number"
-              value={element.y.toFixed(0)}
-              onChange={(val) => update({ y: Number.parseFloat(val) })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-x-4 col-span-full items-center text-sm">
-            <h4 className="col-span-full mb-2">Width & height</h4>
-            <TextInput
-              label={<FaW />}
-              type="number"
-              value={element.width.toFixed(0)}
-              onChange={(val) => update({ width: Number.parseFloat(val) })}
-            />
-            <TextInput
-              label={<FaH />}
-              type="number"
-              value={element.height.toFixed(0)}
-              onChange={(val) => update({ height: Number.parseFloat(val) })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-x-4 col-span-full items-center text-sm">
-            <h4 className="col-span-full mb-2">Rotation</h4>
-            <TextInput
-              label={<MdOutlineScreenRotationAlt />}
-              type="number"
-              value={(element.rotation ?? 0).toFixed(0)}
-              onChange={(val) => update({ rotation: Number.parseFloat(val) })}
-            />
-          </div>
           <div className="col-span-full my-2">
             <InputRange
               label="Opacity"
@@ -105,7 +69,7 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
               onChange={(val) => update({ opacity: val })}
             />
           </div>
-          <div className="grid grid-cols-2 col-span-full gap-4 my-2">
+          <div className="grid grid-cols-2 col-span-full gap-4">
             <ColorInput
               label="Fill Color"
               value={element.fill ?? "#000000"}

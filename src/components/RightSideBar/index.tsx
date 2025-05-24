@@ -6,6 +6,8 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { ShapeProperties } from "../RightPanels/ShapeProperties";
 import { FrameProperties } from "../RightPanels/FrameProperties";
 import { ImageProperties } from "../RightPanels/ImageProperties";
+import TextProperties from "../RightPanels/TextProperties";
+import CanvasProperties from "../RightPanels/CanvasProperties";
 
 const shapes = [
   "circle",
@@ -60,6 +62,7 @@ const RightSideBar: FC = () => {
       </div>
 
       <div className="p-4">
+        {!selectedElement && <CanvasProperties />}
         {selectedElement &&
           shapes.map(
             (el) =>
@@ -73,6 +76,9 @@ const RightSideBar: FC = () => {
         )}
         {selectedElement && selectedElement.type == "image" && (
           <ImageProperties element={selectedElement} />
+        )}
+        {selectedElement && selectedElement.type == "text" && (
+          <TextProperties element={selectedElement} />
         )}
       </div>
     </div>
