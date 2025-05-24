@@ -1,10 +1,7 @@
 import {
   FaCircle,
   FaSquare,
-  FaDrawPolygon,
   FaShapes,
-  FaLongArrowAltRight,
-  FaRegCircle,
   FaStar,
   FaRing,
   FaEllipsisH,
@@ -24,12 +21,9 @@ export function ShapesPanel() {
     { type: "triangle", label: "Triangle", icon: GiTriangleTarget },
     { type: "ellipse", label: "Ellipse", icon: FaEllipsisH },
     { type: "line", label: "Line", icon: BsSlashLg },
-    { type: "arrow", label: "Arrow", icon: FaLongArrowAltRight },
     { type: "star", label: "Star", icon: FaStar },
     { type: "ring", label: "Ring", icon: FaRing },
-    { type: "arc", label: "Arc", icon: FaRegCircle },
     { type: "wedge", label: "Wedge", icon: FaShapes },
-    { type: "custom", label: "Polygon", icon: FaDrawPolygon },
   ];
 
   return (
