@@ -60,6 +60,16 @@ export const ElementRenderer = forwardRef<any, Props>(
         const [isEditing, setIsEditing] = useState(false);
         const [editableText, setEditableText] = useState(textElement.text);
 
+        const textAlign = useSelector((state) =>
+          state.canvas.elements.find((el) => el.id === textElement.id)?.align || 'left'
+        );
+        const fontStyle = useSelector((state) =>
+          state.canvas.elements.find((el) => el.id === textElement.id)?.fontStyle || 'normal'
+        );
+        const textDecoration = useSelector((state) =>
+          state.canvas.elements.find((el) => el.id === textElement.id)?.textDecoration || 'none'
+        );
+
         const borderRadius = textElement.borderRadius || {};
         const textCornerRadius = [
           borderRadius.topLeft || 0,
@@ -70,6 +80,9 @@ export const ElementRenderer = forwardRef<any, Props>(
 
         useEffect(() => {
           if (refText.current) {
+            refText.current.align(textAlign);
+            refText.current.fontStyle(fontStyle);
+            refText.current.textDecoration(textDecoration);
             const box = refText.current.getClientRect({ skipTransform: true });
             setBgSize({ width: box.width, height: box.height });
           }
@@ -81,6 +94,9 @@ export const ElementRenderer = forwardRef<any, Props>(
           textElement.width,
           textElement.height,
           editableText,
+          textAlign,
+          fontStyle,
+          textDecoration,
         ]);
 
         useEffect(() => {
@@ -92,7 +108,7 @@ export const ElementRenderer = forwardRef<any, Props>(
 
         const handleSelect = (e) => {
           setIsSelected(true);
-          if (onSelect) onSelect(e);
+          if (onSelect) onSelect(e, textElement.id);
         };
 
         const handleDoubleClick = () => {
@@ -110,24 +126,34 @@ export const ElementRenderer = forwardRef<any, Props>(
 
         const handleTextBlur = () => {
           setIsEditing(false);
-          onChange({
-            ...textElement,
-            text: editableText,
-            width: bgSize.width,
-            height: bgSize.height,
-          });
+          dispatch(updateElement({
+            id: textElement.id,
+            updates: {
+              text: editableText,
+              width: bgSize.width,
+              height: bgSize.height,
+              align: textAlign,
+              fontStyle,
+              textDecoration,
+            },
+          }));
         };
 
         const handleKeyPress = (e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             setIsEditing(false);
-            onChange({
-              ...textElement,
-              text: editableText,
-              width: bgSize.width,
-              height: bgSize.height,
-            });
+            dispatch(updateElement({
+              id: textElement.id,
+              updates: {
+                text: editableText,
+                width: bgSize.width,
+                height: bgSize.height,
+                align: textAlign,
+                fontStyle,
+                textDecoration,
+              },
+            }));
           }
         };
 
@@ -139,7 +165,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 y={textElement.y - (textElement.padding || 0)}
                 width={bgSize.width + (textElement.padding || 0) * 2}
                 height={bgSize.height + (textElement.padding || 0) * 2}
-                fill={textElement.background} // background rect
+                fill={textElement.background}
                 stroke={textElement.backgroundStroke}
                 strokeWidth={textElement.backgroundStrokeWidth}
                 opacity={textElement.opacity}
@@ -153,25 +179,30 @@ export const ElementRenderer = forwardRef<any, Props>(
               y={textElement.y}
               text={editableText}
               fill={textElement.fill || "#000"}
-              backgroundStroke={textElement.backgroundStroke}
               stroke={textElement.stroke}
               padding={textElement.padding}
               fontSize={textElement.fontSize}
               fontFamily={textElement.fontFamily || "Arial"}
               opacity={textElement.opacity}
               verticalAlign="middle"
+              align={textAlign}
+              fontStyle={fontStyle}
+              textDecoration={textDecoration}
               draggable
               width={textElement.width}
               wrap="word"
               onClick={handleSelect}
               onDblClick={handleDoubleClick}
-              onDragMove={(e) => onChange({ ...textElement, x: e.target.x(), y: e.target.y() })}
+              onDragMove={(e) => dispatch(updateElement({
+                id: textElement.id,
+                updates: { x: e.target.x(), y: e.target.y() },
+              }))}
               onTransform={(e) => {
                 const node = refText.current;
                 const newWidth = Math.max(30, e.target.width() * e.target.scaleX());
                 node.width(newWidth);
-                node.scaleX(1); // 🟢 Reset scaleX to prevent pixelation
-                node.scaleY(1); // 🟢 Reset scaleY to prevent pixelation
+                node.scaleX(1);
+                node.scaleY(1);
                 const newHeight = node.height();
                 setBgSize({ width: newWidth, height: newHeight });
               }}
@@ -183,13 +214,18 @@ export const ElementRenderer = forwardRef<any, Props>(
 
                 setBgSize({ width: newWidth, height: newHeight });
 
-                onChange({
-                  ...textElement,
-                  x: node.x(),
-                  y: node.y(),
-                  width: newWidth,
-                  height: newHeight,
-                });
+                dispatch(updateElement({
+                  id: textElement.id,
+                  updates: {
+                    x: node.x(),
+                    y: node.y(),
+                    width: newWidth,
+                    height: newHeight,
+                    align: textAlign,
+                    fontStyle,
+                    textDecoration,
+                  },
+                }));
 
                 node.scaleX(1);
                 node.scaleY(1);
@@ -227,7 +263,11 @@ export const ElementRenderer = forwardRef<any, Props>(
                     resize: 'none',
                     outline: 'none',
                     overflow: 'hidden',
-                    lineHeight: "1"
+                    lineHeight: '1',
+                    textAlign: textAlign,
+                    fontWeight: fontStyle.includes('bold') ? 'bold' : 'normal',
+                    fontStyle: fontStyle.includes('italic') ? 'italic' : 'normal',
+                    textDecoration: textDecoration,
                   }}
                   value={editableText}
                   onChange={handleTextChange}

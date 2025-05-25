@@ -319,7 +319,7 @@ const canvasSlice = createSlice({
     },
 
     updateElement: (state, action: PayloadAction<{ id: string; updates: Partial<CanvasElement> }>) => {
-      const { id, updates } = action.payload
+      const { id, updates } = action.payload;
       const index = state.elements.findIndex((el) => el.id === id)
       if (index !== -1) {
         state.past.push(state.elements.map((el) => ({ ...el })));

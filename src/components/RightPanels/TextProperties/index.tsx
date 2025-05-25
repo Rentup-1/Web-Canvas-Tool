@@ -11,6 +11,8 @@ import { useAppDispatch } from "@/hooks/useRedux";
 import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
 import RotationProperties from "../CommonProperties/RotationProperties";
+import { Button } from "@/components/ui/Button";
+import { FaAlignCenter, FaAlignLeft, FaAlignRight } from "react-icons/fa";
 
 // Utility type guard for text elements
 function isTextElement(element: CanvasElement): element is CanvasTextElement {
@@ -23,23 +25,35 @@ export const BRAND_OPTIONS: BrandingType[] = [
   "fixed",
 ];
 export const FONT_FAMILY_OPTIONS = [
-  "Arial",
-  "Helvetica",
-  "Georgia",
-  "Times New Roman",
-  "Courier New",
-  "Comic Sans MS",
-  "Trebuchet MS",
-  "Verdana",
-  "Impact",
+  "Roboto",
+  "Open Sans",
+  "Lato",
+  "Montserrat",
+  "Poppins",
+  "Raleway",
+  "Oswald",
+  "Merriweather",
+  "Playfair Display",
+  "Nunito",
+  "Ubuntu",
+  "PT Sans",
+  "Inter",
+  "Quicksand",
+  "Source Sans Pro",
+  "Cabin",
+  "Rubik",
+  "Fira Sans",
+  "Inconsolata",
+  "Manrope",
 ] as const;
+
 export default function TextProperties({
   element,
 }: {
   element: CanvasElement;
 }) {
   const dispatch = useAppDispatch();
-  const update = <T extends CanvasElement>(updates: Partial<T>) => {
+  const update = <T extends CanvasTextElement>(updates: Partial<T>) => {
     dispatch(updateElement({ id: element.id, updates }));
   };
   return (
@@ -61,6 +75,25 @@ export default function TextProperties({
               onChange={(val) => update({ background: val })}
             />
           </div>
+
+          <Button
+            size="sm"
+            className="mr-2 text-black font-bold"
+            onClick={() => update({ align: "left" })}>
+            <FaAlignLeft />
+          </Button>
+          <Button
+            size="sm"
+            className="mr-2 text-black font-bold"
+            onClick={() => update({ align: "center" })}>
+            <FaAlignCenter />
+          </Button>
+          <Button
+            size="sm"
+            className="mr-2 text-black font-bold"
+            onClick={() => update({ align: "right" })}>
+            <FaAlignRight />
+          </Button>
 
           <TextInput
             label="Stroke width"

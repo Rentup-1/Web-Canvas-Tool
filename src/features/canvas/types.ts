@@ -35,7 +35,7 @@ export interface CanvasElement {
   strokeWidth?: number
   fillBrandingType?: BrandingType
   strokeBrandingType?: BrandingType
-
+  
   // frame specific
   dash?: number[];
   frameId?: string | null;
@@ -51,7 +51,9 @@ export interface CanvasElement {
   // icons
   icon?:string
   iconName?:string
-  color?:string
+  color?:string;
+
+
 }
 
 export interface CanvasTextElement extends CanvasElement {
@@ -67,13 +69,16 @@ export interface CanvasTextElement extends CanvasElement {
   backgroundBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   label?: string;
+  fontStyle?: 'normal' | 'bold' | 'italic' | 'bold italic'; // 🟢 Added
+  textDecoration?: 'none' | 'underline';
+  align?: 'left' | 'center' | 'right';
+
   borderRadius?: {
     topLeft?: number;
     topRight?: number;
     bottomRight?: number;
     bottomLeft?: number;
   };
-  alignment?:string
 }
 
 export interface CanvasImageElement extends CanvasElement {

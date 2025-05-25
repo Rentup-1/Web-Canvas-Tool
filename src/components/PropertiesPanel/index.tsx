@@ -22,16 +22,28 @@ export const BRAND_OPTIONS: BrandingType[] = [
   "fixed",
 ];
 export const FONT_FAMILY_OPTIONS = [
-  "Arial",
-  "Helvetica",
-  "Georgia",
-  "Times New Roman",
-  "Courier New",
-  "Comic Sans MS",
-  "Trebuchet MS",
-  "Verdana",
-  "Impact",
+  "Roboto",
+  "Open Sans",
+  "Lato",
+  "Montserrat",
+  "Poppins",
+  "Raleway",
+  "Oswald",
+  "Merriweather",
+  "Playfair Display",
+  "Nunito",
+  "Ubuntu",
+  "PT Sans",
+  "Inter",
+  "Quicksand",
+  "Source Sans Pro",
+  "Cabin",
+  "Rubik",
+  "Fira Sans",
+  "Inconsolata",
+  "Manrope",
 ] as const;
+
 
 // Add a new component for shape styling controls
 function ShapeStyleControls({
