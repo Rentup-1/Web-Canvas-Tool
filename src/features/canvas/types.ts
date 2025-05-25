@@ -69,10 +69,10 @@ export interface CanvasTextElement extends CanvasElement {
   backgroundBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   label?: string;
-  fontStyle?: 'normal' | 'bold' | 'italic' | 'bold italic'; // 🟢 Added
   textDecoration?: 'none' | 'underline';
   align?: 'left' | 'center' | 'right';
-
+  fontWeight?: 'normal' | 'bold'
+  fontStyle?: 'normal' | 'italic'
   borderRadius?: {
     topLeft?: number;
     topRight?: number;

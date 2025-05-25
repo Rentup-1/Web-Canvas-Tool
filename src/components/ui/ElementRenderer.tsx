@@ -60,14 +60,14 @@ export const ElementRenderer = forwardRef<any, Props>(
         const [isEditing, setIsEditing] = useState(false);
         const [editableText, setEditableText] = useState(textElement.text);
 
-        const textAlign = useSelector((state) =>
-          state.canvas.elements.find((el) => el.id === textElement.id)?.align || 'left'
+        const textAlign = useSelector((state:any) =>
+          state.canvas.elements.find((el:any) => el.id === textElement.id)?.align || 'left'
+        );
+        const fontWeight = useSelector((state) =>
+          state.canvas.elements.find((el) => el.id === textElement.id)?.fontWeight || 'normal'
         );
         const fontStyle = useSelector((state) =>
           state.canvas.elements.find((el) => el.id === textElement.id)?.fontStyle || 'normal'
-        );
-        const textDecoration = useSelector((state) =>
-          state.canvas.elements.find((el) => el.id === textElement.id)?.textDecoration || 'none'
         );
 
         const borderRadius = textElement.borderRadius || {};
@@ -80,24 +80,46 @@ export const ElementRenderer = forwardRef<any, Props>(
 
         useEffect(() => {
           if (refText.current) {
-            refText.current.align(textAlign);
-            refText.current.fontStyle(fontStyle);
-            refText.current.textDecoration(textDecoration);
+            const fontStyleFinal =
+              fontWeight === 'bold'
+                ? fontStyle === 'italic'
+                  ? 'bold italic'
+                  : 'bold'
+                : fontStyle;
+
+            refText.current.fontStyle(fontStyleFinal);
+
+            // 🛠️ اجبر Konva على إعادة حساب بيانات النص
+            refText.current._setTextData(); // 👈 مهم جدا!
+
+            // 🔄 إعادة رسم اللاير
+            refText.current.getLayer()?.batchDraw();
+
+            // 📏 احسب الحجم الجديد
             const box = refText.current.getClientRect({ skipTransform: true });
+
             setBgSize({ width: box.width, height: box.height });
+
+            // 🧠 احفظ الحجم الجديد في الستيت
+            dispatch(updateElement({
+              id: textElement.id,
+              updates: {
+                width: box.width,
+                height: box.height,
+              },
+            }));
           }
         }, [
           textElement.text,
           textElement.fontSize,
           textElement.fontFamily,
           textElement.padding,
-          textElement.width,
-          textElement.height,
-          editableText,
           textAlign,
+          fontWeight,
           fontStyle,
-          textDecoration,
         ]);
+
+
 
         useEffect(() => {
           if (isSelected && trRef.current && !isEditing) {
@@ -133,8 +155,6 @@ export const ElementRenderer = forwardRef<any, Props>(
               width: bgSize.width,
               height: bgSize.height,
               align: textAlign,
-              fontStyle,
-              textDecoration,
             },
           }));
         };
@@ -150,14 +170,13 @@ export const ElementRenderer = forwardRef<any, Props>(
                 width: bgSize.width,
                 height: bgSize.height,
                 align: textAlign,
-                fontStyle,
-                textDecoration,
               },
             }));
           }
         };
 
         return (
+  
           <>
             {textElement.background && (
               <Rect
@@ -186,8 +205,7 @@ export const ElementRenderer = forwardRef<any, Props>(
               opacity={textElement.opacity}
               verticalAlign="middle"
               align={textAlign}
-              fontStyle={fontStyle}
-              textDecoration={textDecoration}
+              fontStyle={fontWeight} // 🟢 Apply fontWeight as fontStyle for Konva
               draggable
               width={textElement.width}
               wrap="word"
@@ -222,8 +240,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                     width: newWidth,
                     height: newHeight,
                     align: textAlign,
-                    fontStyle,
-                    textDecoration,
+                    fontWeight,
                   },
                 }));
 
@@ -265,9 +282,8 @@ export const ElementRenderer = forwardRef<any, Props>(
                     overflow: 'hidden',
                     lineHeight: '1',
                     textAlign: textAlign,
-                    fontWeight: fontStyle.includes('bold') ? 'bold' : 'normal',
-                    fontStyle: fontStyle.includes('italic') ? 'italic' : 'normal',
-                    textDecoration: textDecoration,
+                    fontWeight: fontWeight,
+                    fontStyle: fontStyle, 
                   }}
                   value={editableText}
                   onChange={handleTextChange}

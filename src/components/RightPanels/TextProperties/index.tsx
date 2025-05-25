@@ -12,7 +12,7 @@ import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
 import RotationProperties from "../CommonProperties/RotationProperties";
 import { Button } from "@/components/ui/Button";
-import { FaAlignCenter, FaAlignLeft, FaAlignRight } from "react-icons/fa";
+import { FaAlignCenter, FaAlignLeft, FaAlignRight, FaBold, FaItalic } from "react-icons/fa";
 
 // Utility type guard for text elements
 function isTextElement(element: CanvasElement): element is CanvasTextElement {
@@ -78,21 +78,42 @@ export default function TextProperties({
 
           <Button
             size="sm"
-            className="mr-2 text-black font-bold"
+            variant={"outline"}
+            className="mr-2 text-gray-500 font-bold"
             onClick={() => update({ align: "left" })}>
             <FaAlignLeft />
           </Button>
           <Button
             size="sm"
-            className="mr-2 text-black font-bold"
+            variant={"outline" }
+            className="mr-2 text-gray-500 font-bold"
             onClick={() => update({ align: "center" })}>
             <FaAlignCenter />
           </Button>
           <Button
             size="sm"
-            className="mr-2 text-black font-bold"
+            variant={"outline"}
+            className="mr-2 text-gray-500 font-bold"
             onClick={() => update({ align: "right" })}>
             <FaAlignRight />
+          </Button>
+          
+          <Button
+            size="sm"
+            variant={"outline"}
+            className="mr-2 text-gray-400 font-bold"
+            onClick={() => update({ fontWeight: element.fontWeight === "bold" ? "normal" : "bold" })}
+          >
+            <FaBold />
+          </Button>
+
+          <Button
+            size="sm"
+            variant={"outline"}
+            className="mr-2 text-gray-400 font-bold"
+            onClick={() => update({ fontStyle: element.fontStyle === "italic" ? "normal" : "italic" })}
+          >
+            <FaItalic />
           </Button>
 
           <TextInput
