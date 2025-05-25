@@ -24,7 +24,6 @@ import type {
   WedgeShape,
   RingShape,
   CanvasElement,
-  QRCodeElement,
 } from "../../features/canvas/types";
 import { useSelector } from "react-redux";
 import useImage from "use-image";
@@ -48,21 +47,6 @@ export const ElementRenderer = forwardRef<any, Props>(
     const elements = useSelector((store: any) => store.canvas.elements);
     const [isOverFrame, setIsOverFrame] = useState(false);
     const dispatch = useAppDispatch();
-
-    // useEffect(() => {
-    //   if (element.type === "image") {
-    //     const imageElement = element as CanvasImageElement;
-    //     if (imageElement.src) {
-    //       const img = new Image();
-    //       img.onload = () => {
-    //         setImage(img);
-    //       };
-    //       img.src = imageElement.src;
-    //     } else {
-    //       setImage(null);
-    //     }
-    //   }
-    // }, [element]);
 
     switch (element.type) {
       /* text */

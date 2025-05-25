@@ -1,6 +1,14 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-export type ActiveCategoryType = "shapes" | "text" | "layers" | "frame" | "upload" | "icons" | "qrCode";
+export type ActiveCategoryType =
+  | "shapes"
+  | "text"
+  | "layers"
+  | "frame"
+  | "upload"
+  | "icons"
+  | "qrCode"
+  | "branding";
 
 interface UiState {
   activeCategory: ActiveCategoryType;

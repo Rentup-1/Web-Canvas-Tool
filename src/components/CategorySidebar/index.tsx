@@ -1,11 +1,5 @@
 import type { FC } from "react";
-import {
-  FaFolder,
-  FaImage,
-  FaImages,
-  FaQrcode,
-  FaShapes,
-} from "react-icons/fa";
+import { FaFolder, FaImage, FaQrcode, FaShapes } from "react-icons/fa";
 import { HiTemplate } from "react-icons/hi";
 import { CgFormatText } from "react-icons/cg";
 import { GoVideo } from "react-icons/go";
@@ -21,8 +15,10 @@ import { Button } from "@/components/ui/Button";
 import { IoIosArrowForward } from "react-icons/io";
 import { LuFrame } from "react-icons/lu";
 import { TbIcons } from "react-icons/tb";
+import { FcDataConfiguration } from "react-icons/fc";
 
 const categories = [
+  { id: "branding", icon: FcDataConfiguration, label: "branding" },
   { id: "designes", icon: FaFolder, label: "my designs" },
   { id: "templates", icon: HiTemplate, label: "templates" },
   { id: "text", icon: CgFormatText, label: "text" },
