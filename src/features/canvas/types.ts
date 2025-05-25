@@ -35,6 +35,7 @@ export interface CanvasElement {
   strokeWidth?: number
   fillBrandingType?: BrandingType
   strokeBrandingType?: BrandingType
+
   // frame specific
   dash?: number[];
   frameId?: string | null;
@@ -60,6 +61,8 @@ export interface CanvasTextElement extends CanvasElement {
   fontFamily?: string;
   background?: string;
   padding?: number;
+  backgroundStroke?:string;
+  backgroundStrokeWidth: number;
   colorBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   backgroundBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
@@ -70,6 +73,7 @@ export interface CanvasTextElement extends CanvasElement {
     bottomRight?: number;
     bottomLeft?: number;
   };
+  alignment?:string
 }
 
 export interface CanvasImageElement extends CanvasElement {

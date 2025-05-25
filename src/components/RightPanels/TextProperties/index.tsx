@@ -57,16 +57,26 @@ export default function TextProperties({
             />
             <ColorInput
               label="Background"
-              value={element.stroke ?? "#000000"}
-              onChange={(val) => update({ stroke: val })}
+              value={element.background ?? "#000000"} // background rect
+              onChange={(val) => update({ background: val })}
             />
           </div>
 
           <TextInput
-            label="Text"
-            value={element.text ?? ""}
-            onChange={(val) => update<CanvasTextElement>({ text: val })}
+            label="Stroke width"
+            type="number"
+            value={(element.backgroundStrokeWidth ?? 10).toString()}
+            onChange={(val) =>
+              update<CanvasTextElement>({ backgroundStrokeWidth: Number.parseFloat(val) })
+            }
           />
+
+          <ColorInput
+            label="Stroke Color"
+            value={element.backgroundStroke ?? "#000000"} // backgroundStroke rect
+            onChange={(val) => update({ backgroundStroke: val })}
+          />
+          
           <TextInput
             label="Font Size"
             type="number"
@@ -87,6 +97,7 @@ export default function TextProperties({
             }
             options={Array.from(FONT_FAMILY_OPTIONS)}
           />
+
           <TextInput
             label="Padding"
             type="number"
