@@ -58,20 +58,35 @@ const canvasSlice = createSlice({
       let newElement: CanvasElement;
 
       switch (action.payload.type) {
+
         case "text":
           newElement = {
-            ...base,
+            id: nanoid(),
+            x: 100,
+            y: 100,
+            text: "Edit Me Now...",
+            fill: "#524C4C", // background rect
+            background: "#fff",
+            padding: 8,
+            fontSize: 20,
+            opacity: 1,
+            width: 150,
+            height: 50,
             type: "text",
-            text: "Edit me",
-            fontSize: 24,
-            fill: "#333333",
-            background: undefined,
+            backgroundStroke: "#A3A3A3",
+            backgroundStrokeWidth: 2,   
             fontFamily: "Arial",
-            padding: 0,
             stroke: undefined,
-            strokeWidth: 0,
+            strokeTextWidth: 0,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
+            borderRadius: {              
+              topLeft: 4,
+              topRight: 4,
+              bottomRight: 4,
+              bottomLeft: 4,
+            },
+            alignment: "left",
           } as CanvasTextElement
           break;
 

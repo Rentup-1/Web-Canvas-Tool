@@ -1,4 +1,4 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import {
   Rect,
   Text,
@@ -11,6 +11,7 @@ import {
   Wedge,
   Ring,
   Group,
+  Transformer,
 } from "react-konva";
 import type {
   CanvasElementUnion,
@@ -29,8 +30,8 @@ import { useSelector } from "react-redux";
 import useImage from "use-image";
 import { updateElement } from "@/features/canvas/canvasSlice";
 import { useAppDispatch } from "@/hooks/useRedux";
-import { Html } from "react-konva-utils";
-import * as MdIcons from "react-icons/md";
+import { Html } from 'react-konva-utils';
+import * as MdIcons from 'react-icons/md';
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { QRCodeCanvas } from "qrcode.react";
 
@@ -44,14 +45,21 @@ interface Props {
 // Update the ElementRenderer to apply stroke and strokeWidth to all shapes
 export const ElementRenderer = forwardRef<any, Props>(
   ({ element, onSelect, onChange }, ref) => {
-    const elements = useSelector((store: any) => store.canvas.elements);
+    const elements = useSelector((store:any) => store.canvas.elements);
     const [isOverFrame, setIsOverFrame] = useState(false);
     const dispatch = useAppDispatch();
 
     switch (element.type) {
-      /* text */
+
       case "text":
         const textElement = element as CanvasTextElement;
+        const refText = useRef(null);
+        const [bgSize, setBgSize] = useState({ width: 0, height: 0 });
+        const trRef = useRef(null);
+        const [isSelected, setIsSelected] = useState(false);
+        const [isEditing, setIsEditing] = useState(false);
+        const [editableText, setEditableText] = useState(textElement.text);
+
         const borderRadius = textElement.borderRadius || {};
         const textCornerRadius = [
           borderRadius.topLeft || 0,
@@ -59,69 +67,182 @@ export const ElementRenderer = forwardRef<any, Props>(
           borderRadius.bottomRight || 0,
           borderRadius.bottomLeft || 0,
         ];
+
+        useEffect(() => {
+          if (refText.current) {
+            const box = refText.current.getClientRect({ skipTransform: true });
+            setBgSize({ width: box.width, height: box.height });
+          }
+        }, [
+          textElement.text,
+          textElement.fontSize,
+          textElement.fontFamily,
+          textElement.padding,
+          textElement.width,
+          textElement.height,
+          editableText,
+        ]);
+
+        useEffect(() => {
+          if (isSelected && trRef.current && !isEditing) {
+            trRef.current.nodes([refText.current]);
+            trRef.current.getLayer().batchDraw();
+          }
+        }, [isSelected, isEditing]);
+
+        const handleSelect = (e) => {
+          setIsSelected(true);
+          if (onSelect) onSelect(e);
+        };
+
+        const handleDoubleClick = () => {
+          setIsEditing(true);
+        };
+
+        const handleTextChange = (e) => {
+          setEditableText(e.target.value);
+          if (refText.current) {
+            refText.current.text(e.target.value);
+            const box = refText.current.getClientRect({ skipTransform: true });
+            setBgSize({ width: box.width, height: box.height });
+          }
+        };
+
+        const handleTextBlur = () => {
+          setIsEditing(false);
+          onChange({
+            ...textElement,
+            text: editableText,
+            width: bgSize.width,
+            height: bgSize.height,
+          });
+        };
+
+        const handleKeyPress = (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            setIsEditing(false);
+            onChange({
+              ...textElement,
+              text: editableText,
+              width: bgSize.width,
+              height: bgSize.height,
+            });
+          }
+        };
+
         return (
           <>
             {textElement.background && (
               <Rect
-                x={textElement.x}
-                y={textElement.y}
-                width={textElement.width}
-                height={textElement.height}
-                fill={textElement.background}
+                x={textElement.x - (textElement.padding || 0)}
+                y={textElement.y - (textElement.padding || 0)}
+                width={bgSize.width + (textElement.padding || 0) * 2}
+                height={bgSize.height + (textElement.padding || 0) * 2}
+                fill={textElement.background} // background rect
+                stroke={textElement.backgroundStroke}
+                strokeWidth={textElement.backgroundStrokeWidth}
                 opacity={textElement.opacity}
                 rotation={textElement.rotation}
                 cornerRadius={textCornerRadius}
               />
             )}
             <Text
-              ref={ref}
+              ref={refText}
               x={textElement.x}
               y={textElement.y}
-              text={textElement.text}
-              fill={textElement.fill}
+              text={editableText}
+              fill={textElement.fill || "#000"}
+              backgroundStroke={textElement.backgroundStroke}
               stroke={textElement.stroke}
-              strokeWidth={textElement.strokeWidth}
               padding={textElement.padding}
               fontSize={textElement.fontSize}
               fontFamily={textElement.fontFamily || "Arial"}
               opacity={textElement.opacity}
+              verticalAlign="middle"
               draggable
-              onClick={onSelect}
-              onDragMove={(e) => {
-                onChange({
-                  ...textElement,
-                  x: e.target.x(),
-                  y: e.target.y(),
-                });
+              width={textElement.width}
+              wrap="word"
+              onClick={handleSelect}
+              onDblClick={handleDoubleClick}
+              onDragMove={(e) => onChange({ ...textElement, x: e.target.x(), y: e.target.y() })}
+              onTransform={(e) => {
+                const node = refText.current;
+                const newWidth = Math.max(30, e.target.width() * e.target.scaleX());
+                node.width(newWidth);
+                node.scaleX(1); // 🟢 Reset scaleX to prevent pixelation
+                node.scaleY(1); // 🟢 Reset scaleY to prevent pixelation
+                const newHeight = node.height();
+                setBgSize({ width: newWidth, height: newHeight });
               }}
               onTransformEnd={(e) => {
-                const node = e.target;
-                const scaleY = node.scaleY();
+                const node = refText.current;
+                const newWidth = Math.max(30, node.width());
+                node.width(newWidth);
+                const newHeight = node.height();
 
-                // Text node doesn't really support scaling in the same way as shapes,
-                // so you should scale the fontSize or width manually if needed.
-
-                const newFontSize = (textElement.fontSize ?? 16) * scaleY;
+                setBgSize({ width: newWidth, height: newHeight });
 
                 onChange({
                   ...textElement,
                   x: node.x(),
                   y: node.y(),
-                  rotation: node.rotation(),
-                  fontSize: newFontSize,
+                  width: newWidth,
+                  height: newHeight,
                 });
 
-                // Reset scale to 1 to avoid compounded scaling
                 node.scaleX(1);
                 node.scaleY(1);
               }}
             />
+            {isSelected && !isEditing && (
+              <Transformer
+                ref={trRef}
+                rotateEnabled={false}
+                enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
+                boundBoxFunc={(oldBox, newBox) => {
+                  if (newBox.width < 30 || newBox.height < 30) {
+                    return oldBox;
+                  }
+                  return newBox;
+                }}
+                onClick={(e) => e.cancelBubble = true}
+              />
+            )}
+            {isEditing && (
+              <Html>
+                <textarea
+                  style={{
+                    position: 'absolute',
+                    top: textElement.y,
+                    left: textElement.x,
+                    width: bgSize.width,
+                    height: bgSize.height,
+                    fontSize: textElement.fontSize,
+                    fontFamily: textElement.fontFamily || 'Arial',
+                    padding: textElement.padding || 0,
+                    color: textElement.fill,
+                    background: 'white',
+                    border: '1px dashed #ccc',
+                    resize: 'none',
+                    outline: 'none',
+                    overflow: 'hidden',
+                    lineHeight: "1"
+                  }}
+                  value={editableText}
+                  onChange={handleTextChange}
+                  onBlur={handleTextBlur}
+                  onKeyPress={handleKeyPress}
+                  autoFocus
+                />
+              </Html>
+            )}
           </>
         );
-      /* frame */
+
       case "frame": {
         const isFrame = element.type === "frame";
-
+        
         return (
           <Rect
             ref={ref}
@@ -140,16 +261,14 @@ export const ElementRenderer = forwardRef<any, Props>(
               const node = e.target;
               const newX = node.x();
               const newY = node.y();
-              dispatch(
-                updateElement({ id: element.id, updates: { x: newX, y: newY } })
-              );
+              dispatch(updateElement({ id: element.id, updates: { x: newX, y: newY } }));
             }}
             onTransform={(e) => {
               const node = e.target;
               const newWidth = node.width() * node.scaleX();
               const newHeight = node.height() * node.scaleY();
               console.log(e.target);
-
+              
               onChange({
                 x: node.x(),
                 y: node.y(),
@@ -161,279 +280,275 @@ export const ElementRenderer = forwardRef<any, Props>(
               node.scaleX(1);
               node.scaleY(1);
             }}
-          />
+        />
+
         );
       }
-      /* image */
+
       case "image": {
-        const [image] = useImage(element.src || "");
-        const frame = elements.find(
-          (f: CanvasElement) => f.id === element.frameId
-        );
-        let wasOverFrame = false; // خليها خارج الكومبوننت أو في useRef لو هتعملها persistent
+      const [image] = useImage(element.src || "");
+      const frame = elements.find((f: CanvasElement) => f.id === element.frameId);
+      let wasOverFrame = false; // خليها خارج الكومبوننت أو في useRef لو هتعملها persistent
 
-        if (frame) {
-          return (
-            <Group
-              x={frame.x}
-              y={frame.y}
-              clipFunc={(ctx) => {
-                ctx.rect(0, 0, frame.width, frame.height);
+      if (frame) {
+        return (
+          <Group
+            x={frame.x}
+            y={frame.y}
+            clipFunc={(ctx) => {
+              ctx.rect(0, 0, frame.width, frame.height);
+            }}>
+
+            <KonvaImage
+              ref={ref}
+              image={image}
+              x={element.x - frame.x} 
+              y={element.y - frame.y}
+              width={element.width}
+              height={element.height}
+              draggable
+              onClick={onSelect}
+              onDragMove={(e) => {
+                const imageNode = e.target;
+                const newX = imageNode.x();
+                const newY = imageNode.y();
+
+                onChange({ x: newX + frame.x, y: newY + frame.y });
               }}
-            >
-              <KonvaImage
-                ref={ref}
-                image={image}
-                x={element.x - frame.x}
-                y={element.y - frame.y}
-                width={element.width}
-                height={element.height}
-                draggable
-                onClick={onSelect}
-                onDragMove={(e) => {
-                  const imageNode = e.target;
-                  const newX = imageNode.x();
-                  const newY = imageNode.y();
+              onTransform={(e) => {
+                const node = e.target;
+                const newWidth = node.width() * node.scaleX();
+                const newHeight = node.height() * node.scaleY();
+                const newX = node.x();
+                const newY = node.y();
 
-                  onChange({ x: newX + frame.x, y: newY + frame.y });
-                }}
-                onTransform={(e) => {
-                  const node = e.target;
-                  const newWidth = node.width() * node.scaleX();
-                  const newHeight = node.height() * node.scaleY();
-                  const newX = node.x();
-                  const newY = node.y();
+                onChange({
+                  x: newX + frame.x,
+                  y: newY + frame.y,
+                  width: newWidth,
+                  height: newHeight,
+                  rotation: node.rotation(),
+                });
 
-                  onChange({
-                    x: newX + frame.x,
-                    y: newY + frame.y,
-                    width: newWidth,
-                    height: newHeight,
-                    rotation: node.rotation(),
-                  });
+                node.scaleX(1);
+                node.scaleY(1);
+              }}
+            />
+          </Group>
 
-                  node.scaleX(1);
-                  node.scaleY(1);
-                }}
-              />
-            </Group>
-          );
-        }
+        );
+      }
 
         return (
-          <KonvaImage
-            ref={ref}
-            image={image}
-            x={element.x}
-            y={element.y}
-            width={element.width}
-            height={element.height}
-            draggable
-            onClick={onSelect}
-            onTransform={(e) => {
-              const node = e.target;
-              const newWidth = node.width() * node.scaleX();
-              const newHeight = node.height() * node.scaleY();
-              const newX = node.x();
-              const newY = node.y();
+        <KonvaImage
+          ref={ref}
+          image={image}
+          x={element.x}
+          y={element.y}
+          width={element.width}
+          height={element.height}
+          draggable
+          onClick={onSelect}
+          onTransform={(e) => {
+            const node = e.target;
+            const newWidth = node.width() * node.scaleX();
+            const newHeight = node.height() * node.scaleY();
+            const newX = node.x();
+            const newY = node.y();
 
-              const frame = elements.find(
-                (f: CanvasElement) => f.id === element.frameId
-              );
-              if (frame) {
-                const isInside =
-                  newX >= frame.x &&
-                  newY >= frame.y &&
-                  newX + newWidth <= frame.x + frame.width &&
-                  newY + newHeight <= frame.y + frame.height;
+            const frame = elements.find((f:CanvasElement) => f.id === element.frameId);
+            if (frame) {
+              const isInside =
+                newX >= frame.x &&
+                newY >= frame.y &&
+                newX + newWidth <= frame.x + frame.width &&
+                newY + newHeight <= frame.y + frame.height;
 
-                if (!isInside) {
-                  node.scaleX(1);
-                  node.scaleY(1);
-                  node.x(element.x);
-                  node.y(element.y);
-                  return;
-                }
-              }
-
-              onChange({
-                x: newX,
-                y: newY,
-                width: newWidth,
-                height: newHeight,
-                rotation: node.rotation(),
-              });
-
-              node.scaleX(1);
-              node.scaleY(1);
-            }}
-            onDragMove={(e) => {
-              const imageNode = e.target;
-              const imgX = imageNode.x();
-              const imgY = imageNode.y();
-              const imgW = imageNode.width();
-              const imgH = imageNode.height();
-
-              const centerX = imgX + imgW / 2;
-              const centerY = imgY + imgH / 2;
-              dispatch(
-                updateElement({ id: element.id, updates: { x: imgX, y: imgY } })
-              );
-
-              const frame = elements.find(
-                (el: CanvasElement) =>
-                  el.type === "frame" &&
-                  centerX >= el.x &&
-                  centerX <= el.x + el.width &&
-                  centerY >= el.y &&
-                  centerY <= el.y + el.height
-              );
-
-              if (!frame) {
-                wasOverFrame = false;
+              if (!isInside) {
+                node.scaleX(1);
+                node.scaleY(1);
+                node.x(element.x);
+                node.y(element.y);
                 return;
               }
+            }
 
-              if (!wasOverFrame) {
-                const frameAspect = frame.width / frame.height;
-                const imgAspect = imgW / imgH;
+            onChange({
+              x: newX,
+              y: newY,
+              width: newWidth,
+              height: newHeight,
+              rotation: node.rotation(),
+            });
 
-                let newWidth, newHeight, offsetX, offsetY;
+            node.scaleX(1);
+            node.scaleY(1);
+          }}
 
-                switch (element.fitMode) {
-                  case "fit":
-                    if (imgAspect > frameAspect) {
-                      newWidth = frame.width;
-                      newHeight = frame.width / imgAspect;
-                    } else {
-                      newHeight = frame.height;
-                      newWidth = frame.height * imgAspect;
-                    }
-                    break;
+          onDragMove={(e) => {
 
-                  case "fill":
-                  default:
-                    if (imgAspect < frameAspect) {
-                      newWidth = frame.width;
-                      newHeight = frame.width / imgAspect;
-                    } else {
-                      newHeight = frame.height;
-                      newWidth = frame.height * imgAspect;
-                    }
-                    break;
+          const imageNode = e.target;
+          const imgX = imageNode.x();
+          const imgY = imageNode.y();
+          const imgW = imageNode.width();
+          const imgH = imageNode.height();
 
-                  case "stretch":
-                    newWidth = frame.width;
-                    newHeight = frame.height;
-                    break;
+          const centerX = imgX + imgW / 2;
+          const centerY = imgY + imgH / 2;
+          dispatch(updateElement({ id: element.id, updates: { x: imgX, y: imgY } }));
+
+          const frame = elements.find(
+            (el: CanvasElement) =>
+              el.type === "frame" &&
+              centerX >= el.x &&
+              centerX <= el.x + el.width &&
+              centerY >= el.y &&
+              centerY <= el.y + el.height
+          );
+
+          if (!frame) {
+            wasOverFrame = false;
+            return;
+          }
+
+          if (!wasOverFrame) {
+            const frameAspect = frame.width / frame.height;
+            const imgAspect = imgW / imgH;
+
+            let newWidth, newHeight, offsetX, offsetY;
+
+            switch (element.fitMode) {
+              case "fit":
+                if (imgAspect > frameAspect) {
+                  newWidth = frame.width;
+                  newHeight = frame.width / imgAspect;
+                } else {
+                  newHeight = frame.height;
+                  newWidth = frame.height * imgAspect;
                 }
+                break;
 
-                offsetX = (frame.width - newWidth) / 2;
-                offsetY = (frame.height - newHeight) / 2;
-
-                onChange({
-                  x: frame.x + offsetX,
-                  y: frame.y + offsetY,
-                  width: newWidth,
-                  height: newHeight,
-                  frameId: frame.id,
-                });
-
-                wasOverFrame = true;
-              }
-            }}
-            onDragEnd={(e) => {
-              const img = e.target;
-              const imgW = img.width();
-              const imgH = img.height();
-
-              const centerX = img.x() + imgW / 2;
-              const centerY = img.y() + imgH / 2;
-
-              const frame = elements.find(
-                (el: CanvasElement) =>
-                  el.type === "frame" &&
-                  centerX >= el.x &&
-                  centerX <= el.x + el.width &&
-                  centerY >= el.y &&
-                  centerY <= el.y + el.height
-              );
-
-              if (frame) {
-                const frameAspect = frame.width / frame.height;
-                const imgAspect = imgW / imgH;
-
-                let newWidth, newHeight, offsetX, offsetY;
-
-                switch (element.fitMode) {
-                  case "fit":
-                    if (imgAspect > frameAspect) {
-                      newWidth = frame.width;
-                      newHeight = frame.width / imgAspect;
-                    } else {
-                      newHeight = frame.height;
-                      newWidth = frame.height * imgAspect;
-                    }
-                    break;
-
-                  case "fill":
-                  default:
-                    if (imgAspect < frameAspect) {
-                      newWidth = frame.width;
-                      newHeight = frame.width / imgAspect;
-                    } else {
-                      newHeight = frame.height;
-                      newWidth = frame.height * imgAspect;
-                    }
-                    break;
-
-                  case "stretch":
-                    newWidth = frame.width;
-                    newHeight = frame.height;
-                    break;
+              case "fill":
+              default:
+                if (imgAspect < frameAspect) {
+                  newWidth = frame.width;
+                  newHeight = frame.width / imgAspect;
+                } else {
+                  newHeight = frame.height;
+                  newWidth = frame.height * imgAspect;
                 }
+                break;
 
-                offsetX = (frame.width - newWidth) / 2;
-                offsetY = (frame.height - newHeight) / 2;
+              case "stretch":
+                newWidth = frame.width;
+                newHeight = frame.height;
+                break;
+            }
 
-                onChange({
-                  x: frame.x + offsetX,
-                  y: frame.y + offsetY,
-                  width: newWidth,
-                  height: newHeight,
-                  frameId: frame.id,
-                });
-              } else {
-                onChange({ x: img.x(), y: img.y(), frameId: null });
-              }
+            offsetX = (frame.width - newWidth) / 2;
+            offsetY = (frame.height - newHeight) / 2;
 
-              setIsOverFrame(false);
-              wasOverFrame = false;
-            }}
-          />
+            onChange({
+              x: frame.x + offsetX,
+              y: frame.y + offsetY,
+              width: newWidth,
+              height: newHeight,
+              frameId: frame.id,
+            });
+
+            wasOverFrame = true;
+          }
+        }}
+
+        onDragEnd={(e) => {
+          const img = e.target;
+          const imgW = img.width();
+          const imgH = img.height();
+
+          const centerX = img.x() + imgW / 2;
+          const centerY = img.y() + imgH / 2;
+
+          const frame = elements.find(
+            (el: CanvasElement) =>
+              el.type === "frame" &&
+              centerX >= el.x &&
+              centerX <= el.x + el.width &&
+              centerY >= el.y &&
+              centerY <= el.y + el.height
+          );
+
+          if (frame) {
+            const frameAspect = frame.width / frame.height;
+            const imgAspect = imgW / imgH;
+
+            let newWidth, newHeight, offsetX, offsetY;
+
+            switch (element.fitMode) {
+              case "fit":
+                if (imgAspect > frameAspect) {
+                  newWidth = frame.width;
+                  newHeight = frame.width / imgAspect;
+                } else {
+                  newHeight = frame.height;
+                  newWidth = frame.height * imgAspect;
+                }
+                break;
+
+              case "fill":
+              default:
+                if (imgAspect < frameAspect) {
+                  newWidth = frame.width;
+                  newHeight = frame.width / imgAspect;
+                } else {
+                  newHeight = frame.height;
+                  newWidth = frame.height * imgAspect;
+                }
+                break;
+
+              case "stretch":
+                newWidth = frame.width;
+                newHeight = frame.height;
+                break;
+            }
+
+            offsetX = (frame.width - newWidth) / 2;
+            offsetY = (frame.height - newHeight) / 2;
+
+            onChange({
+              x: frame.x + offsetX,
+              y: frame.y + offsetY,
+              width: newWidth,
+              height: newHeight,
+              frameId: frame.id,
+            });
+          } else {
+            onChange({ x: img.x(), y: img.y(), frameId: null });
+          }
+
+          setIsOverFrame(false);
+          wasOverFrame = false;
+        }}
+
+
+      />
         );
       }
-      /* icon */
+
       case "icon": {
         const IconComponent = MdIcons[element.iconName as keyof typeof MdIcons];
         console.log(IconComponent);
-
+        
         return (
           <Html
             groupProps={{
               x: element.x,
               y: element.y,
               draggable: true,
-              onDragMove: (e: any) => {
+              onDragMove: (e) => {
                 const node = e.target;
                 const newX = node.x();
                 const newY = node.y();
-                dispatch(
-                  updateElement({
-                    id: element.id,
-                    updates: { x: newX, y: newY },
-                  })
-                );
+                dispatch(updateElement({ id: element.id, updates: { x: newX, y: newY } }));
               },
               onClick: onSelect,
             }}
@@ -443,9 +558,9 @@ export const ElementRenderer = forwardRef<any, Props>(
                 width: element.width,
                 height: element.height,
                 fontSize: element.width,
-                color: element.color || "black",
+                color: element.color || 'black',
                 border: "2px solid #000",
-                cursor: "move",
+                cursor: 'move',
               }}
             >
               <Icon icon="mdi:home" width={50} height={50} color="#000000" />
@@ -454,7 +569,7 @@ export const ElementRenderer = forwardRef<any, Props>(
           </Html>
         );
       }
-      /* shapes */
+
       case "rectangle":
         const rectangleElement = element as RectangleShape;
         // Convert borderRadius object to cornerRadius array if it exists
@@ -505,6 +620,7 @@ export const ElementRenderer = forwardRef<any, Props>(
             }}
           />
         );
+
       case "circle":
         const circleElement = element as CircleShape;
         return (
@@ -544,6 +660,7 @@ export const ElementRenderer = forwardRef<any, Props>(
             }}
           />
         );
+
       case "ellipse":
         const ellipseElement = element as EllipseShape;
         return (
@@ -560,7 +677,7 @@ export const ElementRenderer = forwardRef<any, Props>(
             opacity={ellipseElement.opacity}
             draggable
             onClick={onSelect}
-            onDragMove={(e) => {
+             onDragMove={(e) => {
               onChange({ x: e.target.x(), y: e.target.y() });
             }}
             onTransform={(e) => {
@@ -583,6 +700,7 @@ export const ElementRenderer = forwardRef<any, Props>(
             }}
           />
         );
+
       case "line":
         const lineElement = element as LineShape;
 
@@ -638,6 +756,7 @@ export const ElementRenderer = forwardRef<any, Props>(
             }}
           />
         );
+
       case "triangle":
         const triangleElement = element as TriangleShape;
         return (
@@ -683,6 +802,7 @@ export const ElementRenderer = forwardRef<any, Props>(
             }}
           />
         );
+
       case "star":
         const starElement = element as StarShape;
         return (
@@ -700,6 +820,12 @@ export const ElementRenderer = forwardRef<any, Props>(
             opacity={starElement.opacity}
             draggable
             onClick={onSelect}
+             onDragMove={(e) =>
+              onChange({
+                x: e.target.x(),
+                y: e.target.y(),
+              })
+            }
             onDragMove={(e) =>
               onChange({
                 x: e.target.x(),
@@ -727,9 +853,10 @@ export const ElementRenderer = forwardRef<any, Props>(
 
               node.scaleX(1);
               node.scaleY(1);
-            }}
+            }}
           />
         );
+
       case "wedge":
         const wedgeElement = element as WedgeShape;
         return (
@@ -798,110 +925,50 @@ export const ElementRenderer = forwardRef<any, Props>(
 
               node.scaleX(1);
               node.scaleY(1);
-            }}
+            }}
           />
         );
+
       /* qr code */
-      case "qrcode": {
-        const qrElement = element as QRCodeElement;
-        const [qrError, setQrError] = useState<string | null>(null);
+      // case "qrcode": {
+      //   const qrElement = element as QRCodeElement;
+      //   const [qrError, setQrError] = useState<string | null>(null);
 
-        // Validate QR code data
-        const isValidQRData = qrElement.value && qrElement.value.trim() !== "";
+      //   // Validate QR code data
+      //   const isValidQRData = qrElement.value && qrElement.value.trim() !== "";
 
-        if (!isValidQRData) {
-          return (
-            <Html
-              groupProps={{
-                x: qrElement.x,
-                y: qrElement.y,
-                draggable: true,
-                onClick: onSelect,
-              }}
-            >
-              <div
-                style={{
-                  width: qrElement.width,
-                  height: qrElement.height,
-                  cursor: "move",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "2px dashed #ccc",
-                  backgroundColor: "#f5f5f5",
-                  color: "#666",
-                  fontSize: "12px",
-                  textAlign: "center",
-                }}
-              >
-                Invalid QR Data
-              </div>
-            </Html>
-          );
-        }
-
-        return (
-          <Html
-            groupProps={{
-              x: qrElement.x,
-              y: qrElement.y,
-              draggable: true,
-              onDragMove: (e: any) => {
-                const node = e.target;
-                const newX = node.x();
-                const newY = node.y();
-                dispatch(
-                  updateElement({
-                    id: qrElement.id,
-                    updates: { x: newX, y: newY },
-                  })
-                );
-              },
-              onClick: onSelect,
-            }}
-          >
-            <div
-              style={{
-                width: qrElement.width,
-                height: qrElement.height,
-                cursor: "move",
-              }}
-            >
-              {qrError ? (
-                <div
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "2px solid #ff0000",
-                    backgroundColor: "#ffe6e6",
-                    color: "#cc0000",
-                    fontSize: "10px",
-                    textAlign: "center",
-                    padding: "4px",
-                  }}
-                >
-                  QR Error: {qrError}
-                </div>
-              ) : (
-                <QRCodeCanvas
-                  value={qrElement.value}
-                  size={Math.min(qrElement.width, qrElement.height)}
-                  fgColor={qrElement.fgColor || "#000000"}
-                  bgColor={qrElement.bgColor || "#ffffff"}
-                  level={qrElement.errorCorrectionLevel || "M"}
-                  includeMargin={qrElement.includeMargin !== false}
-                />
-              )}
-            </div>
-          </Html>
-        );
-      }
+      //   if (!isValidQRData) {
+      //     return (
+      //       <Html
+      //         groupProps={{
+      //           x: qrElement.x,
+      //           y: qrElement.y,
+      //           draggable: true,
+      //           onClick: onSelect,
+      //         }}
+      //       >
+      //         <div
+      //           style={{
+      //             width: qrElement.width,
+      //             height: qrElement.height,
+      //             cursor: "move",
+      //             display: "flex",
+      //             alignItems: "center",
+      //             justifyContent: "center",
+      //             border: "2px dashed #ccc",
+      //             backgroundColor: "#f5f5f5",
+      //             color: "#666",
+      //             fontSize: "12px",
+      //             textAlign: "center",
+      //           }}
+      //         >
+      //           Invalid QR Data
+      //         </div>
+      //       </Html>
+      //     );
+      //   }
 
       default:
         return null;
     }
-  }
-);
+});
