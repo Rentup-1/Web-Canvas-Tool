@@ -19,6 +19,7 @@ import {
   FaBold,
   FaItalic,
 } from "react-icons/fa";
+import { MdBlurOn } from "react-icons/md";
 
 // Utility type guard for text elements
 function isTextElement(element: CanvasElement): element is CanvasTextElement {
@@ -80,6 +81,17 @@ export default function TextProperties({
               value={element.background ?? "#000000"}
               onChange={(val) => update({ background: val })}
             />
+          </div>
+
+          <div className="text-sm font-medium mb-1">
+            <div>Transparent</div>
+            <Button
+              size="sm"
+              variant={"outline"}
+              className="mr-2 text-gray-500 font-bold"
+              onClick={() => update({ background: "transparent" })}>
+              <MdBlurOn />
+            </Button>
           </div>
 
           <Button
