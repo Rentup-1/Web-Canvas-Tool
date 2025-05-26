@@ -63,12 +63,14 @@ export const ElementRenderer = forwardRef<any, Props>(
         const textAlign = useSelector((state:any) =>
           state.canvas.elements.find((el:any) => el.id === textElement.id)?.align || 'left'
         );
-        const fontWeight = useSelector((state) =>
-          state.canvas.elements.find((el) => el.id === textElement.id)?.fontWeight || 'normal'
+        const fontWeight = useSelector((state: { canvas: { elements: { id: string; fontWeight?: string }[] } }) =>
+          state.canvas.elements.find((el) => el.id === textElement.id)?.fontWeight || "normal"
         );
-        const fontStyle = useSelector((state) =>
-          state.canvas.elements.find((el) => el.id === textElement.id)?.fontStyle || 'normal'
+
+        const fontStyle = useSelector((state: { canvas: { elements: { id: string; fontStyle?: string }[] } }) =>
+          state.canvas.elements.find((el) => el.id === textElement.id)?.fontStyle || "normal"
         );
+
 
         const borderRadius = textElement.borderRadius || {};
         const textCornerRadius = [
@@ -89,18 +91,14 @@ export const ElementRenderer = forwardRef<any, Props>(
 
             refText.current.fontStyle(fontStyleFinal);
 
-            // 🛠️ اجبر Konva على إعادة حساب بيانات النص
-            refText.current._setTextData(); // 👈 مهم جدا!
+            refText.current._setTextData(); 
 
-            // 🔄 إعادة رسم اللاير
             refText.current.getLayer()?.batchDraw();
 
-            // 📏 احسب الحجم الجديد
             const box = refText.current.getClientRect({ skipTransform: true });
 
             setBgSize({ width: box.width, height: box.height });
 
-            // 🧠 احفظ الحجم الجديد في الستيت
             dispatch(updateElement({
               id: textElement.id,
               updates: {
@@ -308,7 +306,7 @@ export const ElementRenderer = forwardRef<any, Props>(
             height={element.height}
             fill={element.fill}
             dash={[4, 4]}
-            stroke={isFrame ? (isOverFrame ? "blue" : "#000") : element.stroke}
+            stroke={element.stroke}
             strokeWidth={element.strokeWidth}
             rotation={element.rotation}
             draggable
