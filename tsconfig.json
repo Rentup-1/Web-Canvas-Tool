@@ -3,8 +3,7 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ], 
-  // It references the app and node tsconfig files
+  ],
     "compilerOptions": {
     "baseUrl": ".",
     "paths": {

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    // "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
@@ -19,11 +19,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    // "erasableSyntaxOnly": true,
+    "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    // "noUncheckedSideEffectImports": true
-
-    // use this for debugging when debugging change every @ to  "./src/*"
+    "noUncheckedSideEffectImports": true,
+    //* Path mapping */
     "baseUrl": ".",
     "paths": {
       "@/*": [
