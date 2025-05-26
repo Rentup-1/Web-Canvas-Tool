@@ -12,7 +12,13 @@ import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
 import RotationProperties from "../CommonProperties/RotationProperties";
 import { Button } from "@/components/ui/Button";
-import { FaAlignCenter, FaAlignLeft, FaAlignRight, FaBold, FaItalic } from "react-icons/fa";
+import {
+  FaAlignCenter,
+  FaAlignLeft,
+  FaAlignRight,
+  FaBold,
+  FaItalic,
+} from "react-icons/fa";
 
 // Utility type guard for text elements
 function isTextElement(element: CanvasElement): element is CanvasTextElement {
@@ -71,7 +77,7 @@ export default function TextProperties({
             />
             <ColorInput
               label="Background"
-              value={element.background ?? "#000000"} // background rect
+              value={element.background ?? "#000000"}
               onChange={(val) => update({ background: val })}
             />
           </div>
@@ -80,29 +86,36 @@ export default function TextProperties({
             size="sm"
             variant={"outline"}
             className="mr-2 text-gray-500 font-bold"
-            onClick={() => update({ align: "left" })}>
+            onClick={() => update({ align: "left" })}
+          >
             <FaAlignLeft />
           </Button>
           <Button
             size="sm"
-            variant={"outline" }
+            variant={"outline"}
             className="mr-2 text-gray-500 font-bold"
-            onClick={() => update({ align: "center" })}>
+            onClick={() => update({ align: "center" })}
+          >
             <FaAlignCenter />
           </Button>
           <Button
             size="sm"
             variant={"outline"}
             className="mr-2 text-gray-500 font-bold"
-            onClick={() => update({ align: "right" })}>
+            onClick={() => update({ align: "right" })}
+          >
             <FaAlignRight />
           </Button>
-          
+
           <Button
             size="sm"
             variant={"outline"}
             className="mr-2 text-gray-400 font-bold"
-            onClick={() => update({ fontWeight: element.fontWeight === "bold" ? "normal" : "bold" })}
+            onClick={() =>
+              update({
+                fontWeight: element.fontWeight === "bold" ? "normal" : "bold",
+              })
+            }
           >
             <FaBold />
           </Button>
@@ -111,7 +124,11 @@ export default function TextProperties({
             size="sm"
             variant={"outline"}
             className="mr-2 text-gray-400 font-bold"
-            onClick={() => update({ fontStyle: element.fontStyle === "italic" ? "normal" : "italic" })}
+            onClick={() =>
+              update({
+                fontStyle: element.fontStyle === "italic" ? "normal" : "italic",
+              })
+            }
           >
             <FaItalic />
           </Button>
@@ -121,7 +138,9 @@ export default function TextProperties({
             type="number"
             value={(element.backgroundStrokeWidth ?? 10).toString()}
             onChange={(val) =>
-              update<CanvasTextElement>({ backgroundStrokeWidth: Number.parseFloat(val) })
+              update<CanvasTextElement>({
+                backgroundStrokeWidth: Number.parseFloat(val),
+              })
             }
           />
 
@@ -130,7 +149,7 @@ export default function TextProperties({
             value={element.backgroundStroke ?? "#000000"} // backgroundStroke rect
             onChange={(val) => update({ backgroundStroke: val })}
           />
-          
+
           <TextInput
             label="Font Size"
             type="number"

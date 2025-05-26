@@ -81,6 +81,7 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
               onChange={(val) => update({ stroke: val })}
             />
             <SelectInput
+              className="col-span-full"
               label="Fill Branding"
               value={element.fillBrandingType ?? "fixed"}
               onChange={(val) =>
@@ -91,6 +92,7 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
               options={BRANDING_OPTIONS as unknown as string[]}
             />
             <SelectInput
+              className="col-span-full"
               label="Stroke Branding"
               value={element.strokeBrandingType ?? "fixed"}
               onChange={(val) =>

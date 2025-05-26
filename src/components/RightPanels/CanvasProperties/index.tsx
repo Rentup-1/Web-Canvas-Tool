@@ -4,9 +4,11 @@ import { setStageSize } from "@/features/canvas/canvasSlice";
 import type { AspectRatio } from "@/features/canvas/types";
 import { useAspectRatioChange } from "@/hooks/useAspectRatioChange";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
+import { useState } from "react";
 import { FaH, FaW } from "react-icons/fa6";
 
 export default function CanvasProperties() {
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const changeAspectRatio = useAspectRatioChange();
   const dispatch = useAppDispatch();
   const { stageWidth, stageHeight } = useAppSelector((state) => state.canvas);
@@ -42,9 +44,13 @@ export default function CanvasProperties() {
       </div>
       <div className="flex flex-col gap-2 mt-4">
         <SelectInput
+          isClearable={false}
           label="Aspect ratio"
-          value="1:1"
-          onChange={(val) => changeAspectRatio(val as AspectRatio)}
+          value={aspectRatio}
+          onChange={(val) => {
+            setAspectRatio(val as AspectRatio);
+            changeAspectRatio(val as AspectRatio);
+          }}
           options={Array.from(ASPICT_RATIO)}
         />
       </div>
