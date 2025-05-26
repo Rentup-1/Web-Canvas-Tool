@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
-import { TextInput } from "../ui/controlled-inputs/TextInput";
-import { Button } from "../ui/Button";
+import { QRCodeCanvas } from "qrcode.react";
+import { TextInput } from "../../../ui/controlled-inputs/TextInput";
+import { Button } from "../../../ui/Button";
 
 export default function QRCodePanel() {
   const [link, setLink] = useState<string>("");

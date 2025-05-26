@@ -1,6 +1,7 @@
 import { FaUndo, FaRedo } from "react-icons/fa";
-import { useAppDispatch, useAppSelector } from "../../../hooks/useRedux";
-import { redo, undo } from "../../../features/canvas/canvasSlice";
+import { undo, redo } from "@/features/canvas/canvasSlice";
+import { Button } from "../../ui/Button";
+import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 
 export function HistoryControls() {
   const dispatch = useAppDispatch();
@@ -9,23 +10,24 @@ export function HistoryControls() {
 
   return (
     <div className="flex gap-2">
-      <button
-        className="fancy-button flex items-center justify-center gap-2"
+      <Button
+        variant="outline"
         disabled={past.length === 0}
         onClick={() => dispatch(undo())}
       >
-        <FaUndo />
+        <FaUndo className="mr-2" />
         <span>Undo</span>
-      </button>
+      </Button>
 
-      <button
-        className="fancy-button flex items-center justify-center gap-2"
+      <Button
+        className="flex items-center justify-center gap-2"
+        variant="outline"
         disabled={future.length === 0}
         onClick={() => dispatch(redo())}
       >
-        <FaRedo />
+        <FaRedo className="mr-2" />
         <span>Redo</span>
-      </button>
+      </Button>
     </div>
   );
 }

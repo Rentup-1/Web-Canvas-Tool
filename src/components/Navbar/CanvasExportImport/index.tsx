@@ -1,6 +1,6 @@
 import { useRef, type FC } from "react";
 import { FaFileImport, FaSave } from "react-icons/fa";
-import { Button } from "../ui/Button";
+import { Button } from "../../ui/Button";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import type { RootState } from "@/app/store";
 import { setElements } from "@/features/canvas/canvasSlice";
@@ -49,11 +49,20 @@ const CanvasExportImport: FC = () => {
   return (
     <>
       <div className="flex flex-row items-center justify-center gap-2">
-        <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>
+        <Button
+          variant="secondary"
+          onClick={() => fileInputRef.current?.click()}
+        >
           <FaFileImport className="mr-2" />
           Import
         </Button>
-        <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={handleImport} />
+        <input
+          type="file"
+          accept=".json"
+          ref={fileInputRef}
+          className="hidden"
+          onChange={handleImport}
+        />
         <Button variant="default" onClick={handleExport}>
           <FaSave className="mr-2" />
           Export

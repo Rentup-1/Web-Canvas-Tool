@@ -3,11 +3,11 @@ import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { togglePropertiesSidebar } from "@/features/ui/uiSlice";
 import { Button } from "../ui/Button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { ShapeProperties } from "../RightPanels/ShapeProperties";
-import { FrameProperties } from "../RightPanels/FrameProperties";
-import { ImageProperties } from "../RightPanels/ImageProperties";
-import TextProperties from "../RightPanels/TextProperties";
-import CanvasProperties from "../RightPanels/CanvasProperties";
+import CanvasProperties from "./RightPanels/CanvasProperties";
+import { ShapeProperties } from "./RightPanels/ShapeProperties";
+import { FrameProperties } from "./RightPanels/FrameProperties";
+import { ImageProperties } from "./RightPanels/ImageProperties";
+import TextProperties from "./RightPanels/TextProperties";
 
 const shapes = [
   "circle",

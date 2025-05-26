@@ -2,9 +2,9 @@ import type { FC } from "react";
 import logoBlue from "@/assets//LogoBlue.svg";
 import LogoWhite from "@/assets/LogoWhite.svg";
 import { useTheme } from "../ui/theme-provider";
-import { HistoryControls } from "../HistoryControls";
-import CanvasExportImport from "../CanvasExportImport";
-import ToggleTheme from "../ToggleTheme";
+import { HistoryControls } from "./HistoryControls";
+import CanvasExportImport from "./CanvasExportImport";
+import ToggleTheme from "./ToggleTheme";
 
 const Navbar: FC = () => {
   const { theme } = useTheme();

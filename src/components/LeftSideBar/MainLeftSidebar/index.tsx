@@ -1,13 +1,13 @@
 import { useAppSelector } from "@/hooks/useRedux";
 import type { FC } from "react";
-import { ShapesPanel } from "../LeftPanels/Shapes";
-import { TextPanel } from "../LeftPanels/TextPanel";
-import { LayerPanel } from "../LeftPanels/LayerPanel";
-import { FramePanel } from "../LeftPanels/FramePanel";
-import { UploadPanel } from "../LeftPanels/UploadPanel";
-import { IconsPanel } from "../LeftPanels/IconsPanel";
-import QRCodePanel from "../LeftPanels/QRCodePanel";
-import { BrandingPanel } from "../LeftPanels/BrandingPanel";
+import { ShapesPanel } from "./LeftPanels/Shapes";
+import { TextPanel } from "./LeftPanels/TextPanel";
+import { LayerPanel } from "./LeftPanels/LayerPanel";
+import { FramePanel } from "./LeftPanels/FramePanel";
+import { UploadPanel } from "./LeftPanels/UploadPanel";
+import { IconsPanel } from "./LeftPanels/IconsPanel";
+import QRCodePanel from "./LeftPanels/QRCodePanel";
+import { BrandingPanel } from "./LeftPanels/BrandingPanel";
 
 const MainSidebar: FC = () => {
   const { activeCategory } = useAppSelector((state) => state.ui);

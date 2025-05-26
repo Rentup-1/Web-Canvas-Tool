@@ -10,7 +10,7 @@ import { GiTriangleTarget } from "react-icons/gi";
 import { BsSlashLg } from "react-icons/bs";
 import { useAppDispatch } from "@/hooks/useRedux";
 import { addElement } from "@/features/canvas/canvasSlice";
-import { Button } from "../ui/Button";
+import { Button } from "../../../ui/Button";
 
 export function ShapesPanel() {
   const dispatch = useAppDispatch();

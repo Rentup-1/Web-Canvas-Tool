@@ -1,4 +1,4 @@
-import { Canvas } from "./components/layout/Canvas";
+import { Canvas } from "./components/Canvas";
 import Navbar from "./components/Navbar";
 import LeftSideBar from "./components/LeftSideBar";
 import RightSideBar from "./components/RightSideBar";

@@ -1,6 +1,6 @@
 import type { FC } from "react";
-import CategorySidebar from "../CategorySidebar";
-import MainSidebar from "../MainLeftSidebar";
+import CategorySidebar from "./CategorySidebar";
+import MainSidebar from "./MainLeftSidebar";
 import { useAppSelector } from "@/hooks/useRedux";
 
 const LeftSideBar: FC = () => {

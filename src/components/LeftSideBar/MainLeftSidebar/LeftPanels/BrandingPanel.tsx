@@ -5,11 +5,10 @@ import {
   removeColor,
   setColor,
 } from "@/features/branding/brandingSlice";
-import { Button } from "../ui/Button";
-import { TextInput } from "../ui/controlled-inputs/TextInput";
-import { FaBrush } from "react-icons/fa";
+import { Button } from "../../../ui/Button";
+import { TextInput } from "../../../ui/controlled-inputs/TextInput";
 import { MdDeleteOutline } from "react-icons/md";
-import { ColorInput } from "../ui/controlled-inputs/ColorInput";
+import { ColorInput } from "../../../ui/controlled-inputs/ColorInput";
 
 export function BrandingPanel() {
   const dispatch = useAppDispatch();
