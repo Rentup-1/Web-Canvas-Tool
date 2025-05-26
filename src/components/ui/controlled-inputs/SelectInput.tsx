@@ -1,5 +1,5 @@
 import { cn } from "@/utils/clsxUtils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import { FaX } from "react-icons/fa6";
 import Select, {
@@ -7,10 +7,12 @@ import Select, {
   type SingleValue,
   type StylesConfig,
   components,
+  type DropdownIndicatorProps,
+  type ClearIndicatorProps,
 } from "react-select";
 
 // Define the option type
-type OptionType = {
+export type OptionType = {
   value: string;
   label: string;
 };
@@ -33,7 +35,9 @@ export interface EnhancedSelectInputProps {
 }
 
 // Custom dropdown indicator component
-const DropdownIndicator = (props: any) => {
+const DropdownIndicator = (
+  props: DropdownIndicatorProps<OptionType, boolean>
+) => {
   return (
     <components.DropdownIndicator {...props}>
       <FaChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -42,7 +46,7 @@ const DropdownIndicator = (props: any) => {
 };
 
 // Custom clear indicator component
-const ClearIndicator = (props: any) => {
+const ClearIndicator = (props: ClearIndicatorProps<OptionType, boolean>) => {
   return (
     <components.ClearIndicator {...props}>
       <FaX className="h-4 w-4 text-muted-foreground hover:text-foreground" />
@@ -71,12 +75,14 @@ export function SelectInput({
   >(null);
 
   // Normalize options to always be OptionType[] format
-  const normalizedOptions: OptionType[] = options.map((option) => {
-    if (typeof option === "string") {
-      return { value: option, label: option };
-    }
-    return option as OptionType;
-  });
+  const normalizedOptions = useMemo<OptionType[]>(() => {
+    return options.map((option) => {
+      if (typeof option === "string") {
+        return { value: option, label: option };
+      }
+      return option as OptionType;
+    });
+  }, [options]);
 
   // Update internal state when props change
   useEffect(() => {
@@ -85,28 +91,46 @@ export function SelectInput({
       const selectedOptions = normalizedOptions.filter((option) =>
         values.includes(option.value)
       );
-      setCurrentValue(selectedOptions);
+      // Only update state if the selected options have changed
+      if (
+        JSON.stringify(selectedOptions.map((o) => o.value)) !==
+        JSON.stringify(
+          (currentValue as OptionType[] | null)?.map((o) => o.value)
+        )
+      ) {
+        setCurrentValue(selectedOptions);
+      }
     } else {
       const selectedOption =
         normalizedOptions.find((option) => option.value === value) || null;
-      setCurrentValue(selectedOption);
+      // Only update state if the selected option has changed
+      if (
+        selectedOption?.value !== (currentValue as OptionType | null)?.value ||
+        (!selectedOption && currentValue)
+      ) {
+        setCurrentValue(selectedOption);
+      }
     }
-  }, [value, normalizedOptions, isMulti]);
+  }, [value, normalizedOptions, isMulti, currentValue]);
 
-  const handleChange = (
-    newValue: MultiValue<OptionType> | SingleValue<OptionType>
-  ) => {
-    if (isMulti) {
-      const multiValue = newValue as MultiValue<OptionType>;
-      const values = multiValue ? multiValue.map((option) => option.value) : [];
-      setCurrentValue(multiValue ? [...multiValue] : []);
-      onChange(values);
-    } else {
-      const singleValue = newValue as SingleValue<OptionType>;
-      setCurrentValue(singleValue);
-      onChange(singleValue ? singleValue.value : "");
-    }
-  };
+  // Memoized change handler
+  const handleChange = useCallback(
+    (newValue: MultiValue<OptionType> | SingleValue<OptionType>) => {
+      if (isMulti) {
+        const multiValue = newValue as MultiValue<OptionType>;
+        const values = multiValue
+          ? multiValue.map((option) => option.value)
+          : [];
+        setCurrentValue(multiValue ? [...multiValue] : []);
+        onChange(values);
+      } else {
+        const singleValue = newValue as SingleValue<OptionType>;
+        setCurrentValue(singleValue);
+        onChange(singleValue ? singleValue.value : "");
+      }
+    },
+    [isMulti, onChange]
+  );
 
   // Custom styles for react-select with Tailwind classes
   const customStyles: StylesConfig<OptionType, boolean> = {

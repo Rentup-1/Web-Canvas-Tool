@@ -8,6 +8,16 @@ import { ShapeProperties } from "./RightPanels/ShapeProperties";
 import { FrameProperties } from "./RightPanels/FrameProperties";
 import { ImageProperties } from "./RightPanels/ImageProperties";
 import TextProperties from "./RightPanels/TextProperties";
+import type { CanvasElementUnion } from "@/features/canvas/types";
+
+interface RootState {
+  ui: {
+    propertiesSidebarOpen: boolean;
+  };
+  canvas: {
+    elements: CanvasElementUnion[];
+  };
+}
 
 const shapes = [
   "circle",
@@ -27,11 +37,12 @@ const shapes = [
 const RightSideBar: FC = () => {
   const dispatch = useAppDispatch();
   const propertiesSidebarOpen = useAppSelector(
-    (state) => state.ui.propertiesSidebarOpen
+    (state: RootState) => state.ui.propertiesSidebarOpen
   );
-  const selectedElement = useAppSelector((state) =>
+  const selectedElement = useAppSelector((state: RootState) =>
     state.canvas.elements.find((el) => el.selected)
   );
+
   if (!propertiesSidebarOpen) {
     return (
       <div className="flex justify-end">
@@ -63,22 +74,20 @@ const RightSideBar: FC = () => {
 
       <div className="p-4">
         {!selectedElement && <CanvasProperties />}
-        {selectedElement &&
-          shapes.map(
-            (el) =>
-              el.includes(selectedElement.type) && (
-                <ShapeProperties element={selectedElement} />
-              )
-          )}
-
-        {selectedElement && selectedElement.type == "frame" && (
-          <FrameProperties element={selectedElement} />
+        {selectedElement && shapes.includes(selectedElement.type) && (
+          <ShapeProperties
+            key={selectedElement.type}
+            element={selectedElement}
+          />
         )}
-        {selectedElement && selectedElement.type == "image" && (
-          <ImageProperties element={selectedElement} />
+        {selectedElement && selectedElement.type === "frame" && (
+          <FrameProperties key="frame" element={selectedElement} />
         )}
-        {selectedElement && selectedElement.type == "text" && (
-          <TextProperties element={selectedElement} />
+        {selectedElement && selectedElement.type === "image" && (
+          <ImageProperties key="image" element={selectedElement} />
+        )}
+        {selectedElement && selectedElement.type === "text" && (
+          <TextProperties key="text" element={selectedElement} />
         )}
       </div>
     </div>
