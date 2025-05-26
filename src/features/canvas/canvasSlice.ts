@@ -97,7 +97,7 @@ const canvasSlice = createSlice({
             width: 250,
             height: 200,
             stroke: "#000",       
-            strokeWidth: 1,           
+            strokeWidth: 1,   
             fill: "transparent",       
             dash: [5, 5],
             label: "",

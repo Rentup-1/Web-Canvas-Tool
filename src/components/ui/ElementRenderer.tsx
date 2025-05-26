@@ -340,58 +340,98 @@ export const ElementRenderer = forwardRef<any, Props>(
       }
 
       case "image": {
-      const [image] = useImage(element.src || "");
-      const frame = elements.find((f: CanvasElement) => f.id === element.frameId);
-      let wasOverFrame = false; // خليها خارج الكومبوننت أو في useRef لو هتعملها persistent
+        const [image] = useImage(element.src || "");
+        const frame = elements.find((f: CanvasElement) => f.id === element.frameId);
+        let wasOverFrame = false; // خليها خارج الكومبوننت أو في useRef لو هتعملها persistent
 
-      if (frame) {
-        return (
-          <Group
-            x={frame.x}
-            y={frame.y}
-            clipFunc={(ctx) => {
-              ctx.rect(0, 0, frame.width, frame.height);
-            }}>
+        if (frame) {
+          return (
+            <Group
+              x={frame.x}
+              y={frame.y}
+              clipFunc={(ctx) => {
+                ctx.rect(0, 0, frame.width, frame.height);
+              }}>
 
-            <KonvaImage
-              ref={ref}
-              image={image}
-              x={element.x - frame.x} 
-              y={element.y - frame.y}
-              width={element.width}
-              height={element.height}
-              draggable
-              onClick={onSelect}
-              onDragMove={(e) => {
-                const imageNode = e.target;
-                const newX = imageNode.x();
-                const newY = imageNode.y();
+              <KonvaImage
+                ref={ref}
+                image={image}
+                x={element.x - frame.x} 
+                y={element.y - frame.y}
+                width={element.width}
+                height={element.height}
+                draggable
+                onClick={onSelect}
+                onDragMove={(e) => {
+                  const imageNode = e.target;
+                  const newX = imageNode.x();
+                  const newY = imageNode.y();
 
-                onChange({ x: newX + frame.x, y: newY + frame.y });
-              }}
-              onTransform={(e) => {
-                const node = e.target;
-                const newWidth = node.width() * node.scaleX();
-                const newHeight = node.height() * node.scaleY();
-                const newX = node.x();
-                const newY = node.y();
+                  onChange({ x: newX + frame.x, y: newY + frame.y });
+                }}
+                onTransform={(e) => {
+                  const node = e.target;
 
-                onChange({
-                  x: newX + frame.x,
-                  y: newY + frame.y,
-                  width: newWidth,
-                  height: newHeight,
-                  rotation: node.rotation(),
-                });
+                  // النسبة الجديدة للسكيل
+                  const scaleX = node.scaleX();
+                  const scaleY = node.scaleY();
 
-                node.scaleX(1);
-                node.scaleY(1);
-              }}
-            />
-          </Group>
+                  // الأبعاد الجديدة للصورة
+                  const newWidth = node.width() * scaleX;
+                  const newHeight = node.height() * scaleY;
+                  const newX = node.x();
+                  const newY = node.y();
 
-        );
-      }
+                  // احسب نسبة التغيير
+                  const widthRatio = newWidth / element.width;
+                  const heightRatio = newHeight / element.height;
+
+                  // عدّل الفريم بنفس النسبة
+                  dispatch(updateElement({
+                    id: frame.id,
+                    updates: {
+                      width: frame.width * widthRatio,
+                      height: frame.height * heightRatio,
+                    },
+                  }));
+
+                  // عدّل أبعاد الصورة بناءً على مكانها داخل الفريم
+                  onChange({
+                    x: newX + frame.x,
+                    y: newY + frame.y,
+                    width: newWidth,
+                    height: newHeight,
+                    rotation: node.rotation(),
+                  });
+
+                  // reset scale بعد الترانسفورم
+                  node.scaleX(1);
+                  node.scaleY(1);
+                }}
+
+                // onTransform={(e) => {
+                //   const node = e.target;
+                //   const newWidth = node.width() * node.scaleX();
+                //   const newHeight = node.height() * node.scaleY();
+                //   const newX = node.x();
+                //   const newY = node.y();
+
+                //   onChange({
+                //     x: newX + frame.x,
+                //     y: newY + frame.y,
+                //     width: newWidth,
+                //     height: newHeight,
+                //     rotation: node.rotation(),
+                //   });
+
+                //   node.scaleX(1);
+                //   node.scaleY(1);
+                // }}
+              />
+            </Group>
+
+          );
+        }
 
         return (
         <KonvaImage
@@ -459,6 +499,17 @@ export const ElementRenderer = forwardRef<any, Props>(
               centerY >= el.y &&
               centerY <= el.y + el.height
           );
+
+          const isAlreadyHasImage = elements.some(
+              (el: CanvasElement) =>
+                el.type === "image" &&
+                el.frameId === frame.id &&
+                el.id !== element.id 
+            );
+
+            if (isAlreadyHasImage) {
+              return;
+            }
 
           if (!frame) {
             wasOverFrame = false;
@@ -534,6 +585,17 @@ export const ElementRenderer = forwardRef<any, Props>(
           if (frame) {
             const frameAspect = frame.width / frame.height;
             const imgAspect = imgW / imgH;
+            const isAlreadyHasImage = elements.some(
+              (el: CanvasElement) =>
+                el.type === "image" &&
+                el.frameId === frame.id &&
+                el.id !== element.id // عشان تسمح لنفس الصورة تتحرك جوه الفريم
+            );
+
+            if (isAlreadyHasImage) {
+              // الفريم فيه صورة تانية خلاص، متعملش fit تاني
+              return;
+            }
 
             let newWidth, newHeight, offsetX, offsetY;
 
@@ -587,6 +649,255 @@ export const ElementRenderer = forwardRef<any, Props>(
       />
         );
       }
+
+      // case "image": {
+      //   const [image] = useImage(element.src || "");
+      //   const frame = elements.find((f: CanvasElement) => f.id === element.frameId);
+      //   let wasOverFrame = false; // خليها خارج الكومبوننت أو في useRef لو هتعملها persistent
+
+      //   if (frame) {
+      //     return (
+      //       <Group
+      //         x={frame.x}
+      //         y={frame.y}
+      //         clipFunc={(ctx) => {
+      //           ctx.rect(0, 0, frame.width, frame.height);
+      //         }}>
+
+      //         <KonvaImage
+      //           ref={ref}
+      //           image={image}
+      //           x={element.x - frame.x} 
+      //           y={element.y - frame.y}
+      //           width={element.width}
+      //           height={element.height}
+      //           draggable
+      //           onClick={onSelect}
+      //           onDragMove={(e) => {
+      //             const imageNode = e.target;
+      //             const newX = imageNode.x();
+      //             const newY = imageNode.y();
+
+      //             onChange({ x: newX + frame.x, y: newY + frame.y });
+      //           }}
+      //           onTransform={(e) => {
+      //             const node = e.target;
+      //             const newWidth = node.width() * node.scaleX();
+      //             const newHeight = node.height() * node.scaleY();
+      //             const newX = node.x();
+      //             const newY = node.y();
+
+      //             onChange({
+      //               x: newX + frame.x,
+      //               y: newY + frame.y,
+      //               width: newWidth,
+      //               height: newHeight,
+      //               rotation: node.rotation(),
+      //             });
+
+      //             node.scaleX(1);
+      //             node.scaleY(1);
+      //           }}
+      //         />
+      //       </Group>
+
+      //     );
+      //   }
+
+      //   return (
+      //   <KonvaImage
+      //     ref={ref}
+      //     image={image}
+      //     x={element.x}
+      //     y={element.y}
+      //     width={element.width}
+      //     height={element.height}
+      //     draggable
+      //     onClick={onSelect}
+      //     onTransform={(e) => {
+      //       const node = e.target;
+      //       const newWidth = node.width() * node.scaleX();
+      //       const newHeight = node.height() * node.scaleY();
+      //       const newX = node.x();
+      //       const newY = node.y();
+
+      //       const frame = elements.find((f:CanvasElement) => f.id === element.frameId);
+      //       if (frame) {
+      //         const isInside =
+      //           newX >= frame.x &&
+      //           newY >= frame.y &&
+      //           newX + newWidth <= frame.x + frame.width &&
+      //           newY + newHeight <= frame.y + frame.height;
+
+      //         if (!isInside) {
+      //           node.scaleX(1);
+      //           node.scaleY(1);
+      //           node.x(element.x);
+      //           node.y(element.y);
+      //           return;
+      //         }
+      //       }
+
+      //       onChange({
+      //         x: newX,
+      //         y: newY,
+      //         width: newWidth,
+      //         height: newHeight,
+      //         rotation: node.rotation(),
+      //       });
+
+      //       node.scaleX(1);
+      //       node.scaleY(1);
+      //     }}
+
+      //     onDragMove={(e) => {
+
+      //     const imageNode = e.target;
+      //     const imgX = imageNode.x();
+      //     const imgY = imageNode.y();
+      //     const imgW = imageNode.width();
+      //     const imgH = imageNode.height();
+
+      //     const centerX = imgX + imgW / 2;
+      //     const centerY = imgY + imgH / 2;
+      //     dispatch(updateElement({ id: element.id, updates: { x: imgX, y: imgY } }));
+
+      //     const frame = elements.find(
+      //       (el: CanvasElement) =>
+      //         el.type === "frame" &&
+      //         centerX >= el.x &&
+      //         centerX <= el.x + el.width &&
+      //         centerY >= el.y &&
+      //         centerY <= el.y + el.height
+      //     );
+
+      //     if (!frame) {
+      //       wasOverFrame = false;
+      //       return;
+      //     }
+
+      //     if (!wasOverFrame) {
+      //       const frameAspect = frame.width / frame.height;
+      //       const imgAspect = imgW / imgH;
+
+      //       let newWidth, newHeight, offsetX, offsetY;
+
+      //       switch (element.fitMode) {
+      //         case "fit":
+      //           if (imgAspect > frameAspect) {
+      //             newWidth = frame.width;
+      //             newHeight = frame.width / imgAspect;
+      //           } else {
+      //             newHeight = frame.height;
+      //             newWidth = frame.height * imgAspect;
+      //           }
+      //           break;
+
+      //         case "fill":
+      //         default:
+      //           if (imgAspect < frameAspect) {
+      //             newWidth = frame.width;
+      //             newHeight = frame.width / imgAspect;
+      //           } else {
+      //             newHeight = frame.height;
+      //             newWidth = frame.height * imgAspect;
+      //           }
+      //           break;
+
+      //         case "stretch":
+      //           newWidth = frame.width;
+      //           newHeight = frame.height;
+      //           break;
+      //       }
+
+      //       offsetX = (frame.width - newWidth) / 2;
+      //       offsetY = (frame.height - newHeight) / 2;
+
+      //       onChange({
+      //         x: frame.x + offsetX,
+      //         y: frame.y + offsetY,
+      //         width: newWidth,
+      //         height: newHeight,
+      //         frameId: frame.id,
+      //       });
+
+      //       wasOverFrame = true;
+      //     }
+      //   }}
+
+      //   onDragEnd={(e) => {
+      //     const img = e.target;
+      //     const imgW = img.width();
+      //     const imgH = img.height();
+
+      //     const centerX = img.x() + imgW / 2;
+      //     const centerY = img.y() + imgH / 2;
+
+      //     const frame = elements.find(
+      //       (el: CanvasElement) =>
+      //         el.type === "frame" &&
+      //         centerX >= el.x &&
+      //         centerX <= el.x + el.width &&
+      //         centerY >= el.y &&
+      //         centerY <= el.y + el.height
+      //     );
+
+      //     if (frame) {
+      //       const frameAspect = frame.width / frame.height;
+      //       const imgAspect = imgW / imgH;
+
+      //       let newWidth, newHeight, offsetX, offsetY;
+
+      //       switch (element.fitMode) {
+      //         case "fit":
+      //           if (imgAspect > frameAspect) {
+      //             newWidth = frame.width;
+      //             newHeight = frame.width / imgAspect;
+      //           } else {
+      //             newHeight = frame.height;
+      //             newWidth = frame.height * imgAspect;
+      //           }
+      //           break;
+
+      //         case "fill":
+      //         default:
+      //           if (imgAspect < frameAspect) {
+      //             newWidth = frame.width;
+      //             newHeight = frame.width / imgAspect;
+      //           } else {
+      //             newHeight = frame.height;
+      //             newWidth = frame.height * imgAspect;
+      //           }
+      //           break;
+
+      //         case "stretch":
+      //           newWidth = frame.width;
+      //           newHeight = frame.height;
+      //           break;
+      //       }
+
+      //       offsetX = (frame.width - newWidth) / 2;
+      //       offsetY = (frame.height - newHeight) / 2;
+
+      //       onChange({
+      //         x: frame.x + offsetX,
+      //         y: frame.y + offsetY,
+      //         width: newWidth,
+      //         height: newHeight,
+      //         frameId: frame.id,
+      //       });
+      //     } else {
+      //       onChange({ x: img.x(), y: img.y(), frameId: null });
+      //     }
+
+      //     setIsOverFrame(false);
+      //     wasOverFrame = false;
+      //   }}
+
+
+      // />
+      //   );
+      // }
 
       case "icon": {
         const IconComponent = MdIcons[element.iconName as keyof typeof MdIcons];
