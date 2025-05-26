@@ -31,7 +31,7 @@ export function FrameProperties({ element }: { element: CanvasElement }) {
 
           <div className="flex gap-4 items-center">
               <ColorInput
-                label="border Color"
+                label="Stroke Color"
                 value={element.stroke ?? "#000000"}
                 onChange={(val) => update({ stroke: val })}
               />

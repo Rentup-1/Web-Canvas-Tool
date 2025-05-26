@@ -371,11 +371,31 @@ export const ElementRenderer = forwardRef<any, Props>(
                 }}
                 onTransform={(e) => {
                   const node = e.target;
-                  const newWidth = node.width() * node.scaleX();
-                  const newHeight = node.height() * node.scaleY();
+
+                  // النسبة الجديدة للسكيل
+                  const scaleX = node.scaleX();
+                  const scaleY = node.scaleY();
+
+                  // الأبعاد الجديدة للصورة
+                  const newWidth = node.width() * scaleX;
+                  const newHeight = node.height() * scaleY;
                   const newX = node.x();
                   const newY = node.y();
 
+                  // احسب نسبة التغيير
+                  const widthRatio = newWidth / element.width;
+                  const heightRatio = newHeight / element.height;
+
+                  // عدّل الفريم بنفس النسبة
+                  dispatch(updateElement({
+                    id: frame.id,
+                    updates: {
+                      width: frame.width * widthRatio,
+                      height: frame.height * heightRatio,
+                    },
+                  }));
+
+                  // عدّل أبعاد الصورة بناءً على مكانها داخل الفريم
                   onChange({
                     x: newX + frame.x,
                     y: newY + frame.y,
@@ -384,9 +404,29 @@ export const ElementRenderer = forwardRef<any, Props>(
                     rotation: node.rotation(),
                   });
 
+                  // reset scale بعد الترانسفورم
                   node.scaleX(1);
                   node.scaleY(1);
                 }}
+
+                // onTransform={(e) => {
+                //   const node = e.target;
+                //   const newWidth = node.width() * node.scaleX();
+                //   const newHeight = node.height() * node.scaleY();
+                //   const newX = node.x();
+                //   const newY = node.y();
+
+                //   onChange({
+                //     x: newX + frame.x,
+                //     y: newY + frame.y,
+                //     width: newWidth,
+                //     height: newHeight,
+                //     rotation: node.rotation(),
+                //   });
+
+                //   node.scaleX(1);
+                //   node.scaleY(1);
+                // }}
               />
             </Group>
 
