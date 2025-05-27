@@ -12,6 +12,7 @@ import {
   Ring,
   Group,
   Transformer,
+  type KonvaNodeEvents,
 } from "react-konva";
 import type {
   CanvasElementUnion,
@@ -33,8 +34,7 @@ import { useAppDispatch } from "@/hooks/useRedux";
 import { Html } from 'react-konva-utils';
 import * as MdIcons from 'react-icons/md';
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { debounce } from "lodash";
-import { QRCodeCanvas } from "qrcode.react";
+import type { Text as KonvaText } from 'konva';
 
 interface Props {
   element: CanvasElementUnion;
@@ -43,18 +43,22 @@ interface Props {
   onChange: (updates: Partial<CanvasElementUnion>) => void;
 }
 
+interface TextElementProps {
+  element: CanvasTextElement;
+  onSelect?: (e: KonvaNodeEvents, id: string) => void;
+}
+
 // Update the ElementRenderer to apply stroke and strokeWidth to all shapes
 export const ElementRenderer = forwardRef<any, Props>(
   ({ element, onSelect, onChange }, ref) => {
     const elements = useSelector((store:any) => store.canvas.elements);
-    const [isOverFrame, setIsOverFrame] = useState(false);
     const dispatch = useAppDispatch();
 
     switch (element.type) {
 
       case "text":
       const textElement = element as CanvasTextElement;
-      const refText = useRef(null);
+      const refText = useRef<KonvaText>(null);
       const [bgSize, setBgSize] = useState({ width: 0, height: 0 });
       const trRef = useRef(null);
       const [isSelected, setIsSelected] = useState(false);
@@ -89,20 +93,23 @@ export const ElementRenderer = forwardRef<any, Props>(
               : fontStyle;
 
           refText.current.fontStyle(fontStyleFinal);
-          // 🟢 Set text width explicitly to enforce wrapping
-          refText.current.width(textElement.width || 100); // Default width if not set
-          refText.current._setTextData(); // Recalculate text layout
+          refText.current.width(textElement.width || 100);
+          refText.current._setTextData(); // TypeScript should recognize this from Konva
           const box = refText.current.getClientRect({ skipTransform: true });
-          // 🟢 Update bgSize with text dimensions
           setBgSize({ width: box.width, height: box.height });
 
-          dispatch(updateElement({
-            id: textElement.id,
-            updates: {
-              width: box.width,
-              height: box.height,
-            },
-          }));
+
+          if (textElement.id !== undefined) {
+            dispatch(updateElement({
+              id: String(textElement.id),
+              updates: {
+                width: box.width,
+                height: box.height,
+              },
+            }));
+          }
+
+
           refText.current.getLayer()?.batchDraw();
         }
       }, [
@@ -113,7 +120,8 @@ export const ElementRenderer = forwardRef<any, Props>(
         textAlign,
         fontWeight,
         fontStyle,
-        textElement.width, // 🟢 Added to ensure width changes trigger recalculation
+        textElement.width,
+        dispatch // 🟢 Added to ensure width changes trigger recalculation
       ]);
 
       useEffect(() => {
@@ -123,9 +131,14 @@ export const ElementRenderer = forwardRef<any, Props>(
         }
       }, [isSelected, isEditing]);
 
-      const handleSelect = (e) => {
+      // const handleSelect = (e: KonvaNodeEvents) => {
+      //   setIsSelected(true);
+      //   if (onSelect) onSelect(e, textElement.id);
+      // };
+
+      const handleSelect = (e: Konva.KonvaEventObject<MouseEvent>) => {
         setIsSelected(true);
-        if (onSelect) onSelect(e, textElement.id);
+        if (onSelect) onSelect(e, textElement.id as string); // تأكد إن `id` هو string
       };
 
       const handleDoubleClick = () => {
@@ -145,23 +158,10 @@ export const ElementRenderer = forwardRef<any, Props>(
 
       const handleTextBlur = () => {
         setIsEditing(false);
-        dispatch(updateElement({
-          id: textElement.id,
-          updates: {
-            text: editableText,
-            width: bgSize.width,
-            height: bgSize.height,
-            align: textAlign,
-          },
-        }));
-      };
 
-      const handleKeyPress = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          setIsEditing(false);
+        if (textElement.id !== undefined) {
           dispatch(updateElement({
-            id: textElement.id,
+            id: String(textElement.id),
             updates: {
               text: editableText,
               width: bgSize.width,
@@ -169,6 +169,24 @@ export const ElementRenderer = forwardRef<any, Props>(
               align: textAlign,
             },
           }));
+        }
+      };
+
+      const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          setIsEditing(false);
+          if (textElement.id !== undefined) {
+            dispatch(updateElement({
+              id: String(textElement.id),
+              updates: {
+                text: editableText,
+                width: bgSize.width,
+                height: bgSize.height,
+                align: textAlign,
+              },
+            }));
+          }
         }
       };
 
@@ -207,21 +225,25 @@ export const ElementRenderer = forwardRef<any, Props>(
             wrap="word" // Ensure word wrapping
             onClick={handleSelect}
             onDblClick={handleDoubleClick}
-            onDragMove={(e) => dispatch(updateElement({
+            onDragMove={(e) => 
+              dispatch(updateElement({
               id: textElement.id,
               updates: { x: e.target.x(), y: e.target.y() },
             }))}
             onTransform={(e) => {
               const node = refText.current;
               const newWidth = Math.max(30, e.target.width() * e.target.scaleX());
-              node.width(newWidth); // 🟢 Update text width during transform
-              node.scaleX(1);
-              node.scaleY(1);
 
-              // 🟢 Recalculate text dimensions after width change
-              node._setTextData();
-              const box = node.getClientRect({ skipTransform: true });
-              setBgSize({ width: newWidth, height: box.height }); // 🟢 Update height based on wrapped text
+              if(node){
+                  node.width(newWidth); // 🟢 Update text width during transform
+                  node.scaleX(1);
+                  node.scaleY(1);
+    
+                  // 🟢 Recalculate text dimensions after width change
+                  node._setTextData();
+                  const box = node.getClientRect({ skipTransform: true });
+                  setBgSize({ width: newWidth, height: box.height }); // 🟢 Update height based on wrapped text
+              }
             }}
             onTransformEnd={(e) => {
               const node = refText.current;
