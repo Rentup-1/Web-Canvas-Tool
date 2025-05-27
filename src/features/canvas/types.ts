@@ -21,13 +21,13 @@ export type ElementType =
     export type FitMode = "fill" | "fit" | "stretch";
 
 export interface CanvasElement {
-  id: string
+  id?: number | string
   type: ElementType
   x: number
   y: number
   width: number
   height: number
-  rotation: number
+  rotation?: number
   selected?: boolean
   fill?: string
   opacity?: number
@@ -44,7 +44,7 @@ export interface CanvasElement {
   
   // img
   src?:string;
-  fitMode?:FitMode,
+  fitMode?:string,
   originalWidth?: number;
   originalHeight?: number;
 

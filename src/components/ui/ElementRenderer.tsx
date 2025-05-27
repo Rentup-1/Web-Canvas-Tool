@@ -33,6 +33,7 @@ import { useAppDispatch } from "@/hooks/useRedux";
 import { Html } from 'react-konva-utils';
 import * as MdIcons from 'react-icons/md';
 import { Icon } from "@iconify/react/dist/iconify.js";
+import { debounce } from "lodash";
 import { QRCodeCanvas } from "qrcode.react";
 
 interface Props {
@@ -52,99 +53,112 @@ export const ElementRenderer = forwardRef<any, Props>(
     switch (element.type) {
 
       case "text":
-        const textElement = element as CanvasTextElement;
-        const refText = useRef(null);
-        const [bgSize, setBgSize] = useState({ width: 0, height: 0 });
-        const trRef = useRef(null);
-        const [isSelected, setIsSelected] = useState(false);
-        const [isEditing, setIsEditing] = useState(false);
-        const [editableText, setEditableText] = useState(textElement.text);
+      const textElement = element as CanvasTextElement;
+      const refText = useRef(null);
+      const [bgSize, setBgSize] = useState({ width: 0, height: 0 });
+      const trRef = useRef(null);
+      const [isSelected, setIsSelected] = useState(false);
+      const [isEditing, setIsEditing] = useState(false);
+      const [editableText, setEditableText] = useState(textElement.text);
 
-        const textAlign = useSelector((state:any) =>
-          state.canvas.elements.find((el:any) => el.id === textElement.id)?.align || 'left'
-        );
-        const fontWeight = useSelector((state: { canvas: { elements: { id: string; fontWeight?: string }[] } }) =>
-          state.canvas.elements.find((el) => el.id === textElement.id)?.fontWeight || "normal"
-        );
+      const textAlign = useSelector((state: any) =>
+        state.canvas.elements.find((el: any) => el.id === textElement.id)?.align || 'left'
+      );
+      const fontWeight = useSelector((state: { canvas: { elements: { id: string; fontWeight?: string }[] } }) =>
+        state.canvas.elements.find((el) => el.id === textElement.id)?.fontWeight || 'normal'
+      );
+      const fontStyle = useSelector((state: { canvas: { elements: { id: string; fontStyle?: string }[] } }) =>
+        state.canvas.elements.find((el) => el.id === textElement.id)?.fontStyle || 'normal'
+      );
 
-        const fontStyle = useSelector((state: { canvas: { elements: { id: string; fontStyle?: string }[] } }) =>
-          state.canvas.elements.find((el) => el.id === textElement.id)?.fontStyle || "normal"
-        );
+      const borderRadius = textElement.borderRadius || {};
+      const textCornerRadius = [
+        borderRadius.topLeft || 0,
+        borderRadius.topRight || 0,
+        borderRadius.bottomRight || 0,
+        borderRadius.bottomLeft || 0,
+      ];
 
+      useEffect(() => {
+        if (refText.current) {
+          const fontStyleFinal =
+            fontWeight === 'bold'
+              ? fontStyle === 'italic'
+                ? 'bold italic'
+                : 'bold'
+              : fontStyle;
 
-        const borderRadius = textElement.borderRadius || {};
-        const textCornerRadius = [
-          borderRadius.topLeft || 0,
-          borderRadius.topRight || 0,
-          borderRadius.bottomRight || 0,
-          borderRadius.bottomLeft || 0,
-        ];
+          refText.current.fontStyle(fontStyleFinal);
+          // 🟢 Set text width explicitly to enforce wrapping
+          refText.current.width(textElement.width || 100); // Default width if not set
+          refText.current._setTextData(); // Recalculate text layout
+          const box = refText.current.getClientRect({ skipTransform: true });
+          // 🟢 Update bgSize with text dimensions
+          setBgSize({ width: box.width, height: box.height });
 
-        useEffect(() => {
-          if (refText.current) {
-            const fontStyleFinal =
-              fontWeight === 'bold'
-                ? fontStyle === 'italic'
-                  ? 'bold italic'
-                  : 'bold'
-                : fontStyle;
+          dispatch(updateElement({
+            id: textElement.id,
+            updates: {
+              width: box.width,
+              height: box.height,
+            },
+          }));
+          refText.current.getLayer()?.batchDraw();
+        }
+      }, [
+        textElement.text,
+        textElement.fontSize,
+        textElement.fontFamily,
+        textElement.padding,
+        textAlign,
+        fontWeight,
+        fontStyle,
+        textElement.width, // 🟢 Added to ensure width changes trigger recalculation
+      ]);
 
-            refText.current.fontStyle(fontStyleFinal);
+      useEffect(() => {
+        if (isSelected && trRef.current && !isEditing) {
+          trRef.current.nodes([refText.current]);
+          trRef.current.getLayer().batchDraw();
+        }
+      }, [isSelected, isEditing]);
 
-            refText.current._setTextData(); 
+      const handleSelect = (e) => {
+        setIsSelected(true);
+        if (onSelect) onSelect(e, textElement.id);
+      };
 
-            refText.current.getLayer()?.batchDraw();
+      const handleDoubleClick = () => {
+        setIsEditing(true);
+      };
 
-            const box = refText.current.getClientRect({ skipTransform: true });
+      const handleTextChange = (e) => {
+        setEditableText(e.target.value);
+        if (refText.current) {
+          refText.current.text(e.target.value);
+          refText.current.width(textElement.width || 100);
+          refText.current._setTextData();
+          const box = refText.current.getClientRect({ skipTransform: true });
+          setBgSize({ width: box.width, height: box.height });
+        }
+      };
 
-            setBgSize({ width: box.width, height: box.height });
+      const handleTextBlur = () => {
+        setIsEditing(false);
+        dispatch(updateElement({
+          id: textElement.id,
+          updates: {
+            text: editableText,
+            width: bgSize.width,
+            height: bgSize.height,
+            align: textAlign,
+          },
+        }));
+      };
 
-            dispatch(updateElement({
-              id: textElement.id,
-              updates: {
-                width: box.width,
-                height: box.height,
-              },
-            }));
-          }
-        }, [
-          textElement.text,
-          textElement.fontSize,
-          textElement.fontFamily,
-          textElement.padding,
-          textAlign,
-          fontWeight,
-          fontStyle,
-        ]);
-
-
-
-        useEffect(() => {
-          if (isSelected && trRef.current && !isEditing) {
-            trRef.current.nodes([refText.current]);
-            trRef.current.getLayer().batchDraw();
-          }
-        }, [isSelected, isEditing]);
-
-        const handleSelect = (e) => {
-          setIsSelected(true);
-          if (onSelect) onSelect(e, textElement.id);
-        };
-
-        const handleDoubleClick = () => {
-          setIsEditing(true);
-        };
-
-        const handleTextChange = (e) => {
-          setEditableText(e.target.value);
-          if (refText.current) {
-            refText.current.text(e.target.value);
-            const box = refText.current.getClientRect({ skipTransform: true });
-            setBgSize({ width: box.width, height: box.height });
-          }
-        };
-
-        const handleTextBlur = () => {
+      const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
           setIsEditing(false);
           dispatch(updateElement({
             id: textElement.id,
@@ -155,144 +169,136 @@ export const ElementRenderer = forwardRef<any, Props>(
               align: textAlign,
             },
           }));
-        };
+        }
+      };
 
-        const handleKeyPress = (e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            setIsEditing(false);
-            dispatch(updateElement({
-              id: textElement.id,
-              updates: {
-                text: editableText,
-                width: bgSize.width,
-                height: bgSize.height,
-                align: textAlign,
-              },
-            }));
-          }
-        };
-
-        return (
-  
-          <>
-            {textElement.background && (
-              <Rect
-                x={textElement.x - (textElement.padding || 0)}
-                y={textElement.y - (textElement.padding || 0)}
-                width={bgSize.width + (textElement.padding || 0) * 2}
-                height={bgSize.height + (textElement.padding || 0) * 2}
-                fill={textElement.background}
-                stroke={textElement.backgroundStroke}
-                strokeWidth={textElement.backgroundStrokeWidth}
-                opacity={textElement.opacity}
-                rotation={textElement.rotation}
-                cornerRadius={textCornerRadius}
-              />
-            )}
-            <Text
-              ref={refText}
-              x={textElement.x}
-              y={textElement.y}
-              text={editableText}
-              fill={textElement.fill || "#000"}
-              stroke={textElement.stroke}
-              padding={textElement.padding}
-              fontSize={textElement.fontSize}
-              fontFamily={textElement.fontFamily || "Arial"}
+      return (
+        <>
+          {textElement.background && (
+            <Rect
+              x={textElement.x - (textElement.padding || 0)}
+              y={textElement.y - (textElement.padding || 0)}
+              width={bgSize.width + (textElement.padding || 0) * 2}
+              height={bgSize.height + (textElement.padding || 0) * 2}
+              fill={textElement.background}
+              // stroke={textElement.backgroundStroke}
+              // strokeWidth={textElement.backgroundStrokeWidth}
               opacity={textElement.opacity}
-              verticalAlign="middle"
-              align={textAlign}
-              fontStyle={fontWeight} // 🟢 Apply fontWeight as fontStyle for Konva
-              draggable
-              width={textElement.width}
-              wrap="word"
-              onClick={handleSelect}
-              onDblClick={handleDoubleClick}
-              onDragMove={(e) => dispatch(updateElement({
-                id: textElement.id,
-                updates: { x: e.target.x(), y: e.target.y() },
-              }))}
-              onTransform={(e) => {
-                const node = refText.current;
-                const newWidth = Math.max(30, e.target.width() * e.target.scaleX());
-                node.width(newWidth);
-                node.scaleX(1);
-                node.scaleY(1);
-                const newHeight = node.height();
-                setBgSize({ width: newWidth, height: newHeight });
-              }}
-              onTransformEnd={(e) => {
-                const node = refText.current;
-                const newWidth = Math.max(30, node.width());
-                node.width(newWidth);
-                const newHeight = node.height();
-
-                setBgSize({ width: newWidth, height: newHeight });
-
-                dispatch(updateElement({
-                  id: textElement.id,
-                  updates: {
-                    x: node.x(),
-                    y: node.y(),
-                    width: newWidth,
-                    height: newHeight,
-                    align: textAlign,
-                    fontWeight,
-                  },
-                }));
-
-                node.scaleX(1);
-                node.scaleY(1);
-              }}
+              rotation={textElement.rotation}
+              cornerRadius={textCornerRadius}
             />
-            {isSelected && !isEditing && (
-              <Transformer
-                ref={trRef}
-                rotateEnabled={false}
-                enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
-                boundBoxFunc={(oldBox, newBox) => {
-                  if (newBox.width < 30 || newBox.height < 30) {
-                    return oldBox;
-                  }
-                  return newBox;
+          )}
+          <Text
+            ref={refText}
+            x={textElement.x}
+            y={textElement.y}
+            text={editableText}
+            fill={textElement.fill || '#000'}
+            stroke={textElement.stroke}
+            padding={textElement.padding}
+            fontSize={textElement.fontSize}
+            fontFamily={textElement.fontFamily || 'Arial'}
+            opacity={textElement.opacity}
+            verticalAlign="middle"
+            align={textAlign}
+            fontStyle={fontWeight}
+            draggable
+            width={textElement.width || 100} // 🟢 Enforce fixed width for wrapping
+            wrap="word" // Ensure word wrapping
+            onClick={handleSelect}
+            onDblClick={handleDoubleClick}
+            onDragMove={(e) => dispatch(updateElement({
+              id: textElement.id,
+              updates: { x: e.target.x(), y: e.target.y() },
+            }))}
+            onTransform={(e) => {
+              const node = refText.current;
+              const newWidth = Math.max(30, e.target.width() * e.target.scaleX());
+              node.width(newWidth); // 🟢 Update text width during transform
+              node.scaleX(1);
+              node.scaleY(1);
+
+              // 🟢 Recalculate text dimensions after width change
+              node._setTextData();
+              const box = node.getClientRect({ skipTransform: true });
+              setBgSize({ width: newWidth, height: box.height }); // 🟢 Update height based on wrapped text
+            }}
+            onTransformEnd={(e) => {
+              const node = refText.current;
+              const newWidth = Math.max(30, node.width());
+              node.width(newWidth);
+
+              // 🟢 Force text recalculation
+              node._setTextData();
+              const box = node.getClientRect({ skipTransform: true });
+              const newHeight = box.height;
+
+              setBgSize({ width: newWidth, height: newHeight });
+
+              dispatch(updateElement({
+                id: textElement.id,
+                updates: {
+                  x: node.x(),
+                  y: node.y(),
+                  width: newWidth,
+                  height: newHeight,
+                  align: textAlign,
+                  fontWeight,
+                },
+              }));
+
+              node.scaleX(1);
+              node.scaleY(1);
+            }}
+          />
+          {isSelected && !isEditing && (
+            <Transformer
+              ref={trRef}
+              rotateEnabled={false}
+              // 'top-left', 'top-right', 
+              enabledAnchors={['bottom-left', 'bottom-right']}
+              boundBoxFunc={(oldBox, newBox) => {
+                if (newBox.width < 30) {
+                  return oldBox; // 🟢 Prevent width from going too small
+                }
+                return newBox;
+              }}
+              onClick={(e) => (e.cancelBubble = true)}
+            />
+          )}
+          {isEditing && (
+            <Html>
+              <textarea
+                style={{
+                  position: 'absolute',
+                  top: textElement.y,
+                  left: textElement.x,
+                  width: textElement.width || 100, // 🟢 Match text width for consistency
+                  height: bgSize.height, // 🟢 Match text height
+                  fontSize: textElement.fontSize,
+                  fontFamily: textElement.fontFamily || 'Arial',
+                  padding: textElement.padding || 0,
+                  color: textElement.fill,
+                  background: 'white',
+                  border: '1px dashed #ccc',
+                  resize: 'none',
+                  outline: 'none',
+                  overflow: 'hidden',
+                  lineHeight: '1',
+                  textAlign: textAlign,
+                  fontWeight: fontWeight,
+                  fontStyle: fontStyle,
                 }}
-                onClick={(e) => e.cancelBubble = true}
+                value={editableText}
+                onChange={handleTextChange}
+                onBlur={handleTextBlur}
+                onKeyPress={handleKeyPress}
+                autoFocus
               />
-            )}
-            {isEditing && (
-              <Html>
-                <textarea
-                  style={{
-                    position: 'absolute',
-                    top: textElement.y,
-                    left: textElement.x,
-                    width: bgSize.width,
-                    height: bgSize.height,
-                    fontSize: textElement.fontSize,
-                    fontFamily: textElement.fontFamily || 'Arial',
-                    padding: textElement.padding || 0,
-                    color: textElement.fill,
-                    background: 'white',
-                    border: '1px dashed #ccc',
-                    resize: 'none',
-                    outline: 'none',
-                    overflow: 'hidden',
-                    lineHeight: '1',
-                    textAlign: textAlign,
-                    fontWeight: fontWeight,
-                    fontStyle: fontStyle, 
-                  }}
-                  value={editableText}
-                  onChange={handleTextChange}
-                  onBlur={handleTextBlur}
-                  onKeyPress={handleKeyPress}
-                  autoFocus
-                />
-              </Html>
-            )}
-          </>
-        );
+            </Html>
+          )}
+        </>
+      );
 
       case "frame": {
         const isFrame = element.type === "frame";

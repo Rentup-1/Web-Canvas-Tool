@@ -37,8 +37,9 @@ const initialState: CanvasState = {
   aspectRatio: "9:16",
 };
 
+let shapeIdCounter = 1;
+
 const createBaseElement = (): Omit<CanvasElement, "type"> => ({
-  id: nanoid(),
   x: 100,
   y: 100,
   width: 150,
@@ -61,7 +62,8 @@ const canvasSlice = createSlice({
 
         case "text":
           newElement = {
-            id: nanoid(),
+            id: `text-${shapeIdCounter++}`,  
+            ...base,
             x: 100,
             y: 100,
             text: "Edit Me Now...",
@@ -77,6 +79,7 @@ const canvasSlice = createSlice({
             backgroundStrokeWidth: 2,   
             fontFamily: "Arial",
             stroke: undefined,
+            label: "",
             strokeTextWidth: 0,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
@@ -92,14 +95,16 @@ const canvasSlice = createSlice({
 
         case "frame":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
-            type: "frame",
+            type: "frame", 
             width: 250,
             height: 200,
             stroke: "#000",       
             strokeWidth: 1,   
             fill: "transparent",       
             dash: [5, 5],
+            frame_type: "frame",
             label: "",
             tags: []
           } as CanvasElement;
@@ -107,6 +112,7 @@ const canvasSlice = createSlice({
 
         case "icon":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "icon",
             iconName: "mdi:home", // اسم الأيقونة من API
@@ -126,6 +132,7 @@ const canvasSlice = createSlice({
 
         case "circle":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "circle",
             radius: Math.min(base.width, base.height) / 2,
@@ -138,6 +145,7 @@ const canvasSlice = createSlice({
 
         case "rectangle":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "rectangle",
             cornerRadius: 0,
@@ -156,6 +164,7 @@ const canvasSlice = createSlice({
 
         case "ellipse":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "ellipse",
             radiusX: base.width / 2,
@@ -169,6 +178,7 @@ const canvasSlice = createSlice({
 
         case "line":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "line",
             points: [0, 0, base.width, base.height],
@@ -181,6 +191,7 @@ const canvasSlice = createSlice({
 
         case "triangle":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "triangle",
             points: [0, base.height, base.width / 2, 0, base.width, base.height],
@@ -193,6 +204,7 @@ const canvasSlice = createSlice({
 
         case "star":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "star",
             innerRadius: 20,
@@ -207,6 +219,7 @@ const canvasSlice = createSlice({
 
         case "regularPolygon":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "regularPolygon",
             sides: 6,
@@ -220,6 +233,7 @@ const canvasSlice = createSlice({
 
         case "arc":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "arc",
             innerRadius: 20,
@@ -234,6 +248,7 @@ const canvasSlice = createSlice({
 
         case "wedge":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "wedge",
             radius: Math.min(base.width, base.height) / 2,
@@ -247,6 +262,7 @@ const canvasSlice = createSlice({
 
         case "ring":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "ring",
             innerRadius: 20,
@@ -260,6 +276,7 @@ const canvasSlice = createSlice({
 
         case "arrow":
           newElement = {
+            id: shapeIdCounter++,
             ...base,
             type: "arrow",
             points: [0, 0, base.width, base.height],

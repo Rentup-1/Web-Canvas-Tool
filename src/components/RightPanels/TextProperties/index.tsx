@@ -145,7 +145,7 @@ export default function TextProperties({
             <FaItalic />
           </Button>
 
-          <TextInput
+          {/* <TextInput
             label="Stroke width"
             type="number"
             value={(element.backgroundStrokeWidth ?? 10).toString()}
@@ -160,7 +160,7 @@ export default function TextProperties({
             label="Stroke Color"
             value={element.backgroundStroke ?? "#000000"} // backgroundStroke rect
             onChange={(val) => update({ backgroundStroke: val })}
-          />
+          /> */}
 
           <TextInput
             label="Font Size"
