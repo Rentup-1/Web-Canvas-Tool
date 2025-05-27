@@ -5,6 +5,7 @@ import {
   deleteSelectedElement,
   selectElement,
   updateElement,
+  deselectAllElements,
 } from "../../features/canvas/canvasSlice";
 import { ElementRenderer } from "../ui/ElementRenderer";
 
@@ -15,12 +16,23 @@ export function Canvas() {
   const selectedNodeRef = useRef<any>(null);
   const transformerRef = useRef<any>(null);
 
+  // Check if any element is selected
+  const isAnyElementSelected = elements.some((el) => el.selected);
+
   useEffect(() => {
-    if (transformerRef.current && selectedNodeRef.current) {
+    if (
+      transformerRef.current &&
+      selectedNodeRef.current &&
+      isAnyElementSelected
+    ) {
       transformerRef.current.nodes([selectedNodeRef.current]);
       transformerRef.current.getLayer()?.batchDraw();
+    } else if (transformerRef.current) {
+      // Clear Transformer nodes when no element is selected
+      transformerRef.current.nodes([]);
+      transformerRef.current.getLayer()?.batchDraw();
     }
-  }, [elements]);
+  }, [elements, isAnyElementSelected]);
 
   useEffect(() => {
     const handleKeyDown = (e: any) => {
@@ -31,13 +43,20 @@ export function Canvas() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [dispatch]);
+
+  const handleStageClick = (e: any) => {
+    if (e.target === e.target.getStage()) {
+      dispatch(deselectAllElements());
+    }
+  };
 
   return (
     <Stage
       width={stageWidth}
       height={stageHeight}
       style={{ border: "1px solid #ccc" }}
+      onMouseDown={handleStageClick}
     >
       <Layer>
         {elements.map((el) => (
@@ -52,7 +71,7 @@ export function Canvas() {
             ref={el.selected ? selectedNodeRef : null}
           />
         ))}
-        <Transformer ref={transformerRef} />
+        {isAnyElementSelected && <Transformer ref={transformerRef} />}
       </Layer>
     </Stage>
   );

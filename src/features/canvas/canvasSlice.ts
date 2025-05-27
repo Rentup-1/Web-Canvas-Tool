@@ -58,7 +58,6 @@ const canvasSlice = createSlice({
       let newElement: CanvasElement;
 
       switch (action.payload.type) {
-
         case "text":
           newElement = {
             id: nanoid(),
@@ -74,20 +73,20 @@ const canvasSlice = createSlice({
             height: 50,
             type: "text",
             backgroundStroke: "#A3A3A3",
-            backgroundStrokeWidth: 2,   
+            backgroundStrokeWidth: 2,
             fontFamily: "Arial",
             stroke: undefined,
             strokeTextWidth: 0,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-            borderRadius: {              
+            borderRadius: {
               topLeft: 4,
               topRight: 4,
               bottomRight: 4,
               bottomLeft: 4,
             },
             alignment: "left",
-          } as CanvasTextElement
+          } as CanvasTextElement;
           break;
 
         case "frame":
@@ -96,12 +95,12 @@ const canvasSlice = createSlice({
             type: "frame",
             width: 250,
             height: 200,
-            stroke: "#000",       
-            strokeWidth: 1,   
-            fill: "transparent",       
+            stroke: "#000",
+            strokeWidth: 1,
+            fill: "transparent",
             dash: [5, 5],
             label: "",
-            tags: []
+            tags: [],
           } as CanvasElement;
           break;
 
@@ -112,9 +111,9 @@ const canvasSlice = createSlice({
             iconName: "mdi:home", // اسم الأيقونة من API
             width: 50,
             height: 50,
-            color: '#000000' // ✅ اللون
+            color: "#000000", // ✅ اللون
           } as CanvasElement;
-        break;
+          break;
 
         // case "image":
         //   newElement = {
@@ -133,7 +132,7 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as CircleShape
+          } as CircleShape;
           break;
 
         case "rectangle":
@@ -151,7 +150,7 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as RectangleShape
+          } as RectangleShape;
           break;
 
         case "ellipse":
@@ -164,7 +163,7 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as EllipseShape
+          } as EllipseShape;
           break;
 
         case "line":
@@ -176,19 +175,26 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as LineShape
+          } as LineShape;
           break;
 
         case "triangle":
           newElement = {
             ...base,
             type: "triangle",
-            points: [0, base.height, base.width / 2, 0, base.width, base.height],
+            points: [
+              0,
+              base.height,
+              base.width / 2,
+              0,
+              base.width,
+              base.height,
+            ],
             stroke: "#000000",
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as TriangleShape
+          } as TriangleShape;
           break;
 
         case "star":
@@ -202,7 +208,7 @@ const canvasSlice = createSlice({
             strokeWidth: 2,
             fillBrandingType: "fixed",
             strokeBrandingType: "fixed",
-          } as StarShape
+          } as StarShape;
           break;
 
         case "regularPolygon":
@@ -292,8 +298,10 @@ const canvasSlice = createSlice({
       state.future = [];
       state.elements.push(newElement);
     },
-
-    addImageElement: (state, action: PayloadAction<{ src: string; width: number; height: number }>) => {
+    addImageElement: (
+      state,
+      action: PayloadAction<{ src: string; width: number; height: number }>
+    ) => {
       const { src, width, height } = action.payload;
 
       state.elements.push({
@@ -307,20 +315,27 @@ const canvasSlice = createSlice({
         selected: false,
         src,
         originalWidth: width,
-        originalHeight: height
+        originalHeight: height,
       });
     },
-
-
     selectElement: (state, action: PayloadAction<string | null>) => {
       state.elements.forEach((el) => {
         el.selected = el.id === action.payload;
       });
     },
-
-    updateElement: (state, action: PayloadAction<{ id: string; updates: Partial<CanvasElement> }>) => {
+    // remove selectElement
+    deselectAllElements: (state) => {
+      state.elements = state.elements.map((el) => ({
+        ...el,
+        selected: false,
+      }));
+    },
+    updateElement: (
+      state,
+      action: PayloadAction<{ id: string; updates: Partial<CanvasElement> }>
+    ) => {
       const { id, updates } = action.payload;
-      const index = state.elements.findIndex((el) => el.id === id)
+      const index = state.elements.findIndex((el) => el.id === id);
       if (index !== -1) {
         state.past.push(state.elements.map((el) => ({ ...el })));
         state.future = [];
@@ -362,7 +377,10 @@ const canvasSlice = createSlice({
       if (index < state.elements.length - 1) {
         state.past.push(state.elements.map((el) => ({ ...el })));
         state.future = [];
-        [state.elements[index], state.elements[index + 1]] = [state.elements[index + 1], state.elements[index]];
+        [state.elements[index], state.elements[index + 1]] = [
+          state.elements[index + 1],
+          state.elements[index],
+        ];
       }
     },
 
@@ -371,11 +389,17 @@ const canvasSlice = createSlice({
       if (index > 0) {
         state.past.push(state.elements.map((el) => ({ ...el })));
         state.future = [];
-        [state.elements[index], state.elements[index - 1]] = [state.elements[index - 1], state.elements[index]];
+        [state.elements[index], state.elements[index - 1]] = [
+          state.elements[index - 1],
+          state.elements[index],
+        ];
       }
     },
 
-    setStageSize: (state, action: PayloadAction<{ width: number; height: number }>) => {
+    setStageSize: (
+      state,
+      action: PayloadAction<{ width: number; height: number }>
+    ) => {
       state.stageWidth = action.payload.width;
       state.stageHeight = action.payload.height;
     },
@@ -412,6 +436,7 @@ export const {
   setAspectRatio,
   setElements,
   clearCanvas,
+  deselectAllElements,
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;
