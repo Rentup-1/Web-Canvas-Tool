@@ -1,5 +1,5 @@
 import { Stage, Layer, Transformer } from "react-konva";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "../../hooks/useRedux";
 import {
   deleteSelectedElement,
@@ -10,6 +10,7 @@ import {
 import { ElementRenderer } from "../ui/ElementRenderer";
 
 export function Canvas() {
+  const [cursor, setCursor] = useState("default");
   const elements = useAppSelector((state) => state.canvas.elements);
   const { stageWidth, stageHeight } = useAppSelector((state) => state.canvas);
   const dispatch = useAppDispatch();
@@ -102,9 +103,36 @@ export function Canvas() {
       ref={stageRef}
       width={stageWidth}
       height={stageHeight}
-      style={{ border: "1px solid #ccc" }}
+      style={{ border: "1px solid #ccc", cursor }}
       onMouseDown={handleStageClick}
       onWheel={handleWheel}
+      draggable={stageRef.current?.scaleX() > 1}
+      dragBoundFunc={(pos) => {
+        const stage = stageRef.current;
+        const scale = stage.scaleX(); // scale ثابت في X و Y
+
+        const stageBox = {
+          width: stageWidth * scale,
+          height: stageHeight * scale,
+        };
+
+        const containerWidth = stage.width();
+        const containerHeight = stage.height();
+
+        const minX = containerWidth - stageBox.width;
+        const minY = containerHeight - stageBox.height;
+
+        return {
+          x: Math.min(0, Math.max(minX, pos.x)),
+          y: Math.min(0, Math.max(minY, pos.y)),
+        };
+      }}
+      onDragStart={() => setCursor("grabbing")}
+      onDragEnd={() => setCursor("grab")}
+      onMouseEnter={() => {
+        if (stageRef.current?.draggable()) setCursor("grab");
+      }}
+      onMouseLeave={() => setCursor("default")}
     >
       <Layer>
         {elements.map((el) => (
