@@ -52,6 +52,9 @@ export interface CanvasElement {
   icon?:string
   iconName?:string
   color?:string;
+  text?:string
+  align?:string
+  fontWeight?:string
 
 
 }
