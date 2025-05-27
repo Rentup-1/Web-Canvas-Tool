@@ -5,7 +5,6 @@ import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
 import { ColorInput } from "@/components/ui/controlled-inputs/ColorInput";
 import { InputRange } from "@/components/ui/controlled-inputs/InputRange";
 import { useState, useEffect } from "react";
-import { SelectInput } from "@/components/ui/controlled-inputs/SelectInput";
 import { BsBorderWidth } from "react-icons/bs";
 import { Button } from "@/components/ui/Button";
 import { FaLock, FaUnlock } from "react-icons/fa";
@@ -19,6 +18,7 @@ import {
 import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
 import RotationProperties from "../CommonProperties/RotationProperties";
+import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 
 const BRANDING_OPTIONS = [
   "primary",

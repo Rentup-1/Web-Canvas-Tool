@@ -1,4 +1,4 @@
-import { SelectInput } from "@/components/ui/controlled-inputs/SelectInput";
+import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
 import { setStageSize } from "@/features/canvas/canvasSlice";
 import type { AspectRatio } from "@/features/canvas/types";

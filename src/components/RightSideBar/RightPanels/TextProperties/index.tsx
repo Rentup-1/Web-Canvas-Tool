@@ -1,5 +1,4 @@
 import { ColorInput } from "@/components/ui/controlled-inputs/ColorInput";
-import { SelectInput } from "@/components/ui/controlled-inputs/SelectInput";
 import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
 import { updateElement } from "@/features/canvas/canvasSlice";
 import type {
@@ -19,6 +18,7 @@ import {
   FaBold,
   FaItalic,
 } from "react-icons/fa";
+import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 
 // Utility type guard for text elements
 function isTextElement(element: CanvasElement): element is CanvasTextElement {

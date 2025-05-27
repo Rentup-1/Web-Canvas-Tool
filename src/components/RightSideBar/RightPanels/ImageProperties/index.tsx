@@ -5,7 +5,7 @@ import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
 import { useSelector } from "react-redux";
 import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
-import { SelectInput } from "@/components/ui/controlled-inputs/SelectInput";
+import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 
 export function ImageProperties({ element }: { element: CanvasElement }) {
   const dispatch = useAppDispatch();
