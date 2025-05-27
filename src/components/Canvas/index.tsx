@@ -50,13 +50,61 @@ export function Canvas() {
       dispatch(deselectAllElements());
     }
   };
+  /* handle zooming */
+  const stageRef = useRef<any>(null);
+
+  const handleWheel = (e: any) => {
+    e.evt.preventDefault();
+
+    const stage = stageRef.current;
+    const oldScale = stage.scaleX();
+    const pointer = stage.getPointerPosition();
+
+    const mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
+    };
+
+    const scaleBy = 1.05;
+    const minScale = 1;
+    const maxScale = 5;
+
+    let newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+    newScale = Math.max(minScale, Math.min(maxScale, newScale));
+
+    stage.scale({ x: newScale, y: newScale });
+
+    let newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    };
+
+    // تقييد السحب
+    const stageBox = {
+      width: stageWidth * newScale,
+      height: stageHeight * newScale,
+    };
+    const containerWidth = stage.width();
+    const containerHeight = stage.height();
+
+    const minX = containerWidth - stageBox.width;
+    const minY = containerHeight - stageBox.height;
+
+    newPos.x = Math.min(0, Math.max(minX, newPos.x));
+    newPos.y = Math.min(0, Math.max(minY, newPos.y));
+
+    stage.position(newPos);
+    stage.batchDraw();
+  };
 
   return (
     <Stage
+      ref={stageRef}
       width={stageWidth}
       height={stageHeight}
       style={{ border: "1px solid #ccc" }}
       onMouseDown={handleStageClick}
+      onWheel={handleWheel}
     >
       <Layer>
         {elements.map((el) => (
