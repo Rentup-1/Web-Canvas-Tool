@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useMemo, useCallback, memo, useRef } from "react";
 import { ChevronDown, X } from "lucide-react";
 import Select, {
@@ -112,7 +110,7 @@ const getCustomStyles = (
   }),
   menu: (provided) => ({
     ...provided,
-    backgroundColor: "hsl(var(--card))",
+    backgroundColor: "var(--card)",
     border: "1px solid hsl(var(--border))",
     borderRadius: "6px",
     boxShadow:
@@ -123,6 +121,7 @@ const getCustomStyles = (
     ...provided,
     padding: "4px",
     maxHeight: maxMenuHeight,
+    backgroundColor: "hsl(var(--card))",
   }),
   option: (provided, state) => ({
     ...provided,

@@ -70,7 +70,7 @@ export interface CanvasTextElement extends CanvasElement {
   colorBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   backgroundBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
-  label?: string;
+  label?: string[];
   textDecoration?: "none" | "underline";
   align?: "left" | "center" | "right";
   fontWeight?: "normal" | "bold";

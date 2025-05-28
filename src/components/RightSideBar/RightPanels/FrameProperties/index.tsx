@@ -1,12 +1,10 @@
 import { useAppDispatch } from "@/hooks/useRedux";
 import { updateElement } from "@/features/canvas/canvasSlice";
 import type {
-  CanvasElement,
   CanvasElementUnion,
   CanvasFrameElement,
 } from "@/features/canvas/types";
 import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
-import { TagInput } from "@/components/ui/controlled-inputs/TagsInput";
 import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
 import RotationProperties from "../CommonProperties/RotationProperties";

@@ -20,6 +20,7 @@ import {
 } from "react-icons/fa";
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 import { MdBlurOn } from "react-icons/md";
+import { useState } from "react";
 
 // Utility type guard for text elements
 function isTextElement(element: CanvasElement): element is CanvasTextElement {
@@ -57,11 +58,48 @@ export const FONT_FAMILY_OPTIONS = [
 export default function TextProperties({
   element,
 }: {
-  element: CanvasElement;
+  element: CanvasTextElement;
 }) {
+  const [availableLabelOptions, setAvailableLabelOptions] = useState([
+    { label: "vertical", value: "vertical" },
+    { label: "horizontal", value: "horizontal" },
+    { label: "icon only", value: "iconOnly" },
+    { label: "icon + text", value: "icon+Text" },
+    { label: "text only", value: "textOnly" },
+    { label: "project image", value: "projectImage" },
+  ]);
   const dispatch = useAppDispatch();
   const update = <T extends CanvasTextElement>(updates: Partial<T>) => {
     dispatch(updateElement({ id: element.id, updates }));
+  };
+
+  const handleleLabelChange = (val: string | string[]) => {
+    if (Array.isArray(val)) {
+      update({ label: val });
+
+      val.forEach((label) => {
+        const exists = availableLabelOptions.some(
+          (option) => option.value === label
+        );
+        if (!exists) {
+          setAvailableLabelOptions((prev) => [
+            ...prev,
+            { label: label, value: label },
+          ]);
+        }
+      });
+    } else if (typeof val === "string") {
+      update({ label: [val] });
+      const exists = availableLabelOptions.some(
+        (option) => option.value === val
+      );
+      if (!exists) {
+        setAvailableLabelOptions((prev) => [
+          ...prev,
+          { label: val, value: val },
+        ]);
+      }
+    }
   };
   return (
     <div className="space-y-4">
@@ -89,7 +127,8 @@ export default function TextProperties({
               size="sm"
               variant={"outline"}
               className="mr-2 text-gray-500 font-bold"
-              onClick={() => update({ background: "transparent" })}>
+              onClick={() => update({ background: "transparent" })}
+            >
               <MdBlurOn />
             </Button>
           </div>
@@ -247,11 +286,15 @@ export default function TextProperties({
             />
           </div>
 
-          <TextInput
+          <SelectInput
+            creatable
+            isMulti
+            isSearchable
+            className="col-span-full"
             label="Label"
-            type="text"
-            value={element.label ?? ""}
-            onChange={(val) => update<CanvasTextElement>({ label: val })}
+            value={element.label ?? []}
+            options={availableLabelOptions}
+            onChange={handleleLabelChange}
           />
           <SelectInput
             label="Branding Color"
