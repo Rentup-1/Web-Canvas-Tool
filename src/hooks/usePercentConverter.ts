@@ -12,7 +12,14 @@ export function usePercentConverter() {
   return { toPercent, fromPercent };
 }
 
+// get percent from pixels of fontsize
 export function toPercentFontSize(fontSize: number, stageWidth: number, stageHeight: number) {
   const avg = (stageWidth + stageHeight) / 2;
   return Number(((fontSize / avg) * 100).toFixed(1));
+}
+
+// get pixels from percent of fontsize
+export function fromPercentFontSize(percent: number, stageWidth: number, stageHeight: number) {
+  const avg = (stageWidth + stageHeight) / 2;
+  return (percent / 100) * avg;
 }
