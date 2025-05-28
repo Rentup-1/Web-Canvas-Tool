@@ -19,6 +19,7 @@ import {
   FaItalic,
 } from "react-icons/fa";
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
+import { MdBlurOn } from "react-icons/md";
 
 // Utility type guard for text elements
 function isTextElement(element: CanvasElement): element is CanvasTextElement {
@@ -82,6 +83,17 @@ export default function TextProperties({
             />
           </div>
 
+          <div className="text-sm font-medium mb-1">
+            <div>Transparent</div>
+            <Button
+              size="sm"
+              variant={"outline"}
+              className="mr-2 text-gray-500 font-bold"
+              onClick={() => update({ background: "transparent" })}>
+              <MdBlurOn />
+            </Button>
+          </div>
+
           <Button
             size="sm"
             variant={"outline"}
@@ -133,7 +145,7 @@ export default function TextProperties({
             <FaItalic />
           </Button>
 
-          <TextInput
+          {/* <TextInput
             label="Stroke width"
             type="number"
             value={(element.backgroundStrokeWidth ?? 10).toString()}
@@ -148,7 +160,7 @@ export default function TextProperties({
             label="Stroke Color"
             value={element.backgroundStroke ?? "#000000"} // backgroundStroke rect
             onChange={(val) => update({ backgroundStroke: val })}
-          />
+          /> */}
 
           <TextInput
             label="Font Size"
