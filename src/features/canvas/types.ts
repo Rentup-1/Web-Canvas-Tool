@@ -21,7 +21,7 @@ export type ElementType =
     export type FitMode = "fill" | "fit" | "stretch";
 
 export interface CanvasElement {
-  id?: number | string
+  id: string
   type: ElementType
   x: number
   y: number
