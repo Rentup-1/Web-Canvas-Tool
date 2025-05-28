@@ -27,6 +27,10 @@ export interface CanvasElement {
   y: number
   width: number
   height: number
+  x_percent?:number
+  y_percent?:number
+  width_percent?:number
+  height_percent?:number
   rotation?: number
   selected?: boolean
   fill?: string
@@ -59,6 +63,9 @@ export interface CanvasElement {
   align?:string
   fontWeight?:string
 
+  // for percentage
+  newWidth?: number
+  newHeight?: number
 
 }
 

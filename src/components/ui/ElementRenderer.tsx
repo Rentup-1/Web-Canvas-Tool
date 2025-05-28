@@ -29,12 +29,13 @@ import type {
 import { useSelector } from "react-redux";
 import useImage from "use-image";
 import { updateElement } from "@/features/canvas/canvasSlice";
-import { useAppDispatch } from "@/hooks/useRedux";
+import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { Html } from 'react-konva-utils';
 import * as MdIcons from 'react-icons/md';
 import { Icon } from "@iconify/react/dist/iconify.js";
 import Konva from 'konva';
 import type { KonvaEventObject } from "konva/lib/Node";
+import { usePercentConverter } from "@/hooks/usePercentConverter";
 
 interface Props {
   element: CanvasElementUnion;
@@ -49,6 +50,10 @@ export const ElementRenderer = forwardRef<any, Props>(
   ({ element, onSelect, onChange }, ref) => {
     const elements = useSelector((store:any) => store.canvas.elements);
     const dispatch = useAppDispatch();
+    const stageWidth = useAppSelector((s) => s.canvas.stageWidth);
+    const stageHeight = useAppSelector((s) => s.canvas.stageHeight);
+    const { toPercent, fromPercent } = usePercentConverter();
+
 
     switch (element.type) {
 
@@ -116,7 +121,7 @@ export const ElementRenderer = forwardRef<any, Props>(
         fontWeight,
         fontStyle,
         textElement.width,
-        dispatch // 🟢 Added to ensure width changes trigger recalculation
+        dispatch
       ]);
 
       useEffect(() => {
@@ -330,8 +335,17 @@ export const ElementRenderer = forwardRef<any, Props>(
               const newX = node.x();
               const newY = node.y();
 
-              // Update the frame's position
-              dispatch(updateElement({ id: element.id, updates: { x: newX, y: newY } }));
+              // for percentage
+              dispatch(
+                updateElement({ id: element.id, updates: { 
+                  x: newX, 
+                  y: newY,
+                  width_percent: toPercent(element.width , stageWidth),
+                  height_percent: toPercent(element.height , stageHeight),  
+                  x_percent: toPercent(newX , stageWidth),
+                  y_percent: toPercent(newY , stageHeight) 
+                }
+              }));          
 
               // Update all images inside this frame
               const imagesInFrame = elements.filter(
@@ -352,6 +366,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                     updates: {
                       x: newImageX,
                       y: newImageY,
+                      width_percent: toPercent(element.width , stageWidth),
+                      height_percent: toPercent(element.height , stageHeight),  
+                      x_percent: toPercent(newImageX , stageWidth),
+                      y_percent: toPercent(newImageY , stageHeight)
                     },
                   })
                 );
@@ -375,6 +393,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                 width: newWidth,
                 height: newHeight,
                 rotation: node.rotation(),
+                width_percent: toPercent(newWidth , stageWidth),
+                height_percent: toPercent(newHeight , stageHeight),  
+                x_percent: toPercent(node.x() , stageWidth),
+                y_percent: toPercent(node.y() , stageHeight)
               });
 
               node.scaleX(1);
@@ -401,6 +423,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                       y: newImgY,
                       width: newImgWidth,
                       height: newImgHeight,
+                      width_percent: toPercent(newImgWidth , stageWidth),
+                      height_percent: toPercent(newImgHeight , stageHeight),  
+                      x_percent: toPercent(newImgX , stageWidth),
+                      y_percent: toPercent(newImgY , stageHeight)
                     },
                   })
                 );
@@ -471,6 +497,10 @@ export const ElementRenderer = forwardRef<any, Props>(
             height: newHeight,
             frameId: targetFrame.id,
             fitMode: newFitMode,
+            width_percent: toPercent(newWidth , stageWidth),
+            height_percent: toPercent(newHeight , stageHeight),  
+            x_percent: toPercent(targetFrame.x + offsetX , stageWidth),
+            y_percent: toPercent(targetFrame.y + offsetY , stageHeight)
           });
         };
 
@@ -525,6 +555,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                       y: frame.y + newY,
                       width: element.width,
                       height: element.height,
+                      width_percent: toPercent(element.width , stageWidth),
+                      height_percent: toPercent(element.height , stageHeight),  
+                      x_percent: toPercent(frame.x + newX , stageWidth),
+                      y_percent: toPercent(frame.y + newY , stageHeight)
                     });
                   }}
                   onDragEnd={() => {
@@ -550,6 +584,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                       width: newWidth,
                       height: newHeight,
                       rotation: node.rotation(),
+                      width_percent: toPercent(newWidth , stageWidth),
+                      height_percent: toPercent(newHeight , stageHeight),  
+                      x_percent: toPercent(newImageX , stageWidth),
+                      y_percent: toPercent(newImageY , stageHeight)
                     });
 
                     // Reset scale to avoid compounding
@@ -577,6 +615,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                           width: newFrameWidth,
                           height: newFrameHeight,
                           rotation: node.rotation(),
+                          width_percent: toPercent(newFrameWidth , stageWidth),
+                          height_percent: toPercent(newFrameHeight , stageHeight),  
+                          x_percent: toPercent(newFrameX , stageWidth),
+                          y_percent: toPercent(newFrameY , stageHeight)
                         },
                       })
                     );
@@ -630,7 +672,11 @@ export const ElementRenderer = forwardRef<any, Props>(
                 const centerX = imgX + imgW / 2;
                 const centerY = imgY + imgH / 2;
 
-                dispatch(updateElement({ id: element.id, updates: { x: imgX, y: imgY } }));
+                dispatch(updateElement({ id: element.id, updates: { x: imgX, y: imgY , 
+                  width_percent: toPercent(imgW , stageWidth),
+                  height_percent: toPercent(imgH , stageHeight),  
+                  x_percent: toPercent(imgX , stageWidth),
+                  y_percent: toPercent(imgY , stageHeight) } }));
 
                 const frames = elements
                   .filter(
@@ -714,6 +760,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                     height: newHeight,
                     frameId: frame.id,
                     fitMode: currentFitMode,
+                    width_percent: toPercent(newWidth , stageWidth),
+                    height_percent: toPercent(newHeight , stageHeight),  
+                    x_percent: toPercent(frame.x + offsetX , stageWidth),
+                    y_percent: toPercent(frame.y + offsetY , stageHeight)
                   });
 
                   wasOverFrameRef.current = true;
@@ -806,6 +856,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                     height: newHeight,
                     frameId: frame.id,
                     fitMode: currentFitMode,
+                    width_percent: toPercent(newWidth , stageWidth),
+                    height_percent: toPercent(newHeight , stageHeight),  
+                    x_percent: toPercent(frame.x + offsetX , stageWidth),
+                    y_percent: toPercent(frame.y + offsetY , stageHeight)
                   });
                 } else {
                   onChange({ x: img.x(), y: img.y(), frameId: null });
@@ -826,6 +880,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                   width: newWidth,
                   height: newHeight,
                   rotation: node.rotation(),
+                  width_percent: toPercent(newWidth , stageWidth),
+                  height_percent: toPercent(newHeight , stageHeight),  
+                  x_percent: toPercent(newX , stageWidth),
+                  y_percent: toPercent(newY , stageHeight)
                 });
 
                 node.scaleX(1);
@@ -867,7 +925,11 @@ export const ElementRenderer = forwardRef<any, Props>(
                 const node = e.target;
                 const newX = node.x();
                 const newY = node.y();
-                dispatch(updateElement({ id: element.id, updates: { x: newX, y: newY } }));
+                dispatch(updateElement({ id: element.id, updates: { x: newX, y: newY , 
+                  width_percent: toPercent(element.width , stageWidth),
+                  height_percent: toPercent(element.height , stageHeight),  
+                  x_percent: toPercent(element.x , stageWidth),
+                  y_percent: toPercent(element.y , stageHeight) } }));
               },
               onClick: onSelect,
             }}
@@ -919,18 +981,24 @@ export const ElementRenderer = forwardRef<any, Props>(
             offsetX={rectangleElement.width / 2}
             offsetY={rectangleElement.height / 2}
             onClick={onSelect}
-            onDragMove={(e) => onChange({ x: e.target.x(), y: e.target.y() })}
+            onDragMove={(e) => onChange({ x: e.target.x(), y: e.target.y(), width_percent: toPercent(element.width , stageWidth),
+                  height_percent: toPercent(element.height , stageHeight),  
+                  x_percent: toPercent(element.x , stageWidth),
+                  y_percent: toPercent(element.y , stageHeight)  })}
             onTransform={(e) => {
               const node = e.target;
               const newWidth = node.width() * node.scaleX();
               const newHeight = node.height() * node.scaleY();
-              console.log(e.target);
 
               onChange({
                 x: node.x(),
                 y: node.y(),
                 width: newWidth,
                 height: newHeight,
+                width_percent: toPercent(newWidth , stageWidth),
+                height_percent: toPercent(newHeight , stageHeight),  
+                x_percent: toPercent(node.x() , stageWidth),
+                y_percent: toPercent(node.y() , stageHeight),
                 rotation: node.rotation(),
               });
 
@@ -956,7 +1024,10 @@ export const ElementRenderer = forwardRef<any, Props>(
             draggable
             onClick={onSelect}
             onDragMove={(e) => {
-              onChange({ x: e.target.x(), y: e.target.y() });
+              onChange({ x: e.target.x(), y: e.target.y(), width_percent: toPercent(element.width , stageWidth),
+                  height_percent: toPercent(element.height , stageHeight),  
+                  x_percent: toPercent(element.x , stageWidth),
+                  y_percent: toPercent(element.y , stageHeight) });
             }}
             onTransform={(e) => {
               const node = e.target;
@@ -966,9 +1037,14 @@ export const ElementRenderer = forwardRef<any, Props>(
               // ناخد متوسط مقياس X و Y علشان نعدل radius
               const newRadius = (circleElement.radius * (scaleX + scaleY)) / 2;
 
+              // فاضل ال width and height 
+              // عشان مش لاقيهم والاعتماد هنا علي ال scale 
+
               onChange({
                 x: node.x(),
                 y: node.y(),
+                x_percent: toPercent(node.x() , stageWidth),
+                y_percent: toPercent(node.y() , stageHeight),
                 radius: newRadius,
                 rotation: node.rotation(),
               });
@@ -997,7 +1073,10 @@ export const ElementRenderer = forwardRef<any, Props>(
             draggable
             onClick={onSelect}
              onDragMove={(e) => {
-              onChange({ x: e.target.x(), y: e.target.y() });
+              onChange({ x: e.target.x(), y: e.target.y() , width_percent: toPercent(element.width , stageWidth),
+                  height_percent: toPercent(element.height , stageHeight),  
+                  x_percent: toPercent(element.x , stageWidth),
+                  y_percent: toPercent(element.y , stageHeight) });
             }}
             onTransform={(e) => {
               const node = e.target;
@@ -1008,6 +1087,8 @@ export const ElementRenderer = forwardRef<any, Props>(
               onChange({
                 x: node.x(),
                 y: node.y(),
+                x_percent: toPercent(node.x() , stageWidth),
+                y_percent: toPercent(node.y() , stageHeight),
                 radiusX: newRadiusX,
                 radiusY: newRadiusY,
                 rotation: node.rotation(),
@@ -1050,7 +1131,11 @@ export const ElementRenderer = forwardRef<any, Props>(
             draggable
             onClick={onSelect}
             onDragMove={(e) =>
-              onChange({ x: e.target.x() - centerX, y: e.target.y() - centerY })
+              onChange({ x: e.target.x() - centerX, y: e.target.y() - centerY  , 
+                  width_percent: toPercent(element.width , stageWidth),
+                  height_percent: toPercent(element.height , stageHeight),  
+                  x_percent: toPercent(e.target.x() - centerX , stageWidth),
+                  y_percent: toPercent(e.target.y() - centerY , stageHeight)})
             }
             onTransform={(e) => {
               const node = e.target;
@@ -1064,6 +1149,8 @@ export const ElementRenderer = forwardRef<any, Props>(
               onChange({
                 x: node.x() - centerX,
                 y: node.y() - centerY,
+                x_percent: toPercent(node.x() - centerX , stageWidth),
+                y_percent: toPercent(node.y() - centerY , stageHeight),
                 rotation: node.rotation(),
                 points: newPoints.map((p, i) =>
                   i % 2 === 0 ? p + centerX : p + centerY
@@ -1096,6 +1183,10 @@ export const ElementRenderer = forwardRef<any, Props>(
               onChange({
                 x: e.target.x(),
                 y: e.target.y(),
+                width_percent: toPercent(element.width , stageWidth),
+                height_percent: toPercent(element.height , stageHeight),  
+                x_percent: toPercent(e.target.x() , stageWidth),
+                y_percent: toPercent(e.target.y() , stageHeight)
               })
             }
             onTransform={(e) => {
@@ -1111,6 +1202,8 @@ export const ElementRenderer = forwardRef<any, Props>(
               onChange({
                 x: node.x(),
                 y: node.y(),
+                x_percent: toPercent(node.x() , stageWidth),
+                y_percent: toPercent(node.y() , stageHeight),
                 rotation: node.rotation(),
                 width: newRadius * 2,
                 height: newRadius * 2,
@@ -1143,6 +1236,10 @@ export const ElementRenderer = forwardRef<any, Props>(
               onChange({
                 x: e.target.x(),
                 y: e.target.y(),
+                width_percent: toPercent(element.width , stageWidth),
+                height_percent: toPercent(element.height , stageHeight),  
+                x_percent: toPercent(e.target.x() , stageWidth),
+                y_percent: toPercent(e.target.y() , stageHeight)
               })
             }
             // onDragMove={() =>
@@ -1165,6 +1262,8 @@ export const ElementRenderer = forwardRef<any, Props>(
               onChange({
                 x: node.x(),
                 y: node.y(),
+                x_percent: toPercent(node.x() , stageWidth),
+                y_percent: toPercent(node.y() , stageHeight),
                 rotation: node.rotation(),
                 innerRadius: newInnerRadius,
                 outerRadius: newOuterRadius,
@@ -1192,7 +1291,11 @@ export const ElementRenderer = forwardRef<any, Props>(
             opacity={wedgeElement.opacity}
             draggable
             onClick={onSelect}
-            onDragMove={(e) => onChange({ x: e.target.x(), y: e.target.y() })}
+            onDragMove={(e) => onChange({ x: e.target.x(), y: e.target.y() , 
+                width_percent: toPercent(element.width , stageWidth),
+                height_percent: toPercent(element.height , stageHeight),  
+                x_percent: toPercent(e.target.x() , stageWidth),
+                y_percent: toPercent(e.target.y() , stageHeight) })}
             onTransform={(e) => {
               const node = e.target;
               const scaleX = node.scaleX();
@@ -1202,6 +1305,8 @@ export const ElementRenderer = forwardRef<any, Props>(
               onChange({
                 x: node.x(),
                 y: node.y(),
+                x_percent: toPercent(node.x() , stageWidth),
+                y_percent: toPercent(node.y() , stageHeight),
                 radius: wedgeElement.radius * scale,
                 rotation: node.rotation(),
               });
@@ -1227,7 +1332,11 @@ export const ElementRenderer = forwardRef<any, Props>(
             opacity={ringElement.opacity}
             draggable
             onClick={onSelect}
-            onDragMove={(e) => onChange({ x: e.target.x(), y: e.target.y() })}
+            onDragMove={(e) => onChange({ x: e.target.x(), y: e.target.y() , 
+              width_percent: toPercent(element.width , stageWidth),
+              height_percent: toPercent(element.height , stageHeight),  
+              x_percent: toPercent(e.target.x() , stageWidth),
+              y_percent: toPercent(e.target.y() , stageHeight) })}
             onTransform={(e) => {
               const node = e.target;
               const scaleX = node.scaleX();
@@ -1237,6 +1346,8 @@ export const ElementRenderer = forwardRef<any, Props>(
               onChange({
                 x: node.x(),
                 y: node.y(),
+                x_percent: toPercent(node.x() , stageWidth),
+                y_percent: toPercent(node.y() , stageHeight),
                 innerRadius: ringElement.innerRadius * scale,
                 outerRadius: ringElement.outerRadius * scale,
                 rotation: node.rotation(),
