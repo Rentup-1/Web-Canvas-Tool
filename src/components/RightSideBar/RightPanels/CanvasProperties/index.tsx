@@ -1,9 +1,10 @@
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
-import { setStageSize } from "@/features/canvas/canvasSlice";
+import { setElements, setStageSize } from "@/features/canvas/canvasSlice";
 import type { AspectRatio } from "@/features/canvas/types";
 import { useAspectRatioChange } from "@/hooks/useAspectRatioChange";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
+import { rescaleElementsForAspectRatio } from "@/utils/aspectRatioRescale";
 import { useState } from "react";
 import { FaH, FaW } from "react-icons/fa6";
 
@@ -12,18 +13,49 @@ export default function CanvasProperties() {
   const changeAspectRatio = useAspectRatioChange();
   const dispatch = useAppDispatch();
   const { stageWidth, stageHeight } = useAppSelector((state) => state.canvas);
+  const elements = useAppSelector((s) => s.canvas.elements);
+
+  // const updateSize = (dimension: "width" | "height", value: string) => {
+  //   const numeric = parseInt(value);
+  //   if (!isNaN(numeric)) {
+  //     dispatch(
+  //       setStageSize({
+  //         width: dimension === "width" ? numeric : stageWidth,
+  //         height: dimension === "height" ? numeric : stageHeight,
+  //       })
+  //     );
+
+      
+  //   }
+  // };
+
 
   const updateSize = (dimension: "width" | "height", value: string) => {
-    const numeric = parseInt(value);
-    if (!isNaN(numeric)) {
-      dispatch(
-        setStageSize({
-          width: dimension === "width" ? numeric : stageWidth,
-          height: dimension === "height" ? numeric : stageHeight,
-        })
-      );
-    }
-  };
+  const numeric = parseInt(value);
+  if (!isNaN(numeric)) {
+    const oldWidth = stageWidth;
+    const oldHeight = stageHeight;
+
+    const newWidth = dimension === "width" ? numeric : stageWidth;
+    const newHeight = dimension === "height" ? numeric : stageHeight;
+
+    // أول حاجة نعمل scale للأشكال بناء على الفرق
+    const scaledElements = rescaleElementsForAspectRatio(
+      elements,
+      { width: oldWidth, height: oldHeight },
+      { width: newWidth, height: newHeight }
+    );
+
+    // بعدين نحدث العناصر
+    dispatch(setElements(scaledElements));
+
+    // وأخيرًا نحدث حجم الكانفس
+    dispatch(setStageSize({ width: newWidth, height: newHeight }));
+  }
+};
+
+
+
   const ASPICT_RATIO = ["1:1", "9:16"] as const;
   return (
     <div>

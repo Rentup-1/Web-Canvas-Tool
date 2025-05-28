@@ -625,6 +625,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                   }}
                 />
               </Group>
+              
               {element.isSelected && (
                 <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1000 }}>
                   <select

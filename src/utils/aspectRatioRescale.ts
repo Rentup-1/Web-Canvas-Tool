@@ -12,11 +12,28 @@ export function rescaleElementsForAspectRatio(
     const updated: Partial<CanvasElement> = {
       x: el.x * xScale,
       y: el.y * yScale,
-      width: el.width ? el.width * xScale : undefined,
-      height: el.height ? el.height * yScale : undefined,
     };
 
-    if (el.type === "text" && el.fontSize) {
+    // لو عنده width و height
+    if (el.width !== undefined && el.height !== undefined) {
+      updated.width = el.width * xScale;
+      updated.height = el.height * yScale;
+    }
+
+    // لو عنده scaleX و scaleY
+    if ('scaleX' in el && 'scaleY' in el) {
+      updated.scaleX = (el.scaleX ?? 1) * xScale;
+      updated.scaleY = (el.scaleY ?? 1) * yScale;
+    }
+
+    // لو عنده radius (زي Circle)
+    if ('radius' in el && el.radius !== undefined) {
+      const avgScale = (xScale + yScale) / 2;
+      updated.radius = el.radius * avgScale;
+    }
+
+    // لو Text عنده fontSize
+    if (el.type === 'text' && el.fontSize !== undefined) {
       const avgScale = (xScale + yScale) / 2;
       updated.fontSize = el.fontSize * avgScale;
     }

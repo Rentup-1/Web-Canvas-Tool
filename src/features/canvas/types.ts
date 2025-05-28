@@ -63,7 +63,11 @@ export interface CanvasElement {
   newHeight?: number
 
   fontSize?:number,
-  isSelected?:string
+  isSelected?:string,
+  scaleX?: number,
+  scaleY?: number,
+  radius?: number,
+
 
 } 
 

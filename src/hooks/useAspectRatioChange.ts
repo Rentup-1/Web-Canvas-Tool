@@ -17,7 +17,7 @@ export function useAspectRatioChange() {
 
     const newWidth = 1000;
     const newHeight = Math.round(newWidth / aspectRatios[value]);
-
+    
     const scaledElements = rescaleElementsForAspectRatio(
       elements,
       { width: stageWidth, height: stageHeight },
@@ -25,7 +25,7 @@ export function useAspectRatioChange() {
     );
 
     dispatch(setStageSize({ width: newWidth, height: newHeight }));
-    dispatch(setAspectRatio(value));
     dispatch(setElements(scaledElements));
+    dispatch(setAspectRatio(value));
   };
 }
