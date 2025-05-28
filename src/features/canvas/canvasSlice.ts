@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { nanoid } from "nanoid";
-import type { AspectRatio, ElementType } from "./types";
+import type { AspectRatio, CanvasElementUnion, ElementType } from "./types";
 import type {
   CanvasElement,
   CanvasTextElement,
@@ -61,7 +61,7 @@ const canvasSlice = createSlice({
       switch (action.payload.type) {
         case "text":
           newElement = {
-            id: `text-${shapeIdCounter++}`,  
+            id: `text-${shapeIdCounter++}`,
             ...base,
             x: 100,
             y: 100,
@@ -96,14 +96,14 @@ const canvasSlice = createSlice({
           newElement = {
             id: shapeIdCounter++,
             ...base,
-            type: "frame", 
+            type: "frame",
             width: 250,
             height: 200,
             stroke: "#000",
             strokeWidth: 1,
             fill: "transparent",
             dash: [5, 5],
-            frame_type: "frame",
+            assetType: "frame",
             label: "",
             tags: [],
           } as CanvasElement;
@@ -349,7 +349,10 @@ const canvasSlice = createSlice({
     },
     updateElement: (
       state,
-      action: PayloadAction<{ id: string; updates: Partial<CanvasElement> }>
+      action: PayloadAction<{
+        id: string | number | undefined;
+        updates: Partial<CanvasElementUnion>;
+      }>
     ) => {
       const { id, updates } = action.payload;
       const index = state.elements.findIndex((el) => el.id === id);

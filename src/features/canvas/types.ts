@@ -14,49 +14,48 @@ export type ElementType =
   | "wedge"
   | "ring"
   | "arrow"
-  | "icon"; 
+  | "icon";
 
-
-
-    export type FitMode = "fill" | "fit" | "stretch";
+export type FitMode = "fill" | "fit" | "stretch";
 
 export interface CanvasElement {
-  id?: number | string
-  type: ElementType
-  x: number
-  y: number
-  width: number
-  height: number
-  rotation?: number
-  selected?: boolean
-  fill?: string
-  opacity?: number
-  stroke?: string
-  strokeWidth?: number
-  fillBrandingType?: BrandingType
-  strokeBrandingType?: BrandingType
-  
-  // frame specific
-  dash?: number[];
-  frameId?: string | null;
-  tags?:string[];
-  label?:string;
-  
+  id?: number | string;
+  type: ElementType;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation?: number;
+  selected?: boolean;
+  fill?: string;
+  opacity?: number;
+  stroke?: string;
+  strokeWidth?: number;
+  fillBrandingType?: BrandingType;
+  strokeBrandingType?: BrandingType;
+
   // img
-  src?:string;
-  fitMode?:string,
+  src?: string;
+  fitMode?: string;
   originalWidth?: number;
   originalHeight?: number;
 
   // icons
-  icon?:string
-  iconName?:string
-  color?:string;
-  text?:string
-  align?:string
-  fontWeight?:string
+  icon?: string;
+  iconName?: string;
+  color?: string;
+  text?: string;
+  align?: string;
+  fontWeight?: string;
+}
 
-
+export interface CanvasFrameElement extends CanvasElement {
+  type: "frame";
+  dash: number[];
+  frameId: string | null;
+  tags: string[];
+  label: string;
+  assetType: string;
 }
 
 export interface CanvasTextElement extends CanvasElement {
@@ -66,16 +65,16 @@ export interface CanvasTextElement extends CanvasElement {
   fontFamily?: string;
   background?: string;
   padding?: number;
-  backgroundStroke?:string;
+  backgroundStroke?: string;
   backgroundStrokeWidth: number;
   colorBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   backgroundBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   label?: string;
-  textDecoration?: 'none' | 'underline';
-  align?: 'left' | 'center' | 'right';
-  fontWeight?: 'normal' | 'bold'
-  fontStyle?: 'normal' | 'italic'
+  textDecoration?: "none" | "underline";
+  align?: "left" | "center" | "right";
+  fontWeight?: "normal" | "bold";
+  fontStyle?: "normal" | "italic";
   borderRadius?: {
     topLeft?: number;
     topRight?: number;
@@ -85,11 +84,11 @@ export interface CanvasTextElement extends CanvasElement {
 }
 
 export interface CanvasImageElement extends CanvasElement {
-  type: "image"
+  type: "image";
   src?: string;
   fitMode?: FitMode; // default "fill"
   originalWidth?: number;
-  originalHeight?: number
+  originalHeight?: number;
 }
 
 // ===== Shapes Elements =====
@@ -186,7 +185,8 @@ export type CanvasElementUnion =
   | ArcShape
   | WedgeShape
   | RingShape
-  | ArrowShape;
+  | ArrowShape
+  | CanvasFrameElement;
 
 export type AspectRatio = "1:1" | "9:16";
 export type BrandingType = "primary" | "secondary" | "additional" | "fixed";
