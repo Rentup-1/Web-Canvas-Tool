@@ -12,7 +12,6 @@ import {
   Ring,
   Group,
   Transformer,
-  type KonvaNodeEvents,
 } from "react-konva";
 import type {
   CanvasElementUnion,
@@ -106,7 +105,6 @@ export const ElementRenderer = forwardRef<any, Props>(
             }));
           }
 
-
           refText.current.getLayer()?.batchDraw();
         }
       }, [
@@ -127,11 +125,6 @@ export const ElementRenderer = forwardRef<any, Props>(
           trRef.current.getLayer()?.batchDraw();
         }
       }, [isSelected, isEditing]);
-
-      // const handleSelect = (e: KonvaNodeEvents) => {
-      //   setIsSelected(true);
-      //   if (onSelect) onSelect(e, textElement.id);
-      // };
 
       const handleSelect = (e: Konva.KonvaEventObject<MouseEvent>) => {
         setIsSelected(true);
@@ -232,23 +225,19 @@ export const ElementRenderer = forwardRef<any, Props>(
               const newWidth = Math.max(30, e.target.width() * e.target.scaleX());
 
               if(node){
-                  node.width(newWidth); // 🟢 Update text width during transform
+                  node.width(newWidth); 
                   node.scaleX(1);
                   node.scaleY(1);
-    
-                  // 🟢 Recalculate text dimensions after width change
                   node._setTextData();
                   const box = node.getClientRect({ skipTransform: true });
-                  setBgSize({ width: newWidth, height: box.height }); // 🟢 Update height based on wrapped text
+                  setBgSize({ width: newWidth, height: box.height }); 
               }
             }}
-            onTransformEnd={(e) => {
+            onTransformEnd={() => {
               const node = refText.current;
-              if (!node) return;  // لو node null يبطل تنفيذ الباقي
+              if (!node) return; 
               const newWidth = Math.max(30, node.width());
               node.width(newWidth);
-
-              // 🟢 Force text recalculation
               node._setTextData();
               const box = node.getClientRect({ skipTransform: true });
               const newHeight = box.height;
@@ -321,7 +310,6 @@ export const ElementRenderer = forwardRef<any, Props>(
       );
 
       case "frame": {
-        const isFrame = element.type === "frame";
 
         return (
           <Rect
@@ -398,9 +386,6 @@ export const ElementRenderer = forwardRef<any, Props>(
               );
 
               imagesInFrame.forEach((img:CanvasElement) => {
-                const relativeX = img.x - element.x; // Original relative position
-                const relativeY = img.y - element.y;
-
                 const newImgWidth = img.width * scaleX;
                 const newImgHeight = img.height * scaleY;
 

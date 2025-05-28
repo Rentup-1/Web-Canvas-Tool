@@ -4,7 +4,6 @@ import type { AspectRatio, ElementType } from "./types";
 import type {
   CanvasElement,
   CanvasTextElement,
-  CanvasImageElement,
   CircleShape,
   RectangleShape,
   EllipseShape,
