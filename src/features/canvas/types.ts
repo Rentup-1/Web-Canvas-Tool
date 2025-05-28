@@ -41,6 +41,8 @@ export interface CanvasElement {
   frameId?: string | null;
   tags?:string[];
   label?:string;
+
+  fontSize?:number
   
   // img
   src?:string;
