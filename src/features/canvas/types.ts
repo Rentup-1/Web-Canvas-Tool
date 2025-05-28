@@ -14,11 +14,9 @@ export type ElementType =
   | "wedge"
   | "ring"
   | "arrow"
-  | "icon"; 
+  | "icon";
 
-
-
-    export type FitMode = "fill" | "fit" | "stretch";
+export type FitMode = "fill" | "fit" | "stretch";
 
 export interface CanvasElement {
   id: string
@@ -44,16 +42,13 @@ export interface CanvasElement {
   dash?: number[];
   frameId?: string | null;
   tags?:string[];
-  label?:string;
+  // label?:string;
 
-  fontSize?:number
-  
   // img
-  src?:string;
-  fitMode?:string,
+  src?: string;
+  fitMode?: string;
   originalWidth?: number;
   originalHeight?: number;
-  isSelected?:boolean
 
   // icons
   icon?:string
@@ -67,6 +62,18 @@ export interface CanvasElement {
   newWidth?: number
   newHeight?: number
 
+  fontSize?:number,
+  isSelected?:string
+
+} 
+
+export interface CanvasFrameElement extends CanvasElement {
+  type: "frame";
+  dash: number[];
+  frameId: string | null;
+  tags: string[];
+  label: string;
+  assetType: string;
 }
 
 export interface CanvasTextElement extends CanvasElement {
@@ -76,16 +83,16 @@ export interface CanvasTextElement extends CanvasElement {
   fontFamily?: string;
   background?: string;
   padding?: number;
-  backgroundStroke?:string;
+  backgroundStroke?: string;
   backgroundStrokeWidth: number;
   colorBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   backgroundBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
-  label?: string;
-  textDecoration?: 'none' | 'underline';
-  align?: 'left' | 'center' | 'right';
-  fontWeight?: 'normal' | 'bold'
-  fontStyle?: 'normal' | 'italic'
+  label?: string[];
+  textDecoration?: "none" | "underline";
+  align?: "left" | "center" | "right";
+  fontWeight?: "normal" | "bold";
+  fontStyle?: "normal" | "italic";
   borderRadius?: {
     topLeft?: number;
     topRight?: number;
@@ -95,11 +102,10 @@ export interface CanvasTextElement extends CanvasElement {
 }
 
 export interface CanvasImageElement extends CanvasElement {
-  type: "image"
+  type: "image";
   src?: string;
   fitMode?: FitMode; // default "fill"
   originalWidth?: number;
-  originalHeight?: number;
 }
 
 // ===== Shapes Elements =====
@@ -196,7 +202,8 @@ export type CanvasElementUnion =
   | ArcShape
   | WedgeShape
   | RingShape
-  | ArrowShape;
+  | ArrowShape
+  | CanvasFrameElement;
 
 export type AspectRatio = "1:1" | "9:16";
 export type BrandingType = "primary" | "secondary" | "additional" | "fixed";

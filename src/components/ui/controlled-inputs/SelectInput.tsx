@@ -1,7 +1,5 @@
-import { cn } from "@/utils/clsxUtils";
 import { useState, useEffect, useMemo, useCallback, memo, useRef } from "react";
-import { FaChevronDown } from "react-icons/fa";
-import { FaX } from "react-icons/fa6";
+import { ChevronDown, X } from "lucide-react";
 import Select, {
   type MultiValue,
   type SingleValue,
@@ -10,6 +8,8 @@ import Select, {
   type DropdownIndicatorProps,
   type ClearIndicatorProps,
 } from "react-select";
+import CreatableSelect from "react-select/creatable";
+import { cn } from "@/utils/clsxUtils";
 
 // Define the option type
 export type OptionType = {
@@ -33,6 +33,7 @@ export interface EnhancedSelectInputProps {
   isClearable?: boolean;
   closeMenuOnSelect?: boolean;
   maxMenuHeight?: number;
+  creatable?: boolean;
 }
 
 // Custom dropdown indicator component
@@ -41,7 +42,7 @@ const DropdownIndicator = (
 ) => {
   return (
     <components.DropdownIndicator {...props}>
-      <FaChevronDown className="h-4 w-4 text-muted-foreground" />
+      <ChevronDown className="h-4 w-4 text-muted-foreground" />
     </components.DropdownIndicator>
   );
 };
@@ -50,19 +51,20 @@ const DropdownIndicator = (
 const ClearIndicator = (props: ClearIndicatorProps<OptionType, boolean>) => {
   return (
     <components.ClearIndicator {...props}>
-      <FaX className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+      <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
     </components.ClearIndicator>
   );
 };
 
 // Move custom styles outside the component to prevent recalculation
 const getCustomStyles = (
-  maxMenuHeight: number
+  maxMenuHeight: number,
+  isMulti: boolean
 ): StylesConfig<OptionType, boolean> => ({
   control: (provided, state) => ({
     ...provided,
     minHeight: "32px",
-    height: "32px",
+    height: isMulti ? "auto" : "32px",
     fontSize: "14px",
     borderRadius: "6px",
     borderColor: state.isFocused ? "hsl(var(--ring))" : "hsl(var(--border))",
@@ -71,15 +73,32 @@ const getCustomStyles = (
     "&:hover": {
       borderColor: "hsl(var(--border))",
     },
+    padding: isMulti ? "2px 0" : "0",
   }),
   valueContainer: (provided) => ({
     ...provided,
-    height: "30px",
-    padding: "0 6px",
+    padding: "0 8px",
+    flexWrap: "wrap",
+    gap: "4px",
+    maxHeight: isMulti ? "120px" : "30px",
+    overflowY: isMulti ? "auto" : "hidden",
+    alignItems: "center",
+    scrollbarWidth: "thin",
+    "&::-webkit-scrollbar": {
+      width: "4px",
+    },
+    "&::-webkit-scrollbar-track": {
+      background: "transparent",
+    },
+    "&::-webkit-scrollbar-thumb": {
+      background: "hsl(var(--muted))",
+      borderRadius: "2px",
+    },
   }),
   input: (provided) => ({
     ...provided,
-    margin: "0px",
+    margin: "0",
+    padding: "0",
     color: "hsl(var(--foreground))",
   }),
   indicatorSeparator: () => ({
@@ -92,7 +111,7 @@ const getCustomStyles = (
   menu: (provided) => ({
     ...provided,
     backgroundColor: "var(--card)",
-    border: "2px solid white",
+    border: "1px solid hsl(var(--border))",
     borderRadius: "6px",
     boxShadow:
       "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
@@ -102,6 +121,7 @@ const getCustomStyles = (
     ...provided,
     padding: "4px",
     maxHeight: maxMenuHeight,
+    backgroundColor: "hsl(var(--card))",
   }),
   option: (provided, state) => ({
     ...provided,
@@ -137,15 +157,21 @@ const getCustomStyles = (
     backgroundColor: "hsl(var(--secondary))",
     borderRadius: "4px",
     fontSize: "12px",
+    margin: "0",
   }),
   multiValueLabel: (provided) => ({
     ...provided,
     color: "hsl(var(--secondary-foreground))",
     padding: "2px 6px",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    maxWidth: "150px",
   }),
   multiValueRemove: (provided) => ({
     ...provided,
     color: "hsl(var(--secondary-foreground))",
+    padding: "0 4px",
     "&:hover": {
       backgroundColor: "hsl(var(--destructive))",
       color: "hsl(var(--destructive-foreground))",
@@ -174,6 +200,7 @@ const SelectInput = memo(
     isClearable = true,
     closeMenuOnSelect = true,
     maxMenuHeight = 200,
+    creatable = false,
   }: EnhancedSelectInputProps) => {
     const [currentValue, setCurrentValue] = useState<
       OptionType | OptionType[] | null
@@ -192,9 +219,12 @@ const SelectInput = memo(
       if (JSON.stringify(value) !== JSON.stringify(prevValueRef.current)) {
         if (isMulti) {
           const values = Array.isArray(value) ? value : [value].filter(Boolean);
-          const selectedOptions = normalizedOptions.filter((option) =>
-            values.includes(option.value)
-          );
+          const selectedOptions = values.map((val) => {
+            const existingOption = normalizedOptions.find(
+              (opt) => opt.value === val
+            );
+            return existingOption || { value: val, label: val };
+          });
           setCurrentValue(selectedOptions);
         } else {
           const selectedOption =
@@ -226,9 +256,11 @@ const SelectInput = memo(
 
     // Use memoized custom styles
     const customStyles = useMemo(
-      () => getCustomStyles(maxMenuHeight),
-      [maxMenuHeight]
+      () => getCustomStyles(maxMenuHeight, isMulti),
+      [maxMenuHeight, isMulti]
     );
+
+    const SelectComponent = creatable ? CreatableSelect : Select;
 
     return (
       <div className={cn("flex flex-col space-y-2", className)}>
@@ -243,7 +275,7 @@ const SelectInput = memo(
           </label>
         )}
         <div className={cn("relative", selectClassName)}>
-          <Select
+          <SelectComponent
             value={currentValue}
             onChange={handleChange}
             options={normalizedOptions}
@@ -260,12 +292,19 @@ const SelectInput = memo(
             }}
             classNamePrefix="react-select"
             noOptionsMessage={() => "No options found"}
+            menuPlacement="auto"
+            menuPortalTarget={
+              typeof document !== "undefined" ? document.body : null
+            }
+            menuPosition="fixed"
           />
         </div>
       </div>
     );
   }
 );
+
+SelectInput.displayName = "SelectInput";
 
 // Export the type for external use
 export type { OptionType as SelectOption };
