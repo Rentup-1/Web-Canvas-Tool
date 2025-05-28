@@ -12,7 +12,6 @@ import {
   Ring,
   Group,
   Transformer,
-  type KonvaNodeEvents,
 } from "react-konva";
 import type {
   CanvasElementUnion,
@@ -34,19 +33,16 @@ import { useAppDispatch } from "@/hooks/useRedux";
 import { Html } from 'react-konva-utils';
 import * as MdIcons from 'react-icons/md';
 import { Icon } from "@iconify/react/dist/iconify.js";
-import type { Text as KonvaText } from 'konva';
+import Konva from 'konva';
+import type { KonvaEventObject } from "konva/lib/Node";
 
 interface Props {
   element: CanvasElementUnion;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect?: (e?: Konva.KonvaEventObject<MouseEvent>, id?: string) => void;
   onChange: (updates: Partial<CanvasElementUnion>) => void;
 }
-
-interface TextElementProps {
-  element: CanvasTextElement;
-  onSelect?: (e: KonvaNodeEvents, id: string) => void;
-}
+type KonvaText = InstanceType<typeof Konva.Text>;
 
 // Update the ElementRenderer to apply stroke and strokeWidth to all shapes
 export const ElementRenderer = forwardRef<any, Props>(
@@ -60,7 +56,7 @@ export const ElementRenderer = forwardRef<any, Props>(
       const textElement = element as CanvasTextElement;
       const refText = useRef<KonvaText>(null);
       const [bgSize, setBgSize] = useState({ width: 0, height: 0 });
-      const trRef = useRef(null);
+      const trRef = useRef<Konva.Transformer>(null);
       const [isSelected, setIsSelected] = useState(false);
       const [isEditing, setIsEditing] = useState(false);
       const [editableText, setEditableText] = useState(textElement.text);
@@ -109,7 +105,6 @@ export const ElementRenderer = forwardRef<any, Props>(
             }));
           }
 
-
           refText.current.getLayer()?.batchDraw();
         }
       }, [
@@ -125,16 +120,11 @@ export const ElementRenderer = forwardRef<any, Props>(
       ]);
 
       useEffect(() => {
-        if (isSelected && trRef.current && !isEditing) {
+        if (isSelected && refText.current && trRef.current && !isEditing) {
           trRef.current.nodes([refText.current]);
-          trRef.current.getLayer().batchDraw();
+          trRef.current.getLayer()?.batchDraw();
         }
       }, [isSelected, isEditing]);
-
-      // const handleSelect = (e: KonvaNodeEvents) => {
-      //   setIsSelected(true);
-      //   if (onSelect) onSelect(e, textElement.id);
-      // };
 
       const handleSelect = (e: Konva.KonvaEventObject<MouseEvent>) => {
         setIsSelected(true);
@@ -145,7 +135,7 @@ export const ElementRenderer = forwardRef<any, Props>(
         setIsEditing(true);
       };
 
-      const handleTextChange = (e) => {
+      const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setEditableText(e.target.value);
         if (refText.current) {
           refText.current.text(e.target.value);
@@ -235,22 +225,19 @@ export const ElementRenderer = forwardRef<any, Props>(
               const newWidth = Math.max(30, e.target.width() * e.target.scaleX());
 
               if(node){
-                  node.width(newWidth); // 🟢 Update text width during transform
+                  node.width(newWidth); 
                   node.scaleX(1);
                   node.scaleY(1);
-    
-                  // 🟢 Recalculate text dimensions after width change
                   node._setTextData();
                   const box = node.getClientRect({ skipTransform: true });
-                  setBgSize({ width: newWidth, height: box.height }); // 🟢 Update height based on wrapped text
+                  setBgSize({ width: newWidth, height: box.height }); 
               }
             }}
-            onTransformEnd={(e) => {
+            onTransformEnd={() => {
               const node = refText.current;
+              if (!node) return; 
               const newWidth = Math.max(30, node.width());
               node.width(newWidth);
-
-              // 🟢 Force text recalculation
               node._setTextData();
               const box = node.getClientRect({ skipTransform: true });
               const newHeight = box.height;
@@ -295,8 +282,8 @@ export const ElementRenderer = forwardRef<any, Props>(
                   position: 'absolute',
                   top: textElement.y,
                   left: textElement.x,
-                  width: textElement.width || 100, // 🟢 Match text width for consistency
-                  height: bgSize.height, // 🟢 Match text height
+                  width: textElement.width || 100, 
+                  height: bgSize.height, 
                   fontSize: textElement.fontSize,
                   fontFamily: textElement.fontFamily || 'Arial',
                   padding: textElement.padding || 0,
@@ -323,7 +310,6 @@ export const ElementRenderer = forwardRef<any, Props>(
       );
 
       case "frame": {
-        const isFrame = element.type === "frame";
 
         return (
           <Rect
@@ -399,10 +385,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 (el: CanvasElement) => el.type === "image" && el.frameId === element.id
               );
 
-              imagesInFrame.forEach((img) => {
-                const relativeX = img.x - element.x; // Original relative position
-                const relativeY = img.y - element.y;
-
+              imagesInFrame.forEach((img:CanvasElement) => {
                 const newImgWidth = img.width * scaleX;
                 const newImgHeight = img.height * scaleY;
 
@@ -510,7 +493,9 @@ export const ElementRenderer = forwardRef<any, Props>(
                   height={element.height}
                   draggable={isMovable} // Draggable only when isMovable is true
                   onClick={() => {
-                    onSelect();
+                    if (onSelect) {
+                      onSelect();
+                    }
                   }}
                   onDblClick={() => {
                     setIsMovable((prev) => !prev); // Toggle movable state on double-click
@@ -631,8 +616,10 @@ export const ElementRenderer = forwardRef<any, Props>(
               height={element.height}
               draggable
               onClick={() => {
-                onSelect();
-              }}
+                if (onSelect) {
+                    onSelect();
+                  }
+                }}
               onDragMove={(e) => {
                 const imageNode = e.target;
                 const imgX = imageNode.x();
@@ -654,7 +641,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                       centerY >= el.y &&
                       centerY <= el.y + el.height
                   )
-                  .sort((a, b) => elements.indexOf(b) - elements.indexOf(a));
+                  .sort((a: CanvasElement, b: CanvasElement) => elements.indexOf(b) - elements.indexOf(a));
 
                 const frame = frames[0];
 
@@ -749,7 +736,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                       centerY >= el.y &&
                       centerY <= el.y + el.height
                   )
-                  .sort((a, b) => elements.indexOf(b) - elements.indexOf(a));
+                  .sort((a: CanvasElement, b: CanvasElement) => elements.indexOf(b) - elements.indexOf(a));
 
                 const frame = frames[0];
 
@@ -876,7 +863,7 @@ export const ElementRenderer = forwardRef<any, Props>(
               x: element.x,
               y: element.y,
               draggable: true,
-              onDragMove: (e) => {
+              onDragMove: (e: KonvaEventObject<MouseEvent>) => {
                 const node = e.target;
                 const newX = node.x();
                 const newY = node.y();
@@ -1158,12 +1145,12 @@ export const ElementRenderer = forwardRef<any, Props>(
                 y: e.target.y(),
               })
             }
-            onDragMove={(e) =>
-              onChange({
-                x: e.target.x(),
-                y: e.target.y(),
-              })
-            }
+            // onDragMove={() =>
+            //   onChange({
+            //     x: e.target.x(),
+            //     y: e.target.y(),
+            //   })
+            // }
             onTransform={(e) => {
               const node = e.target;
               const scaleX = node.scaleX();

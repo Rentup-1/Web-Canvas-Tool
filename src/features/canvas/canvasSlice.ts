@@ -4,7 +4,6 @@ import type { AspectRatio, CanvasElementUnion, ElementType } from "./types";
 import type {
   CanvasElement,
   CanvasTextElement,
-  CanvasImageElement,
   CircleShape,
   RectangleShape,
   EllipseShape,
@@ -40,6 +39,7 @@ const initialState: CanvasState = {
 let shapeIdCounter = 1;
 
 const createBaseElement = (): Omit<CanvasElement, "type"> => ({
+  id: String(shapeIdCounter++),
   x: 100,
   y: 100,
   width: 150,
@@ -63,6 +63,7 @@ const canvasSlice = createSlice({
           newElement = {
             id: `text-${shapeIdCounter++}`,
             ...base,
+            id: nanoid(),
             x: 100,
             y: 100,
             text: "Edit Me Now...",
@@ -94,7 +95,6 @@ const canvasSlice = createSlice({
 
         case "frame":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "frame",
             width: 250,
@@ -111,7 +111,6 @@ const canvasSlice = createSlice({
 
         case "icon":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "icon",
             iconName: "mdi:home", // اسم الأيقونة من API
@@ -131,7 +130,6 @@ const canvasSlice = createSlice({
 
         case "circle":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "circle",
             radius: Math.min(base.width, base.height) / 2,
@@ -144,7 +142,6 @@ const canvasSlice = createSlice({
 
         case "rectangle":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "rectangle",
             cornerRadius: 0,
@@ -163,7 +160,6 @@ const canvasSlice = createSlice({
 
         case "ellipse":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "ellipse",
             radiusX: base.width / 2,
@@ -177,7 +173,6 @@ const canvasSlice = createSlice({
 
         case "line":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "line",
             points: [0, 0, base.width, base.height],
@@ -190,7 +185,6 @@ const canvasSlice = createSlice({
 
         case "triangle":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "triangle",
             points: [
@@ -210,7 +204,6 @@ const canvasSlice = createSlice({
 
         case "star":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "star",
             innerRadius: 20,
@@ -225,7 +218,6 @@ const canvasSlice = createSlice({
 
         case "regularPolygon":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "regularPolygon",
             sides: 6,
@@ -239,7 +231,6 @@ const canvasSlice = createSlice({
 
         case "arc":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "arc",
             innerRadius: 20,
@@ -254,7 +245,6 @@ const canvasSlice = createSlice({
 
         case "wedge":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "wedge",
             radius: Math.min(base.width, base.height) / 2,
@@ -268,7 +258,6 @@ const canvasSlice = createSlice({
 
         case "ring":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "ring",
             innerRadius: 20,
@@ -282,7 +271,6 @@ const canvasSlice = createSlice({
 
         case "arrow":
           newElement = {
-            id: shapeIdCounter++,
             ...base,
             type: "arrow",
             points: [0, 0, base.width, base.height],

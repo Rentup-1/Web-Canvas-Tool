@@ -89,6 +89,7 @@ export interface CanvasImageElement extends CanvasElement {
   fitMode?: FitMode; // default "fill"
   originalWidth?: number;
   originalHeight?: number;
+  originalHeight?: number;
 }
 
 // ===== Shapes Elements =====
