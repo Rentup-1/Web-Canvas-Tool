@@ -47,6 +47,7 @@ export interface CanvasElement {
   fitMode?:string,
   originalWidth?: number;
   originalHeight?: number;
+  isSelected?:boolean
 
   // icons
   icon?:string
@@ -89,7 +90,7 @@ export interface CanvasImageElement extends CanvasElement {
   src?: string;
   fitMode?: FitMode; // default "fill"
   originalWidth?: number;
-  originalHeight?: number
+  originalHeight?: number;
 }
 
 // ===== Shapes Elements =====
