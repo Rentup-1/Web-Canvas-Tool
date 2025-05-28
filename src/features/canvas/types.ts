@@ -67,7 +67,7 @@ export interface CanvasElement {
   scaleX?: number,
   scaleY?: number,
   radius?: number,
-
+  fontSize_percent?:number
 
 } 
 

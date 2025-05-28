@@ -35,7 +35,7 @@ import * as MdIcons from 'react-icons/md';
 import { Icon } from "@iconify/react/dist/iconify.js";
 import Konva from 'konva';
 import type { KonvaEventObject } from "konva/lib/Node";
-import { usePercentConverter } from "@/hooks/usePercentConverter";
+import { toPercentFontSize, usePercentConverter } from "@/hooks/usePercentConverter";
 
 interface Props {
   element: CanvasElementUnion;
@@ -95,7 +95,7 @@ export const ElementRenderer = forwardRef<any, Props>(
 
           refText.current.fontStyle(fontStyleFinal);
           refText.current.width(textElement.width || 100);
-          refText.current._setTextData(); // TypeScript should recognize this from Konva
+          refText.current._setTextData(); 
           const box = refText.current.getClientRect({ skipTransform: true });
           setBgSize({ width: box.width, height: box.height });
 
@@ -223,11 +223,21 @@ export const ElementRenderer = forwardRef<any, Props>(
             onDragMove={(e) => 
               dispatch(updateElement({
               id: textElement.id,
-              updates: { x: e.target.x(), y: e.target.y() },
+              updates: { x: e.target.x(), y: e.target.y(), 
+                width_percent: toPercent(element.width , stageWidth),
+                height_percent: toPercent(element.height , stageHeight),  
+                x_percent: toPercent(e.target.x() , stageWidth),
+                y_percent: toPercent(e.target.y() , stageHeight),
+                fontSize_percent: toPercentFontSize(Number(element.fontSize), stageWidth, stageHeight),
+               },
             }))}
             onTransform={(e) => {
               const node = refText.current;
               const newWidth = Math.max(30, e.target.width() * e.target.scaleX());
+
+
+              // fontSize_percent: toPercentFontSize(20, stageWidth, stageHeight)
+
 
               if(node){
                   node.width(newWidth); 
@@ -258,6 +268,11 @@ export const ElementRenderer = forwardRef<any, Props>(
                   height: newHeight,
                   align: textAlign,
                   fontWeight,
+                  width_percent: toPercent(newWidth , stageWidth),
+                  height_percent: toPercent(newHeight , stageHeight),  
+                  x_percent: toPercent(node.x() , stageWidth),
+                  y_percent: toPercent(node.y() , stageHeight),
+                  fontSize_percent: toPercentFontSize(Number(element.fontSize), stageWidth, stageHeight),
                 },
               }));
 
@@ -625,7 +640,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                   }}
                 />
               </Group>
-              
+
               {element.isSelected && (
                 <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1000 }}>
                   <select

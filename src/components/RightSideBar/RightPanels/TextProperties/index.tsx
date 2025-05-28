@@ -6,7 +6,7 @@ import type {
   CanvasElement,
   CanvasTextElement,
 } from "@/features/canvas/types";
-import { useAppDispatch } from "@/hooks/useRedux";
+import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
 import RotationProperties from "../CommonProperties/RotationProperties";
@@ -21,6 +21,7 @@ import {
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 import { MdBlurOn } from "react-icons/md";
 import { useState } from "react";
+import { toPercentFontSize } from "@/hooks/usePercentConverter";
 
 // Utility type guard for text elements
 function isTextElement(element: CanvasElement): element is CanvasTextElement {
@@ -60,6 +61,8 @@ export default function TextProperties({
 }: {
   element: CanvasTextElement;
 }) {
+  const stageWidth = useAppSelector((s) => s.canvas.stageWidth);
+  const stageHeight = useAppSelector((s) => s.canvas.stageHeight);
   const [availableLabelOptions, setAvailableLabelOptions] = useState([
     { label: "vertical", value: "vertical" },
     { label: "horizontal", value: "horizontal" },
@@ -210,6 +213,7 @@ export default function TextProperties({
             onChange={(val) =>
               update({
                 fontSize: Number.parseInt(val),
+                fontSize_percent: toPercentFontSize(Number(Number.parseInt(val)), stageWidth, stageHeight),
               } as Partial<CanvasTextElement>)
             }
           />

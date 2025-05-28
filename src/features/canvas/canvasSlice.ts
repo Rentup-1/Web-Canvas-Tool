@@ -67,6 +67,7 @@ const canvasSlice = createSlice({
           newElement = {
             ...base,
             id: nanoid(),
+            fontSize_percent: 2.5,
             text: "Edit Me Now...",
             fill: "#524C4C", // background rect
             background: "#fff",

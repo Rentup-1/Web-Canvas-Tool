@@ -11,3 +11,8 @@ export function usePercentConverter() {
 
   return { toPercent, fromPercent };
 }
+
+export function toPercentFontSize(fontSize: number, stageWidth: number, stageHeight: number) {
+  const avg = (stageWidth + stageHeight) / 2;
+  return Number(((fontSize / avg) * 100).toFixed(1));
+}
