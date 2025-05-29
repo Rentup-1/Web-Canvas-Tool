@@ -42,7 +42,6 @@ const brandingSlice = createSlice({
     removeFont(state, action: PayloadAction<string>) {
       delete state.fontFamilies[action.payload];
     },
-
     // Reset branding (optional)
     resetBranding(state) {
       state.colors = {};

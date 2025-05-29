@@ -19,6 +19,8 @@ export type ElementType =
 export type FitMode = "fill" | "fit" | "stretch";
 
 export interface CanvasElement {
+  backgroundBrandingType: string;
+  colorBrandingType: string;
   id: string;
   type: ElementType;
   x: number;
@@ -88,8 +90,6 @@ export interface CanvasTextElement extends CanvasElement {
   padding?: number;
   backgroundStroke?: string;
   backgroundStrokeWidth: number;
-  colorBrandingType?: "primary" | "secondary" | "additional" | "fixed";
-  backgroundBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
   label?: string[];
   textDecoration?: "none" | "underline";
@@ -209,4 +209,4 @@ export type CanvasElementUnion =
   | CanvasFrameElement;
 
 export type AspectRatio = "1:1" | "9:16";
-export type BrandingType = "primary" | "secondary" | "additional" | "fixed";
+export type BrandingType = string;

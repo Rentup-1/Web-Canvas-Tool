@@ -1,4 +1,4 @@
-import { useAppDispatch } from "@/hooks/useRedux";
+import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { updateElement } from "@/features/canvas/canvasSlice";
 import type { CanvasElement, RectangleShape } from "@/features/canvas/types";
 import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
@@ -20,13 +20,6 @@ import ScaleProperties from "../CommonProperties/ScaleProperties";
 import RotationProperties from "../CommonProperties/RotationProperties";
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 
-const BRANDING_OPTIONS = [
-  "primary",
-  "secondary",
-  "additional",
-  "fixed",
-] as const;
-
 const isRectangleElement = (el: CanvasElement): el is RectangleShape => {
   return el.type === "rectangle";
 };
@@ -34,7 +27,16 @@ const isRectangleElement = (el: CanvasElement): el is RectangleShape => {
 export function ShapeProperties({ element }: { element: CanvasElement }) {
   const dispatch = useAppDispatch();
   const [individualCorners, setIndividualCorners] = useState(false);
+  // get colors from store
+  const brandingColors = useAppSelector((state) => state.branding.colors);
 
+  const [branding, setBranding] = useState<string[]>([]);
+
+  // Populate branding options from brandingColors
+  useEffect(() => {
+    const keysArray = Object.keys(brandingColors);
+    setBranding(keysArray);
+  }, [brandingColors]);
   // Check if corners are already different when component mounts (for rectangles)
   useEffect(() => {
     if (isRectangleElement(element)) {
@@ -90,10 +92,10 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
               value={element.fillBrandingType ?? "fixed"}
               onChange={(val) =>
                 update({
-                  fillBrandingType: val as (typeof BRANDING_OPTIONS)[number],
+                  fillBrandingType: val as (typeof branding)[number],
                 })
               }
-              options={BRANDING_OPTIONS as unknown as string[]}
+              options={branding as unknown as string[]}
             />
             <SelectInput
               className="col-span-full"
@@ -101,10 +103,10 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
               value={element.strokeBrandingType ?? "fixed"}
               onChange={(val) =>
                 update({
-                  strokeBrandingType: val as (typeof BRANDING_OPTIONS)[number],
+                  strokeBrandingType: val as (typeof branding)[number],
                 })
               }
-              options={BRANDING_OPTIONS as unknown as string[]}
+              options={branding as unknown as string[]}
             />
           </div>
 
