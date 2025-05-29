@@ -71,11 +71,15 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
           </div>
           <div className="grid grid-cols-2 col-span-full gap-4">
             <ColorInput
+              className="col-span-full"
+              showOpacity
               label="Fill Color"
-              value={element.fill ?? "#000000"}
+              value={element.fill}
               onChange={(val) => update({ fill: val })}
             />
             <ColorInput
+              showOpacity
+              className="col-span-full"
               label="Stroke Color"
               value={element.stroke ?? "#000000"}
               onChange={(val) => update({ stroke: val })}

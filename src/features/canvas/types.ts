@@ -19,29 +19,29 @@ export type ElementType =
 export type FitMode = "fill" | "fit" | "stretch";
 
 export interface CanvasElement {
-  id: string
-  type: ElementType
-  x: number
-  y: number
-  width: number
-  height: number
-  x_percent?:number
-  y_percent?:number
-  width_percent?:number
-  height_percent?:number
-  rotation?: number
-  selected?: boolean
-  fill?: string
-  opacity?: number
-  stroke?: string
-  strokeWidth?: number
-  fillBrandingType?: BrandingType
-  strokeBrandingType?: BrandingType
-  
+  id: string;
+  type: ElementType;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  x_percent?: number;
+  y_percent?: number;
+  width_percent?: number;
+  height_percent?: number;
+  rotation?: number;
+  selected?: boolean;
+  fill: string;
+  opacity?: number;
+  stroke?: string;
+  strokeWidth?: number;
+  fillBrandingType?: BrandingType;
+  strokeBrandingType?: BrandingType;
+
   // frame specific
   dash?: number[];
   frameId?: string | null;
-  tags?:string[];
+  tags?: string[];
   // label?:string;
 
   // img
@@ -51,25 +51,24 @@ export interface CanvasElement {
   originalHeight?: number;
 
   // icons
-  icon?:string
-  iconName?:string
-  color?:string;
-  text?:string
-  align?:string
-  fontWeight?:string
+  icon?: string;
+  iconName?: string;
+  color?: string;
+  text?: string;
+  align?: string;
+  fontWeight?: string;
 
   // for percentage
-  newWidth?: number
-  newHeight?: number
+  newWidth?: number;
+  newHeight?: number;
 
-  fontSize?:number,
-  isSelected?:string,
-  scaleX?: number,
-  scaleY?: number,
-  radius?: number,
-  fontSize_percent?:number
-
-} 
+  fontSize?: number;
+  isSelected?: string;
+  scaleX?: number;
+  scaleY?: number;
+  radius?: number;
+  fontSize_percent?: number;
+}
 
 export interface CanvasFrameElement extends CanvasElement {
   type: "frame";

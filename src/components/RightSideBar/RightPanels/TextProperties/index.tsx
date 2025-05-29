@@ -113,11 +113,15 @@ export default function TextProperties({
         <>
           <div className="grid grid-cols-2 gap-4">
             <ColorInput
+              className="col-span-full"
+              showOpacity
               label="Text Color"
               value={element.fill ?? "#000000"}
               onChange={(val) => update({ fill: val })}
             />
             <ColorInput
+              className="col-span-full"
+              showOpacity
               label="Background"
               value={element.background ?? "#000000"}
               onChange={(val) => update({ background: val })}
@@ -213,7 +217,11 @@ export default function TextProperties({
             onChange={(val) =>
               update({
                 fontSize: Number.parseInt(val),
-                fontSize_percent: toPercentFontSize(Number(Number.parseInt(val)), stageWidth, stageHeight),
+                fontSize_percent: toPercentFontSize(
+                  Number(Number.parseInt(val)),
+                  stageWidth,
+                  stageHeight
+                ),
               } as Partial<CanvasTextElement>)
             }
           />
