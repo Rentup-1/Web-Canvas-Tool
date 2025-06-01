@@ -44,14 +44,16 @@ const createBaseElement = (): Omit<CanvasElement, "type"> => ({
   y: 100,
   width: 150,
   height: 100,
-  x_percent: 0.10,
-  y_percent: 0.10,
+  x_percent: 0.1,
+  y_percent: 0.1,
   width_percent: 0.15,
   height_percent: 0.16,
   rotation: 0,
   selected: false,
   fill: "#00A8E8",
   opacity: 1,
+  backgroundBrandingType: "fixed",
+  colorBrandingType: "fixed",
 });
 
 const canvasSlice = createSlice({
@@ -95,7 +97,7 @@ const canvasSlice = createSlice({
         case "frame":
           newElement = {
             ...base,
-            type: "frame", 
+            type: "frame",
             // width: 250,
             // height: 200,
             stroke: "#000",
@@ -347,6 +349,7 @@ const canvasSlice = createSlice({
         state.past.push(state.elements.map((el) => ({ ...el })));
         state.future = [];
         state.elements[index] = { ...state.elements[index], ...updates };
+        console.log("Updated element:", state.elements[index]);
       }
     },
 

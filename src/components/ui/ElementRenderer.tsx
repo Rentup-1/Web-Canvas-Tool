@@ -134,7 +134,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                   : "bold"
                 : fontStyle;
 
+            const brandedFont = getBrandedFont(textElement);
+
             refText.current.fontStyle(fontStyleFinal);
+            refText.current.fontFamily(brandedFont); // Use the branded font
             refText.current.width(textElement.width || 100);
             refText.current._setTextData();
             const box = refText.current.getClientRect({ skipTransform: true });
@@ -155,14 +158,14 @@ export const ElementRenderer = forwardRef<any, Props>(
             refText.current.getLayer()?.batchDraw();
           }
         }, [
-          textElement.text,
-          textElement.fontSize,
-          textElement.fontFamily,
-          textElement.padding,
+          textElement?.text,
+          textElement?.fontSize,
+          textElement?.fontFamily,
+          textElement?.fontBrandingType, // Add this dependency
+          textElement?.padding,
           textAlign,
           fontWeight,
           fontStyle,
-          textElement.width,
           dispatch,
         ]);
 

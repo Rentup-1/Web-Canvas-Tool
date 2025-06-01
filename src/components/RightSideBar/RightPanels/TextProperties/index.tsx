@@ -22,8 +22,25 @@ import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 import { MdBlurOn } from "react-icons/md";
 import { useState } from "react";
 import { toPercentFontSize } from "@/hooks/usePercentConverter";
-
+import { useGetGoogleFontsQuery } from "@/services/googleFontsApi";
 // Utility type guard for text elements
+const loadGoogleFont = (fontFamily: string) => {
+  // Check if font is already loaded
+  if (
+    document.querySelector(`link[href*="${fontFamily.replace(/\s+/g, "+")}"]`)
+  ) {
+    return;
+  }
+
+  // Create link element to load the font
+  const link = document.createElement("link");
+  link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(
+    /\s+/g,
+    "+"
+  )}:wght@400;700&display=swap`;
+  link.rel = "stylesheet";
+  document.head.appendChild(link);
+};
 function isTextElement(element: CanvasElement): element is CanvasTextElement {
   return element.type === "text";
 }
@@ -61,6 +78,7 @@ export default function TextProperties({
 }: {
   element: CanvasTextElement;
 }) {
+  const { data, isLoading, error } = useGetGoogleFontsQuery();
   const stageWidth = useAppSelector((s) => s.canvas.stageWidth);
   const stageHeight = useAppSelector((s) => s.canvas.stageHeight);
   const [availableLabelOptions, setAvailableLabelOptions] = useState([
@@ -228,10 +246,21 @@ export default function TextProperties({
           <SelectInput
             label="Font Family"
             value={element.fontFamily ?? "Arial"}
-            onChange={(val) =>
-              update({ fontFamily: val } as Partial<CanvasTextElement>)
+            onChange={(val) => {
+              // Load the Google Font dynamically
+              if (typeof val === "string") {
+                loadGoogleFont(val);
+              }
+
+              // Update the element with the new font family
+              update({ fontFamily: val } as Partial<CanvasTextElement>);
+            }}
+            options={
+              data?.items.map((font) => ({
+                label: font.family,
+                value: font.family,
+              })) ?? []
             }
-            options={Array.from(FONT_FAMILY_OPTIONS)}
           />
 
           <TextInput
