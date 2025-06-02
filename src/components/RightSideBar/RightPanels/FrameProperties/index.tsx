@@ -17,6 +17,7 @@ import {
   usePostFrameTagMutation,
 } from "@/services/frameTagsApi";
 import { useGetFrameTypesQuery } from "@/services/frameTypesApi";
+import { useGetFramePositionQuery } from "@/services/frmaPosisionApi";
 
 export function FrameProperties({ element }: { element: CanvasFrameElement }) {
   const {
@@ -24,6 +25,11 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
     isLoading: tagsLoading,
     error: errorTags,
   } = useGetFrameTagsQuery();
+  const {
+    data: positionData,
+    isLoading: positionLoading,
+    error: errorPosition,
+  } = useGetFramePositionQuery();
   const { data: typesData, isLoading: typesLoading } = useGetFrameTypesQuery();
   // Normalize typesData to options format
   const typeOptions = typesData
@@ -132,6 +138,25 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
               onChange={(val) => update({ label: val })}
             />
           </div>
+          <SelectInput
+            isSearchable
+            className="col-span-full"
+            label="position"
+            value={String(element.position)}
+            options={
+              Array.isArray(positionData)
+                ? positionData.filter((v): v is string => typeof v === "string")
+                : []
+            }
+            onChange={(val) => {
+              if (typeof val === "string") {
+                update({ position: val });
+              }
+            }}
+            isLoading={positionLoading}
+            error={errorPosition ? "Somethin error happen" : ""}
+            placeholder="select position..."
+          />
           <SelectInput
             creatable
             isMulti

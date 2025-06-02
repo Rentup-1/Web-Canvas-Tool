@@ -79,6 +79,7 @@ export interface CanvasFrameElement extends CanvasElement {
   tags: string[];
   label: string;
   assetType: string;
+  position: string;
 }
 
 export interface CanvasTextElement extends CanvasElement {
