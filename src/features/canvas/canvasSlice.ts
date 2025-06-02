@@ -324,6 +324,9 @@ const canvasSlice = createSlice({
         src,
         originalWidth: width,
         originalHeight: height,
+        backgroundBrandingType: "", // ✅ أضف الخصائص المطلوبة
+        colorBrandingType: "",
+        fill: "",
       });
     },
     selectElement: (state, action: PayloadAction<string | null>) => {
