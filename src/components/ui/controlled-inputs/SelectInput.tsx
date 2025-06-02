@@ -11,11 +11,8 @@ import Select, {
 import CreatableSelect from "react-select/creatable";
 import { cn } from "@/utils/clsxUtils";
 
-// Define the option type
-export type OptionType = {
-  value: string;
-  label: string;
-};
+// Define a generic OptionType to allow any object shape
+export type OptionType = Record<string, any>;
 
 // Define component props
 export interface EnhancedSelectInputProps {
@@ -34,6 +31,10 @@ export interface EnhancedSelectInputProps {
   closeMenuOnSelect?: boolean;
   maxMenuHeight?: number;
   creatable?: boolean;
+  isLoading?: boolean;
+  error?: string | null;
+  valueKey?: string;
+  labelKey?: string;
 }
 
 // Custom dropdown indicator component
@@ -56,10 +57,37 @@ const ClearIndicator = (props: ClearIndicatorProps<OptionType, boolean>) => {
   );
 };
 
+// Custom loading indicator component
+const LoadingIndicator = () => (
+  <div className="flex items-center justify-center px-2">
+    <svg
+      className="h-4 w-4 animate-spin text-muted-foreground"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8 8 8 0 01-8-8z"
+      ></path>
+    </svg>
+  </div>
+);
+
 // Move custom styles outside the component to prevent recalculation
 const getCustomStyles = (
   maxMenuHeight: number,
-  isMulti: boolean
+  isMulti: boolean,
+  error: string | null
 ): StylesConfig<OptionType, boolean> => ({
   control: (provided, state) => ({
     ...provided,
@@ -67,11 +95,21 @@ const getCustomStyles = (
     height: isMulti ? "auto" : "32px",
     fontSize: "14px",
     borderRadius: "6px",
-    borderColor: state.isFocused ? "hsl(var(--ring))" : "hsl(var(--border))",
-    backgroundColor: "hsl(var(--background))",
-    boxShadow: state.isFocused ? "0 0 0 2px hsl(var(--ring) / 0.2)" : "none",
+    borderColor: error
+      ? "hsl(var(--destructive))"
+      : state.isFocused
+      ? "hsl(var(--ring))"
+      : "hsl(var(--border))",
+    backgroundColor: state.isDisabled
+      ? "hsl(var(--muted) / 0.5)"
+      : "hsl(var(--background))",
+    boxShadow: error
+      ? "0 0 0 2px hsl(var(--destructive) / 0.2)"
+      : state.isFocused
+      ? "0 0 0 2px hsl(var(--ring) / 0.2)"
+      : "none",
     "&:hover": {
-      borderColor: "hsl(var(--border))",
+      borderColor: error ? "hsl(var(--destructive))" : "hsl(var(--border))",
     },
     padding: isMulti ? "2px 0" : "0",
   }),
@@ -201,18 +239,28 @@ const SelectInput = memo(
     closeMenuOnSelect = true,
     maxMenuHeight = 200,
     creatable = false,
+    isLoading = false,
+    error = null,
+    valueKey = "value",
+    labelKey = "label",
   }: EnhancedSelectInputProps) => {
     const [currentValue, setCurrentValue] = useState<
       OptionType | OptionType[] | null
     >(null);
     const prevValueRef = useRef<string | string[] | null>(null);
 
-    // Normalize options to always be OptionType[] format
+    // Normalize options to always be OptionType[] format with dynamic valueKey and labelKey
     const normalizedOptions = useMemo<OptionType[]>(() => {
-      return options.map((option) =>
-        typeof option === "string" ? { value: option, label: option } : option
-      );
-    }, [options]);
+      return options.map((option) => {
+        if (typeof option === "string") {
+          return { [valueKey]: option, [labelKey]: option };
+        }
+        // Ensure the option has the required keys, fallback to string if missing
+        const value = option[valueKey] ?? option.value ?? String(option);
+        const label = option[labelKey] ?? option.label ?? String(option);
+        return { ...option, [valueKey]: value, [labelKey]: label };
+      });
+    }, [options, valueKey, labelKey]);
 
     // Update internal state when props change
     useEffect(() => {
@@ -221,43 +269,49 @@ const SelectInput = memo(
           const values = Array.isArray(value) ? value : [value].filter(Boolean);
           const selectedOptions = values.map((val) => {
             const existingOption = normalizedOptions.find(
-              (opt) => opt.value === val
+              (opt) => opt[valueKey] === val
             );
-            return existingOption || { value: val, label: val };
+            return existingOption || { [valueKey]: val, [labelKey]: val };
           });
           setCurrentValue(selectedOptions);
         } else {
           const selectedOption =
-            normalizedOptions.find((option) => option.value === value) || null;
+            normalizedOptions.find((option) => option[valueKey] === value) ||
+            null;
           setCurrentValue(selectedOption);
         }
         prevValueRef.current = value;
       }
-    }, [value, normalizedOptions, isMulti]);
+    }, [value, normalizedOptions, isMulti, valueKey, labelKey]);
 
     // Memoized change handler
     const handleChange = useCallback(
       (newValue: MultiValue<OptionType> | SingleValue<OptionType>) => {
+        console.log("SelectInput handleChange newValue:", newValue); // Debug log
         if (isMulti) {
           const multiValue = newValue as MultiValue<OptionType>;
           const values = multiValue
-            ? multiValue.map((option) => option.value)
+            ? multiValue
+                .map((option) => option[valueKey] ?? option.value)
+                .filter((val): val is string => Boolean(val))
             : [];
           setCurrentValue(multiValue ? [...multiValue] : []);
           onChange(values);
         } else {
           const singleValue = newValue as SingleValue<OptionType>;
           setCurrentValue(singleValue);
-          onChange(singleValue ? singleValue.value : "");
+          onChange(
+            singleValue ? singleValue[valueKey] ?? singleValue.value : ""
+          );
         }
       },
-      [isMulti, onChange]
+      [isMulti, onChange, valueKey]
     );
 
     // Use memoized custom styles
     const customStyles = useMemo(
-      () => getCustomStyles(maxMenuHeight, isMulti),
-      [maxMenuHeight, isMulti]
+      () => getCustomStyles(maxMenuHeight, isMulti, error),
+      [maxMenuHeight, isMulti, error]
     );
 
     const SelectComponent = creatable ? CreatableSelect : Select;
@@ -268,6 +322,7 @@ const SelectInput = memo(
           <label
             className={cn(
               "text-sm font-medium text-foreground",
+              error && "text-destructive",
               labelClassName
             )}
           >
@@ -279,19 +334,25 @@ const SelectInput = memo(
             value={currentValue}
             onChange={handleChange}
             options={normalizedOptions}
+            getOptionValue={(option) => option[valueKey] ?? option.value}
+            getOptionLabel={(option) => option[labelKey] ?? option.label}
             isMulti={isMulti}
             isSearchable={isSearchable}
             isClearable={isClearable}
-            isDisabled={disabled}
-            placeholder={placeholder}
+            isDisabled={disabled || isLoading}
+            placeholder={isLoading ? "Loading..." : placeholder}
             closeMenuOnSelect={closeMenuOnSelect && !isMulti}
             styles={customStyles}
             components={{
-              DropdownIndicator,
+              DropdownIndicator: isLoading ? () => null : DropdownIndicator,
               ClearIndicator,
+              LoadingIndicator,
             }}
+            isLoading={isLoading}
             classNamePrefix="react-select"
-            noOptionsMessage={() => "No options found"}
+            noOptionsMessage={() =>
+              isLoading ? "Loading options..." : "No options found"
+            }
             menuPlacement="auto"
             menuPortalTarget={
               typeof document !== "undefined" ? document.body : null
@@ -299,6 +360,7 @@ const SelectInput = memo(
             menuPosition="fixed"
           />
         </div>
+        {error && <p className="text-sm text-destructive mt-1">{error}</p>}
       </div>
     );
   }
@@ -306,7 +368,6 @@ const SelectInput = memo(
 
 SelectInput.displayName = "SelectInput";
 
-// Export the type for external use
 export type { OptionType as SelectOption };
 
 export default SelectInput;
