@@ -24,11 +24,7 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
     isLoading: tagsLoading,
     error: errorTags,
   } = useGetFrameTagsQuery();
-  const {
-    data: typesData,
-    isLoading: typesLoading,
-    error: errortypes,
-  } = useGetFrameTypesQuery();
+  const { data: typesData, isLoading: typesLoading } = useGetFrameTypesQuery();
   // Normalize typesData to options format
   const typeOptions = typesData
     ? typesData.map(([value, label]: [string, string]) => ({
