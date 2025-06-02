@@ -10,7 +10,7 @@ const extendedApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getFrameTypes: builder.query<TypesData, void>({
       query: () => "creatives/asset-choices",
-      providesTags: ["FrameTags"],
+      providesTags: ["FrameTypes"],
     }),
   }),
   overrideExisting: false,

@@ -20,9 +20,12 @@ import {
 } from "react-icons/fa";
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 import { MdBlurOn } from "react-icons/md";
-import { useState } from "react";
 import { toPercentFontSize } from "@/hooks/usePercentConverter";
 import { useGetGoogleFontsQuery } from "@/services/googleFontsApi";
+import {
+  useGetTextLabelQuery,
+  usePostTextLabelMutation,
+} from "@/services/textLabelsApi";
 // Utility type guard for text elements
 const loadGoogleFont = (fontFamily: string) => {
   // Check if font is already loaded
@@ -50,78 +53,62 @@ export const BRAND_OPTIONS: BrandingType[] = [
   "additional",
   "fixed",
 ];
-export const FONT_FAMILY_OPTIONS = [
-  "Roboto",
-  "Open Sans",
-  "Lato",
-  "Montserrat",
-  "Poppins",
-  "Raleway",
-  "Oswald",
-  "Merriweather",
-  "Playfair Display",
-  "Nunito",
-  "Ubuntu",
-  "PT Sans",
-  "Inter",
-  "Quicksand",
-  "Source Sans Pro",
-  "Cabin",
-  "Rubik",
-  "Fira Sans",
-  "Inconsolata",
-  "Manrope",
-] as const;
-
 export default function TextProperties({
   element,
 }: {
   element: CanvasTextElement;
 }) {
-  const { data, isLoading, error } = useGetGoogleFontsQuery();
+  const {
+    data: fontsData,
+    isLoading: fontsLoading,
+    error: fontsError,
+  } = useGetGoogleFontsQuery();
+  const {
+    data: labelsData,
+    isLoading: labelsLoading,
+    error: errorLabels,
+  } = useGetTextLabelQuery();
+  const [
+    postTextLabel,
+    { isLoading: postTextLabelLoading, error: postTextLabelError },
+  ] = usePostTextLabelMutation();
+  // Normalize labelsData.results to options format
+  const labelOptions = labelsData?.results
+    ? labelsData.results.map((item) => ({
+        id: String(item.id),
+        label: item.label,
+      }))
+    : [];
+  // Handle tag creation and selection
+  const handleLabelsChange = async (val: string | string[]) => {
+    const values = Array.isArray(val) ? val : val ? [val] : [];
+    const currentTags = labelOptions.map((opt) => opt.label);
+    // Identify new label (not in tagOptions)
+    const newLabels = values.filter(
+      (tag) => tag && !currentTags.includes(tag) && tag.trim().length > 0
+    );
+    console.log("New tags:", newLabels);
+
+    // Post new tags to the API
+    for (const newLabel of newLabels) {
+      console.log("Attempting to create label:", newLabel);
+      try {
+        await postTextLabel({ label: newLabel }).unwrap();
+      } catch (err) {
+        console.error("Failed to create label:", newLabel, err);
+      }
+    }
+
+    // Update element.tags with the final values
+    update({ label: values });
+  };
   const stageWidth = useAppSelector((s) => s.canvas.stageWidth);
   const stageHeight = useAppSelector((s) => s.canvas.stageHeight);
-  const [availableLabelOptions, setAvailableLabelOptions] = useState([
-    { label: "vertical", value: "vertical" },
-    { label: "horizontal", value: "horizontal" },
-    { label: "icon only", value: "iconOnly" },
-    { label: "icon + text", value: "icon+Text" },
-    { label: "text only", value: "textOnly" },
-    { label: "project image", value: "projectImage" },
-  ]);
   const dispatch = useAppDispatch();
   const update = <T extends CanvasTextElement>(updates: Partial<T>) => {
     dispatch(updateElement({ id: element.id, updates }));
   };
-
-  const handleleLabelChange = (val: string | string[]) => {
-    if (Array.isArray(val)) {
-      update({ label: val });
-
-      val.forEach((label) => {
-        const exists = availableLabelOptions.some(
-          (option) => option.value === label
-        );
-        if (!exists) {
-          setAvailableLabelOptions((prev) => [
-            ...prev,
-            { label: label, value: label },
-          ]);
-        }
-      });
-    } else if (typeof val === "string") {
-      update({ label: [val] });
-      const exists = availableLabelOptions.some(
-        (option) => option.value === val
-      );
-      if (!exists) {
-        setAvailableLabelOptions((prev) => [
-          ...prev,
-          { label: val, value: val },
-        ]);
-      }
-    }
-  };
+  console.log(postTextLabelError);
   return (
     <div className="space-y-4">
       <PositionProperties element={element} />
@@ -244,6 +231,9 @@ export default function TextProperties({
             }
           />
           <SelectInput
+            isClearable={false}
+            isLoading={fontsLoading}
+            error={fontsError ? "Sonthing wrong happend" : null}
             label="Font Family"
             value={element.fontFamily ?? "Arial"}
             onChange={(val) => {
@@ -256,7 +246,7 @@ export default function TextProperties({
               update({ fontFamily: val } as Partial<CanvasTextElement>);
             }}
             options={
-              data?.items.map((font) => ({
+              fontsData?.items.map((font) => ({
                 label: font.family,
                 value: font.family,
               })) ?? []
@@ -334,8 +324,15 @@ export default function TextProperties({
             className="col-span-full"
             label="Label"
             value={element.label ?? []}
-            options={availableLabelOptions}
-            onChange={handleleLabelChange}
+            options={labelOptions}
+            valueKey="label"
+            labelKey="label"
+            isLoading={labelsLoading || postTextLabelLoading}
+            onChange={handleLabelsChange}
+            error={
+              errorLabels || postTextLabelError ? "somthing error happen" : null
+            }
+            placeholder="Create or select labels..."
           />
           <SelectInput
             label="Branding Color"
