@@ -16,6 +16,7 @@ import {
   useGetFrameTagsQuery,
   usePostFrameTagMutation,
 } from "@/services/frameTagsApi";
+import { useGetFrameTypesQuery } from "@/services/frameTypesApi";
 
 export function FrameProperties({ element }: { element: CanvasFrameElement }) {
   const {
@@ -23,6 +24,18 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
     isLoading: tagsLoading,
     error: errorTags,
   } = useGetFrameTagsQuery();
+  const {
+    data: typesData,
+    isLoading: typesLoading,
+    error: errortypes,
+  } = useGetFrameTypesQuery();
+  // Normalize typesData to options format
+  const typeOptions = typesData
+    ? typesData.map(([value, label]: [string, string]) => ({
+        value,
+        label,
+      }))
+    : [];
   const [postFrameTag, { isLoading: postTagLoading, error: postTagError }] =
     usePostFrameTagMutation();
   const dispatch = useAppDispatch();
@@ -103,16 +116,12 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
           </div>
           {/* Create select options of assetType */}
           <SelectInput
+            isLoading={typesLoading}
+            isSearchable
             className="col-span-full"
-            label="asset type"
+            label="Asset type"
             value={element.assetType}
-            options={[
-              { label: "Project Logo", value: "projectLogo" },
-              { label: "Developer Logo", value: "developerLogo" },
-              { label: "Image", value: "image" },
-              { label: "Video", value: "video" },
-              { label: "Other Logo", value: "otherLogo" },
-            ]}
+            options={typeOptions}
             onChange={(val) => {
               if (typeof val === "string") {
                 update({ assetType: val });
