@@ -16,7 +16,7 @@ interface ColorInputProps {
 export function ColorInput({
   label,
   value,
-  opacity = 100,
+  // opacity = 100,
   onChange,
   className,
   showOpacity = false,

@@ -1,7 +1,7 @@
 import { useAppDispatch } from "@/hooks/useRedux";
 import { updateElement } from "@/features/canvas/canvasSlice";
 import type { CanvasElement } from "@/features/canvas/types";
-import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
+// import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
 import { useSelector } from "react-redux";
 import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
@@ -78,22 +78,22 @@ export function ImageProperties({ element }: { element: CanvasElement }) {
     }
   };
 
-  const update = <T extends CanvasElement>(updates: Partial<T>) => {
-    dispatch(updateElement({ id: element.id, updates }));
-    console.log(element);
-  };
+  // const update = <T extends CanvasElement>(updates: Partial<T>) => {
+  //   dispatch(updateElement({ id: element.id, updates }));
+  //   console.log(element);
+  // };
 
   return (
     <div className="space-y-4">
       {/* Common Shape Properties */}
       <PositionProperties element={element} />
       <ScaleProperties element={element} />
-      <TextInput
+      {/* <TextInput
         label="Label"
         type="text"
-        value={element.label || ""}
+        value={""}
         onChange={(val) => update({ label: val })}
-      />
+      /> */}
       <SelectInput
         label="Image Fit Mode"
         value={element.fitMode || "fill"}

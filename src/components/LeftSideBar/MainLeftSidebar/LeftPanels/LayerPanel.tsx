@@ -16,7 +16,7 @@ export function LayerPanel() {
           }`}
           onClick={() => dispatch(selectElement(el.id))}
         >
-          <span className={`${el.selected ? "text-secondary" : "text-primary"}`}>{el.label || el.type}</span>
+          <span className={`${el.selected ? "text-secondary" : "text-primary"}`}>{el.type}</span>
           <div className="space-x-1 flex">
             <button
               onClick={(e) => {

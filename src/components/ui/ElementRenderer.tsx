@@ -75,16 +75,16 @@ export const ElementRenderer = forwardRef<any, Props>(
       );
     };
 
-    const getBrandedTextColor = (element: CanvasTextElement) => {
-      return resolveColor(element.fill || "#000000", element.colorBrandingType);
-    };
+    // const getBrandedTextColor = (element: CanvasTextElement) => {
+    //   return resolveColor(element.fill || "#000000", element.colorBrandingType);
+    // };
 
-    const getBrandedBackground = (element: CanvasTextElement) => {
-      return resolveColor(
-        element.background || "transparent",
-        element.backgroundBrandingType
-      );
-    };
+    // const getBrandedBackground = (element: CanvasTextElement) => {
+    //   return resolveColor(
+    //     element.background || "transparent",
+    //     element.backgroundBrandingType
+    //   );
+    // };
 
     switch (element.type) {
       
@@ -1667,7 +1667,7 @@ export const ElementRenderer = forwardRef<any, Props>(
         const [image] = useImage(element.src || "");
         const frame = elements.find((f:CanvasElement) => f.id === element.frameId);
         const wasOverFrameRef = useRef(false);
-        const [currentFitMode, setCurrentFitMode] = useState(element.fitMode || "fit");
+        const [currentFitMode] = useState(element.fitMode || "fit");
 
         const applyFitMode = (newFitMode:string, targetFrame:CanvasFrameElement, imgElement:CanvasElement, nativeImage:HTMLImageElement) => {
           const frameAspect = targetFrame.width / targetFrame.height;
@@ -2104,7 +2104,6 @@ export const ElementRenderer = forwardRef<any, Props>(
 
       case "icon": {
         const [iconImage] = useImage(`https://api.iconify.design/${element.iconName}.svg`);
-        const isSelected = element.id;
 
         return (
           <Group

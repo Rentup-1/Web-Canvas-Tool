@@ -8,7 +8,7 @@ import { ShapeProperties } from "./RightPanels/ShapeProperties";
 import { FrameProperties } from "./RightPanels/FrameProperties";
 import { ImageProperties } from "./RightPanels/ImageProperties";
 import TextProperties from "./RightPanels/TextProperties";
-import type { CanvasElementUnion } from "@/features/canvas/types";
+import type { CanvasElementUnion, CanvasFrameElement, CanvasTextElement } from "@/features/canvas/types";
 
 interface RootState {
   ui: {
@@ -80,15 +80,24 @@ const RightSideBar: FC = () => {
             element={selectedElement}
           />
         )}
-        {selectedElement && selectedElement.type === "frame" && (
-          <FrameProperties key="frame" element={selectedElement} />
+        {selectedElement?.type === "frame" && (
+          <FrameProperties key="frame" element={selectedElement as CanvasFrameElement} />
         )}
+
+        {/* {selectedElement && selectedElement.type === "frame" && (
+          <FrameProperties key="frame" element={selectedElement} />
+        )} */}
         {selectedElement && selectedElement.type === "image" && (
           <ImageProperties key="image" element={selectedElement} />
         )}
-        {selectedElement && selectedElement.type === "text" && (
+        {/* {selectedElement && selectedElement.type === "text" && (
           <TextProperties key="text" element={selectedElement} />
+        )} */}
+
+        {selectedElement?.type === "text" && (
+          <TextProperties key="text" element={selectedElement as CanvasTextElement} />
         )}
+
       </div>
     </div>
   );
