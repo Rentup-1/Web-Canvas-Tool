@@ -12,41 +12,66 @@ import { ColorInput } from "@/components/ui/controlled-inputs/ColorInput";
 import { Button } from "@/components/ui/Button";
 import { MdBlurOn } from "react-icons/md";
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
-import { useState } from "react";
+import { useGetFrameTagsQuery, usePostFrameTagMutation } from "@/services/api";
 
 export function FrameProperties({ element }: { element: CanvasFrameElement }) {
-  const [availableOptions, setAvailableOptions] = useState([
-    { label: "vertical", value: "vertical" },
-    { label: "horizontal", value: "horizontal" },
-    { label: "icon only", value: "iconOnly" },
-    { label: "icon + text", value: "icon+Text" },
-    { label: "text only", value: "textOnly" },
-    { label: "project image", value: "projectImage" },
-  ]);
+  const {
+    data: tagsData,
+    isLoading: tagsLoading,
+    error: errorTags,
+  } = useGetFrameTagsQuery();
+  const [postFrameTag, { isLoading: postTagLoading, error: postTagError }] =
+    usePostFrameTagMutation();
   const dispatch = useAppDispatch();
 
   const update = <T extends CanvasElementUnion>(updates: Partial<T>) => {
     dispatch(updateElement({ id: element.id, updates }));
-    console.log(element);
   };
-  const handleTagsChange = (val: string | string[]) => {
-    if (Array.isArray(val)) {
-      update({ tags: val });
 
-      val.forEach((tag) => {
-        const exists = availableOptions.some((option) => option.value === tag);
-        if (!exists) {
-          setAvailableOptions((prev) => [...prev, { label: tag, value: tag }]);
-        }
-      });
-    } else if (typeof val === "string") {
-      update({ tags: [val] });
-      const exists = availableOptions.some((option) => option.value === val);
-      if (!exists) {
-        setAvailableOptions((prev) => [...prev, { label: val, value: val }]);
+  // Normalize tagsData.results to options format
+  const tagOptions = tagsData?.results
+    ? tagsData.results.map((item) => ({
+        id: String(item.id),
+        tag: item.tag,
+      }))
+    : [];
+
+  // Extract error message from errors
+  const errorMessage = errorTags
+    ? "Failed to load tags. Please try again."
+    : postTagError
+    ? (postTagError as any).data?.tag?.[0] ||
+      "Failed to create tag. Please try again."
+    : null;
+
+  // Handle tag creation and selection
+  const handleTagsChange = async (val: string | string[]) => {
+    console.log("handleTagsChange received values:", val);
+    const values = Array.isArray(val) ? val : val ? [val] : [];
+    console.log("Normalized values:", values);
+    const currentTags = tagOptions.map((opt) => opt.tag);
+    console.log("Current tags:", currentTags);
+
+    // Identify new tags (not in tagOptions)
+    const newTags = values.filter(
+      (tag) => tag && !currentTags.includes(tag) && tag.trim().length > 0
+    );
+    console.log("New tags:", newTags);
+
+    // Post new tags to the API
+    for (const newTag of newTags) {
+      console.log("Attempting to create tag:", newTag);
+      try {
+        await postFrameTag({ tag: newTag }).unwrap();
+      } catch (err) {
+        console.error("Failed to create tag:", newTag, err);
       }
     }
+
+    // Update element.tags with the final values
+    update({ tags: values });
   };
+
   return (
     <div className="space-y-4">
       {/* Common Shape Properties */}
@@ -73,7 +98,7 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
               </Button>
             </div>
           </div>
-          {/* create select options of assetType */}
+          {/* Create select options of assetType */}
           <SelectInput
             className="col-span-full"
             label="asset type"
@@ -106,8 +131,13 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
             className="col-span-full"
             label="Tags"
             value={element.tags}
-            options={availableOptions}
+            options={tagOptions}
+            valueKey="tag"
+            labelKey="tag"
             onChange={handleTagsChange}
+            isLoading={tagsLoading || postTagLoading}
+            error={errorMessage}
+            placeholder="Create or select tags..."
           />
         </div>
       </div>
