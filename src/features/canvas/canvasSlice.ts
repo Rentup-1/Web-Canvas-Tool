@@ -324,7 +324,7 @@ const canvasSlice = createSlice({
         src,
         originalWidth: width,
         originalHeight: height,
-        backgroundBrandingType: "", // ✅ أضف الخصائص المطلوبة
+        backgroundBrandingType: "",
         colorBrandingType: "",
         fill: "",
       });
