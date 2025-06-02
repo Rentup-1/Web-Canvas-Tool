@@ -12,7 +12,10 @@ import { ColorInput } from "@/components/ui/controlled-inputs/ColorInput";
 import { Button } from "@/components/ui/Button";
 import { MdBlurOn } from "react-icons/md";
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
-import { useGetFrameTagsQuery, usePostFrameTagMutation } from "@/services/api";
+import {
+  useGetFrameTagsQuery,
+  usePostFrameTagMutation,
+} from "@/services/frameTagsApi";
 
 export function FrameProperties({ element }: { element: CanvasFrameElement }) {
   const {
