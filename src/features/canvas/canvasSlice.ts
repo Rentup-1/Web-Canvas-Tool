@@ -100,9 +100,9 @@ const canvasSlice = createSlice({
           newElement = {
             ...base,
             type: "frame",
-            // width: 250,
-            // height: 200,
-            stroke: "#000",
+            width: 250,
+            height: 200,
+            stroke: "#B5B0B0",
             strokeWidth: 1,
             fill: "transparent",
             dash: [5, 5],
