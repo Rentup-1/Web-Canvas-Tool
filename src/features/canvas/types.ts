@@ -91,7 +91,7 @@ export interface CanvasTextElement extends CanvasElement {
   padding?: number;
   backgroundStroke?: string;
   backgroundStrokeWidth: number;
-  fontBrandingType?: "primary" | "secondary" | "additional" | "fixed";
+  fontBrandingType?: string;
   label?: string[];
   textDecoration?: "none" | "underline";
   align?: "left" | "center" | "right";
