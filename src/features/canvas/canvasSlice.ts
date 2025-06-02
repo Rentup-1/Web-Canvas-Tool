@@ -60,7 +60,9 @@ const canvasSlice = createSlice({
   name: "canvas",
   initialState,
   reducers: {
-    addElement: (state, action: PayloadAction<{ type: ElementType }>) => {
+    addElement: (
+  state,
+  action: PayloadAction<| { type: "icon"; iconName: string } | { type: Exclude<ElementType, "icon"> }>) => {
       const base = createBaseElement();
       let newElement: CanvasElement;
 
@@ -114,7 +116,7 @@ const canvasSlice = createSlice({
           newElement = {
             ...base,
             type: "icon",
-            iconName: "mdi:home", // اسم الأيقونة من API
+            iconName: action.payload.iconName, 
             width: 50,
             height: 50,
             color: "#000000", // ✅ اللون

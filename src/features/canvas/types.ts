@@ -14,9 +14,12 @@ export type ElementType =
   | "wedge"
   | "ring"
   | "arrow"
-  | "icon";
+  | "icon"
+
 
 export type FitMode = "fill" | "fit" | "stretch";
+
+  // | { type: "icon"; iconName: string } // ✅ هنا أضفنا الأيقونة
 
 export interface CanvasElement {
   backgroundBrandingType: string;

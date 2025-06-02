@@ -12,6 +12,7 @@ import {
   Ring,
   Group,
   Transformer,
+  Image,
 } from "react-konva";
 import type {
   CanvasElementUnion,
@@ -56,7 +57,7 @@ export const ElementRenderer = forwardRef<any, Props>(
     const dispatch = useAppDispatch();
     const stageWidth = useAppSelector((s) => s.canvas.stageWidth);
     const stageHeight = useAppSelector((s) => s.canvas.stageHeight);
-    const { toPercent, fromPercent } = usePercentConverter();
+    const { toPercent } = usePercentConverter();
     const { resolveColor, resolveFont } = useBrandingResolver();
     const getBrandedFill = (element: CanvasElement) => {
       return resolveColor(element.fill, element.fillBrandingType);
@@ -88,6 +89,7 @@ export const ElementRenderer = forwardRef<any, Props>(
     };
 
     switch (element.type) {
+      
       case "text":
         const textElement = element as CanvasTextElement;
         const refText = useRef<KonvaText>(null);
@@ -1038,53 +1040,95 @@ export const ElementRenderer = forwardRef<any, Props>(
         );
       }
 
+      // case "icon": {
+      //   const IconComponent = MdIcons[element.iconName as keyof typeof MdIcons];
+      //   console.log(IconComponent);
+
+      //   return (
+      //     <Html
+      //       groupProps={{
+      //         x: element.x,
+      //         y: element.y,
+      //         draggable: true,
+      //         onDragMove: (e: KonvaEventObject<MouseEvent>) => {
+      //           const node = e.target;
+      //           const newX = node.x();
+      //           const newY = node.y();
+      //           dispatch(
+      //             updateElement({
+      //               id: element.id,
+      //               updates: {
+      //                 x: newX,
+      //                 y: newY,
+      //                 width_percent: toPercent(element.width, stageWidth),
+      //                 height_percent: toPercent(element.height, stageHeight),
+      //                 x_percent: toPercent(element.x, stageWidth),
+      //                 y_percent: toPercent(element.y, stageHeight),
+      //               },
+      //             })
+      //           );
+      //         },
+      //         onClick: onSelect,
+      //       }}
+      //     >
+      //       <div
+      //         style={{
+      //           width: element.width,
+      //           height: element.height,
+      //           fontSize: element.width,
+      //           color: element.color || "black",
+      //           border: "2px solid #000",
+      //           cursor: "move",
+      //         }}
+      //       >
+      //         <Icon icon={element.iconName} width={50} height={50} color="#000000" />
+      //         {/* {IconComponent ? <IconComponent color={element.color || "black"} /> : null} */}
+      //       </div>
+      //     </Html>
+      //   );
+      // }
+
       case "icon": {
-        const IconComponent = MdIcons[element.iconName as keyof typeof MdIcons];
-        console.log(IconComponent);
+        const [iconImage] = useImage(`https://api.iconify.design/${element.iconName}.svg`);
+        const isSelected = element.id;
 
         return (
-          <Html
-            groupProps={{
-              x: element.x,
-              y: element.y,
-              draggable: true,
-              onDragMove: (e: KonvaEventObject<MouseEvent>) => {
-                const node = e.target;
-                const newX = node.x();
-                const newY = node.y();
-                dispatch(
-                  updateElement({
-                    id: element.id,
-                    updates: {
-                      x: newX,
-                      y: newY,
-                      width_percent: toPercent(element.width, stageWidth),
-                      height_percent: toPercent(element.height, stageHeight),
-                      x_percent: toPercent(element.x, stageWidth),
-                      y_percent: toPercent(element.y, stageHeight),
-                    },
-                  })
-                );
-              },
-              onClick: onSelect,
+          <Group
+            x={element.x}
+            y={element.y}
+            draggable
+            onDragMove={(e) => {
+              const node = e.target;
+              const newX = node.x();
+              const newY = node.y();
+              dispatch(
+                updateElement({
+                  id: element.id,
+                  updates: {
+                    x: newX,
+                    y: newY,
+                    width_percent: toPercent(element.width, stageWidth),
+                    height_percent: toPercent(element.height, stageHeight),
+                    x_percent: toPercent(newX, stageWidth),
+                    y_percent: toPercent(newY, stageHeight),
+                  },
+                })
+              );
             }}
-          >
-            <div
-              style={{
-                width: element.width,
-                height: element.height,
-                fontSize: element.width,
-                color: element.color || "black",
-                border: "2px solid #000",
-                cursor: "move",
-              }}
-            >
-              <Icon icon="mdi:home" width={50} height={50} color="#000000" />
-              {/* {IconComponent ? <IconComponent color={element.color || "black"} /> : null} */}
-            </div>
-          </Html>
+            onClick={onSelect}>
+            <Image
+              image={iconImage}
+              filters={[Konva.Filters.RGB]}
+              red={255}
+              green={255}
+              blue={255}
+              width={element.width}
+              height={element.height}
+            />
+          </Group>
         );
       }
+      
 
       case "rectangle":
         const rectangleElement = element as RectangleShape;
