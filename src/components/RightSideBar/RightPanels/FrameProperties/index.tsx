@@ -17,7 +17,7 @@ import {
   usePostFrameTagMutation,
 } from "@/services/frameTagsApi";
 import { useGetFrameTypesQuery } from "@/services/frameTypesApi";
-// import { useGetFramePositionQuery } from "@/services/frmaPosisionApi";
+import { useGetFramePositionQuery } from "@/services/frmaPosisionApi";
 
 export function FrameProperties({ element }: { element: CanvasFrameElement }) {
   const {
@@ -25,11 +25,11 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
     isLoading: tagsLoading,
     error: errorTags,
   } = useGetFrameTagsQuery();
-  // const {
-  //   data: positionData,
-  //   isLoading: positionLoading,
-  //   error: errorPosition,
-  // } = useGetFramePositionQuery();
+  const {
+    data: positionData,
+    isLoading: positionLoading,
+    error: errorPosition,
+  } = useGetFramePositionQuery();
   const { data: typesData, isLoading: typesLoading } = useGetFrameTypesQuery();
   // Normalize typesData to options format
   const typeOptions = typesData
@@ -130,18 +130,19 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
               }
             }}
           />
-          <div className="col-span-full">
+          {/* <div className="col-span-full">
             <TextInput
               label="Label"
               type="text"
               value={element.label}
               onChange={(val) => update({ label: val })}
             />
-          </div>
+          </div> */}
+
           {/* <SelectInput
             isSearchable
             className="col-span-full"
-            label="position"
+            label="Frame-position"
             value={String(element.position)}
             options={
               Array.isArray(positionData)
@@ -157,6 +158,23 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
             error={errorPosition ? "Somethin error happen" : ""}
             placeholder="select position..."
           /> */}
+
+          <SelectInput
+            isSearchable
+            className="col-span-full"
+            label="Frame-position"
+            value={String(element.position)}
+            options={Array.from({ length: 9 }, (_, i) => String(i + 1))}
+            onChange={(val) => {
+              if (typeof val === "string") {
+                update({ position: val });
+              }
+            }}
+            isLoading={positionLoading}
+            error={errorPosition ? "Something error happen" : ""}
+            placeholder="select position..."
+          />
+
           <SelectInput
             creatable
             isMulti
