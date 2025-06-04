@@ -4,7 +4,7 @@ import type {
   CanvasElementUnion,
   CanvasFrameElement,
 } from "@/features/canvas/types";
-import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
+// import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
 import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
 import RotationProperties from "../CommonProperties/RotationProperties";
@@ -17,7 +17,7 @@ import {
   usePostFrameTagMutation,
 } from "@/services/frameTagsApi";
 import { useGetFrameTypesQuery } from "@/services/frameTypesApi";
-import { useGetFramePositionQuery } from "@/services/frmaPosisionApi";
+// import { useGetFramePositionQuery } from "@/services/frmaPosisionApi";
 
 export function FrameProperties({ element }: { element: CanvasFrameElement }) {
   const {
@@ -25,11 +25,12 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
     isLoading: tagsLoading,
     error: errorTags,
   } = useGetFrameTagsQuery();
-  const {
-    data: positionData,
-    isLoading: positionLoading,
-    error: errorPosition,
-  } = useGetFramePositionQuery();
+
+  // const {
+  //   data: positionData,
+  //   isLoading: positionLoading,
+  //   error: errorPosition,
+  // } = useGetFramePositionQuery();
   const { data: typesData, isLoading: typesLoading } = useGetFrameTypesQuery();
   // Normalize typesData to options format
   const typeOptions = typesData
@@ -170,8 +171,8 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
                 update({ position: val });
               }
             }}
-            isLoading={positionLoading}
-            error={errorPosition ? "Something error happen" : ""}
+            // isLoading={positionLoading}
+            // error={errorPosition ? "Something error happen" : ""}
             placeholder="select position..."
           />
 
