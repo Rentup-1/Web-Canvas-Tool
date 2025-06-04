@@ -17,7 +17,7 @@ import {
   usePostFrameTagMutation,
 } from "@/services/frameTagsApi";
 import { useGetFrameTypesQuery } from "@/services/frameTypesApi";
-import { useGetFramePositionQuery } from "@/services/frmaPosisionApi";
+// import { useGetFramePositionQuery } from "@/services/frmaPosisionApi";
 
 export function FrameProperties({ element }: { element: CanvasFrameElement }) {
   const {
@@ -25,11 +25,11 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
     isLoading: tagsLoading,
     error: errorTags,
   } = useGetFrameTagsQuery();
-  const {
-    data: positionData,
-    isLoading: positionLoading,
-    error: errorPosition,
-  } = useGetFramePositionQuery();
+  // const {
+  //   data: positionData,
+  //   isLoading: positionLoading,
+  //   error: errorPosition,
+  // } = useGetFramePositionQuery();
   const { data: typesData, isLoading: typesLoading } = useGetFrameTypesQuery();
   // Normalize typesData to options format
   const typeOptions = typesData
@@ -138,7 +138,7 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
               onChange={(val) => update({ label: val })}
             />
           </div>
-          <SelectInput
+          {/* <SelectInput
             isSearchable
             className="col-span-full"
             label="position"
@@ -156,7 +156,7 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
             isLoading={positionLoading}
             error={errorPosition ? "Somethin error happen" : ""}
             placeholder="select position..."
-          />
+          /> */}
           <SelectInput
             creatable
             isMulti
