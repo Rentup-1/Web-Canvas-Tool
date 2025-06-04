@@ -47,6 +47,11 @@ interface Props {
   onChange: (updates: Partial<CanvasElementUnion>) => void;
 }
 type KonvaText = InstanceType<typeof Konva.Text>;
+interface RootState {
+  canvas: {
+    elements: CanvasElement[];
+  };
+}
 
 // Update the ElementRenderer to apply stroke and strokeWidth to all shapes
 export const ElementRenderer = forwardRef<any, Props>(
@@ -93,10 +98,12 @@ export const ElementRenderer = forwardRef<any, Props>(
         const refText = useRef<KonvaText>(null);
         const [bgSize, setBgSize] = useState({ width: 0, height: 0 });
         const trRef = useRef<Konva.Transformer>(null);
-        const [isSelected, setIsSelected] = useState(false);
+        // const [isSelected, setIsSelected] = useState(false);
         const [isEditing, setIsEditing] = useState(false);
         const [editableText, setEditableText] = useState(textElement.text);
-
+        const isSelected = useSelector((state:RootState) =>
+          state.canvas.elements.find((el) => el.id === textElement.id)?.selected
+        );
         const textAlign = useSelector(
           (state: any) =>
             state.canvas.elements.find((el: any) => el.id === textElement.id)
@@ -177,7 +184,6 @@ export const ElementRenderer = forwardRef<any, Props>(
         }, [isSelected, isEditing]);
 
         const handleSelect = (e: Konva.KonvaEventObject<MouseEvent>) => {
-          setIsSelected(true);
           if (onSelect) onSelect(e, textElement.id as string); // تأكد إن `id` هو string
         };
 
