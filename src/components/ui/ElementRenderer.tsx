@@ -26,7 +26,6 @@ import type {
   WedgeShape,
   RingShape,
   CanvasElement,
-  CanvasFrameElement,
 } from "../../features/canvas/types";
 import { useSelector } from "react-redux";
 import useImage from "use-image";
