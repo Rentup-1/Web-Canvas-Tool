@@ -61,8 +61,12 @@ const canvasSlice = createSlice({
   initialState,
   reducers: {
     addElement: (
-  state,
-  action: PayloadAction<| { type: "icon"; iconName: string } | { type: Exclude<ElementType, "icon"> }>) => {
+      state,
+      action: PayloadAction<
+        | { type: "icon"; iconName: string }
+        | { type: Exclude<ElementType, "icon"> }
+      >
+    ) => {
       const currentId = shapeIdCounter++;
       const base = createBaseElement(String(currentId));
       let newElement: CanvasElement;
@@ -108,8 +112,6 @@ const canvasSlice = createSlice({
             fill: "transparent",
             dash: [5, 5],
             assetType: "frame",
-            label: "",
-            frame_position: "",
             tags: [],
           } as CanvasElement;
           break;
@@ -118,7 +120,7 @@ const canvasSlice = createSlice({
           newElement = {
             ...base,
             type: "icon",
-            iconName: action.payload.iconName, 
+            iconName: action.payload.iconName,
             width: 50,
             height: 50,
             color: "#000000", // ✅ اللون
