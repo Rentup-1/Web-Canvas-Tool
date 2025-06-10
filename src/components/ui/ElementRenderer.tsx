@@ -1702,7 +1702,7 @@ export const ElementRenderer = forwardRef<any, Props>(
       
       case "icon": {
         const [iconImage] = useImage(`https://api.iconify.design/${element.iconName}.svg`);
-
+        
         return (
           <Group
             x={element.x}
@@ -1729,10 +1729,8 @@ export const ElementRenderer = forwardRef<any, Props>(
             onClick={onSelect}>
             <Image
               image={iconImage}
+              tint={element.color}
               filters={[Konva.Filters.RGB]}
-              red={255}
-              green={255}
-              blue={255}
               width={element.width}
               height={element.height}
             />
