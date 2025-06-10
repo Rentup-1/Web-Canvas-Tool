@@ -2,29 +2,26 @@ import { moveElementDown, moveElementUp, selectElement } from "@/features/canvas
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
 import { HiChevronUp, HiChevronDown, HiChevronRight } from "react-icons/hi";
 import { useState } from "react";
+import type { CanvasElement } from "@/features/canvas/types";
 
 export function LayerPanel() {
   const elements = useAppSelector((state) => state.canvas.elements);
   const dispatch = useAppDispatch();
-  // State لتتبع حالة الـ toggle لكل فريم (مفتوح أو مغلق)
   const [expandedFrames, setExpandedFrames] = useState({});
 
-  // دالة لتبديل حالة الـ toggle للفريم
-  const toggleFrame = (frameId) => {
-    setExpandedFrames((prev) => ({
+  const toggleFrame = (frameId: string) => {
+    setExpandedFrames((prev: Record<string, boolean>) => ({
       ...prev,
-      [frameId]: !prev[frameId],
+      [frameId]: prev[frameId] === undefined ? false : !prev[frameId],
     }));
   };
 
   // فلتر الـ elements عشان نعرض بس الـ top-level layers (اللي مش عندهم frameId)
   const topLevelElements = elements.filter((el) => !el.frameId);
 
-  // دالة لعرض الـ layer مع الـ children بتوعه
-  const renderLayer = (el) => {
-    // إيجاد الـ children (الصور اللي عندها frameId مطابق)
+  const renderLayer = (el:CanvasElement) => {
     const children = elements.filter((child) => child.frameId === el.id);
-    const isExpanded = expandedFrames[el.id] || false;
+    const isExpanded = (expandedFrames as Record<string, boolean>)[el.id] ?? false;
 
     return (
       <div key={el.id}>
