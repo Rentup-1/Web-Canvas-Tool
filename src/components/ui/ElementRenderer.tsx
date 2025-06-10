@@ -64,7 +64,12 @@ export const ElementRenderer = forwardRef<any, Props>(
     const getBrandedFill = (element: CanvasElement) => {
       return resolveColor(element.fill, element.fillBrandingType);
     };
-
+    const getBrandedFillText = (element: CanvasTextElement) => {
+      return resolveColor(
+        element.background ?? "#fff",
+        element.fillBrandingType
+      );
+    };
     const getBrandedStroke = (element: CanvasElement) => {
       return resolveColor(
         element.stroke || "#000000",
@@ -91,7 +96,6 @@ export const ElementRenderer = forwardRef<any, Props>(
     // };
 
     switch (element.type) {
-      
       case "text":
         const textElement = element as CanvasTextElement;
         const refText = useRef<KonvaText>(null);
@@ -100,8 +104,10 @@ export const ElementRenderer = forwardRef<any, Props>(
         // const [isSelected, setIsSelected] = useState(false);
         const [isEditing, setIsEditing] = useState(false);
         const [editableText, setEditableText] = useState(textElement.text);
-        const isSelected = useSelector((state:RootState) =>
-          state.canvas.elements.find((el) => el.id === textElement.id)?.selected
+        const isSelected = useSelector(
+          (state: RootState) =>
+            state.canvas.elements.find((el) => el.id === textElement.id)
+              ?.selected
         );
         const textAlign = useSelector(
           (state: any) =>
@@ -251,7 +257,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 y={textElement.y - (textElement.padding || 0)}
                 width={bgSize.width + (textElement.padding || 0) * 2}
                 height={bgSize.height + (textElement.padding || 0) * 2}
-                fill={textElement.background}
+                fill={getBrandedFillText(textElement)}
                 // stroke={textElement.backgroundStroke}
                 // strokeWidth={textElement.backgroundStrokeWidth}
                 opacity={textElement.opacity}
@@ -1044,9 +1050,10 @@ export const ElementRenderer = forwardRef<any, Props>(
       //   );
       // }
 
-
       case "frame": {
-        const imageInFrame = (elements as CanvasElement[]).find((el) => el.type === "image" && el.frameId === element.id);
+        const imageInFrame = (elements as CanvasElement[]).find(
+          (el) => el.type === "image" && el.frameId === element.id
+        );
 
         // If there's an image, skip rendering the frame here as it will be rendered in the image case
         if (imageInFrame) {
@@ -1130,7 +1137,7 @@ export const ElementRenderer = forwardRef<any, Props>(
       //     // Use native image dimensions if available, else fall back to element dimensions
       //     const imgAspect = nativeImage
       //       ? nativeImage.width / nativeImage.height
-      //       : imgElement.width / imgElement.height || 1; 
+      //       : imgElement.width / imgElement.height || 1;
 
       //     let newWidth, newHeight, offsetX, offsetY;
 
@@ -1170,7 +1177,6 @@ export const ElementRenderer = forwardRef<any, Props>(
       //         newHeight = Math.min(newHeight, targetFrame.height);
       //         break;
 
-
       //       case "stretch":
       //         newWidth = targetFrame.width;
       //         newHeight = targetFrame.height;
@@ -1209,7 +1215,7 @@ export const ElementRenderer = forwardRef<any, Props>(
       //             id: element.id,
       //             updates: {
       //               ...imageUpdates,
-      //               rotation: frame.rotation, 
+      //               rotation: frame.rotation,
       //             },
       //           })
       //         );
@@ -1370,7 +1376,7 @@ export const ElementRenderer = forwardRef<any, Props>(
       //                     id: element.id,
       //                     updates: {
       //                       ...imageUpdates,
-      //                       rotation: node.rotation(), 
+      //                       rotation: node.rotation(),
       //                     },
       //                   })
       //                 );
@@ -1812,7 +1818,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                           height: newFrameHeight,
                           rotation: node.rotation(),
                           width_percent: toPercent(newFrameWidth, stageWidth),
-                          height_percent: toPercent(newFrameHeight, stageHeight),
+                          height_percent: toPercent(
+                            newFrameHeight,
+                            stageHeight
+                          ),
                           x_percent: toPercent(newFrameX, stageWidth),
                           y_percent: toPercent(newFrameY, stageHeight),
                         },
@@ -2135,9 +2144,11 @@ export const ElementRenderer = forwardRef<any, Props>(
           </>
         );
       }
-      
+
       case "icon": {
-        const [iconImage] = useImage(`https://api.iconify.design/${element.iconName}.svg`);
+        const [iconImage] = useImage(
+          `https://api.iconify.design/${element.iconName}.svg`
+        );
 
         return (
           <Group
@@ -2162,7 +2173,8 @@ export const ElementRenderer = forwardRef<any, Props>(
                 })
               );
             }}
-            onClick={onSelect}>
+            onClick={onSelect}
+          >
             <Image
               image={iconImage}
               filters={[Konva.Filters.RGB]}
@@ -2175,7 +2187,6 @@ export const ElementRenderer = forwardRef<any, Props>(
           </Group>
         );
       }
-      
 
       case "rectangle":
         const rectangleElement = element as RectangleShape;

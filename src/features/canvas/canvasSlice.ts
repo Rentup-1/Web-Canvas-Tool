@@ -52,10 +52,9 @@ const createBaseElement = (id: string): Omit<CanvasElement, "type"> => ({
   selected: false,
   fill: "#00A8E8",
   opacity: 1,
-  backgroundBrandingType: "fixed",
-  colorBrandingType: "fixed",
+  fillBrandingType: "fixed",
+  strokeBrandingType: "fixed",
 });
-
 const canvasSlice = createSlice({
   name: "canvas",
   initialState,
@@ -142,8 +141,6 @@ const canvasSlice = createSlice({
             radius: Math.min(base.width, base.height) / 2,
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as CircleShape;
           break;
 
@@ -160,8 +157,6 @@ const canvasSlice = createSlice({
             },
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as RectangleShape;
           break;
 
@@ -173,8 +168,6 @@ const canvasSlice = createSlice({
             radiusY: base.height / 2,
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as EllipseShape;
           break;
 
@@ -185,8 +178,6 @@ const canvasSlice = createSlice({
             points: [0, 0, base.width, base.height],
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as LineShape;
           break;
 
@@ -204,8 +195,6 @@ const canvasSlice = createSlice({
             ],
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as TriangleShape;
           break;
 
@@ -218,8 +207,6 @@ const canvasSlice = createSlice({
             numPoints: 5,
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as StarShape;
           break;
 
@@ -231,8 +218,6 @@ const canvasSlice = createSlice({
             radius: Math.min(base.width, base.height) / 2,
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as RegularPolygonShape;
           break;
 
@@ -245,8 +230,6 @@ const canvasSlice = createSlice({
             angle: 60,
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as ArcShape;
           break;
 
@@ -258,8 +241,6 @@ const canvasSlice = createSlice({
             angle: 60,
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as WedgeShape;
           break;
 
@@ -271,8 +252,6 @@ const canvasSlice = createSlice({
             outerRadius: 50,
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as RingShape;
           break;
 
@@ -285,8 +264,6 @@ const canvasSlice = createSlice({
             pointerWidth: 10,
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as ArrowShape;
           break;
 
@@ -297,8 +274,6 @@ const canvasSlice = createSlice({
             points: [0, 0, base.width / 2, base.height, base.width, 0],
             stroke: "#000000",
             strokeWidth: 2,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
           } as CustomShape;
           break;
 
@@ -328,8 +303,6 @@ const canvasSlice = createSlice({
         src,
         originalWidth: width,
         originalHeight: height,
-        backgroundBrandingType: "",
-        colorBrandingType: "",
         fill: "",
       });
     },
