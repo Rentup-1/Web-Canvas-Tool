@@ -358,7 +358,6 @@ const canvasSlice = createSlice({
         state.past.push(state.elements.map((el) => ({ ...el })));
         state.future = [];
         state.elements[index] = { ...state.elements[index], ...updates };
-        console.log("Updated element:", state.elements[index]);
       }
     },
 
