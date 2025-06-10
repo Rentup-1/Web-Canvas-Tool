@@ -77,14 +77,6 @@ export const ElementRenderer = forwardRef<any, Props>(
         element.strokeBrandingType
       );
     };
-    /* ممكن تستخدم ده مع ال Text */
-    const getBrandedFont = (element: CanvasTextElement) => {
-      return resolveFont(
-        element.fontFamily || "Arial",
-        element.fontBrandingType
-      );
-    };
-
     // const getBrandedTextColor = (element: CanvasTextElement) => {
     //   return resolveColor(element.fill || "#000000", element.colorBrandingType);
     // };
@@ -147,10 +139,8 @@ export const ElementRenderer = forwardRef<any, Props>(
                   : "bold"
                 : fontStyle;
 
-            const brandedFont = getBrandedFont(textElement);
-
             refText.current.fontStyle(fontStyleFinal);
-            refText.current.fontFamily(brandedFont); // Use the branded font
+
             refText.current.width(textElement.width || 100);
             refText.current._setTextData();
             const box = refText.current.getClientRect({ skipTransform: true });
@@ -277,7 +267,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                   stroke={textElement.stroke}
                   padding={textElement.padding}
                   fontSize={textElement.fontSize}
-                  fontFamily={textElement.fontFamily || "Arial"}
+                  fontFamily={resolveFont(
+                    textElement.fontFamily || "",
+                    textElement.fontBrandingType
+                  )}
                   opacity={textElement.opacity}
                   verticalAlign="middle"
                   align={textAlign}
@@ -416,8 +409,6 @@ export const ElementRenderer = forwardRef<any, Props>(
             )}
           </>
         );
-
-     
 
       case "frame": {
         const imageInFrame = (elements as CanvasElement[]).find(
@@ -1076,8 +1067,10 @@ export const ElementRenderer = forwardRef<any, Props>(
       }
 
       case "icon": {
-        const [iconImage] = useImage(`https://api.iconify.design/${element.iconName}.svg`);
-        
+        const [iconImage] = useImage(
+          `https://api.iconify.design/${element.iconName}.svg`
+        );
+
         return (
           <Group
             x={element.x}

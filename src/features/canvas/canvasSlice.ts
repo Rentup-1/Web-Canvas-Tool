@@ -88,8 +88,7 @@ const canvasSlice = createSlice({
             fontFamily: "Arial",
             stroke: undefined,
             strokeTextWidth: 0,
-            fillBrandingType: "fixed",
-            strokeBrandingType: "fixed",
+            fontBrandingType: "fixed",
             borderRadius: {
               topLeft: 4,
               topRight: 4,
