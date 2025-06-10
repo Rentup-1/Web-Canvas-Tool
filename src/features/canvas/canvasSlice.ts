@@ -97,6 +97,7 @@ const canvasSlice = createSlice({
               bottomLeft: 4,
             },
             alignment: "left",
+            visible: true,
           } as CanvasTextElement;
           break;
 
@@ -112,6 +113,7 @@ const canvasSlice = createSlice({
             dash: [5, 5],
             assetType: "frame",
             tags: [],
+            visible: true,
           } as CanvasElement;
           break;
 
@@ -123,6 +125,7 @@ const canvasSlice = createSlice({
             width: 50,
             height: 50,
             color: "#000000", // ✅ اللون
+            visible: true,
           } as CanvasElement;
           break;
 
@@ -141,6 +144,7 @@ const canvasSlice = createSlice({
             radius: Math.min(base.width, base.height) / 2,
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as CircleShape;
           break;
 
@@ -157,6 +161,7 @@ const canvasSlice = createSlice({
             },
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as RectangleShape;
           break;
 
@@ -168,6 +173,7 @@ const canvasSlice = createSlice({
             radiusY: base.height / 2,
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as EllipseShape;
           break;
 
@@ -178,6 +184,7 @@ const canvasSlice = createSlice({
             points: [0, 0, base.width, base.height],
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as LineShape;
           break;
 
@@ -195,6 +202,7 @@ const canvasSlice = createSlice({
             ],
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as TriangleShape;
           break;
 
@@ -207,6 +215,7 @@ const canvasSlice = createSlice({
             numPoints: 5,
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as StarShape;
           break;
 
@@ -218,6 +227,7 @@ const canvasSlice = createSlice({
             radius: Math.min(base.width, base.height) / 2,
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as RegularPolygonShape;
           break;
 
@@ -230,6 +240,7 @@ const canvasSlice = createSlice({
             angle: 60,
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as ArcShape;
           break;
 
@@ -241,6 +252,7 @@ const canvasSlice = createSlice({
             angle: 60,
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as WedgeShape;
           break;
 
@@ -252,6 +264,7 @@ const canvasSlice = createSlice({
             outerRadius: 50,
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as RingShape;
           break;
 
@@ -264,6 +277,7 @@ const canvasSlice = createSlice({
             pointerWidth: 10,
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as ArrowShape;
           break;
 
@@ -274,6 +288,7 @@ const canvasSlice = createSlice({
             points: [0, 0, base.width / 2, base.height, base.width, 0],
             stroke: "#000000",
             strokeWidth: 2,
+            visible: true,
           } as CustomShape;
           break;
 
@@ -387,6 +402,13 @@ const canvasSlice = createSlice({
       }
     },
 
+    toggleElementVisibility(state, action: PayloadAction<string>) {
+      const element = state.elements.find((el) => el.id === action.payload);
+      if (element) {
+        element.visible = !(element.visible ?? true);
+      }
+    },
+
     setStageSize: (
       state,
       action: PayloadAction<{ width: number; height: number }>
@@ -428,6 +450,7 @@ export const {
   setElements,
   clearCanvas,
   deselectAllElements,
+  toggleElementVisibility,
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;
