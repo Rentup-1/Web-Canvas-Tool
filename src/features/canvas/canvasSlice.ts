@@ -31,9 +31,9 @@ const initialState: CanvasState = {
   elements: [],
   past: [],
   future: [],
-  stageWidth: 1000,
-  stageHeight: 600,
-  aspectRatio: "9:16",
+  stageWidth: 400,
+  stageHeight: 400,
+  aspectRatio: "1:1",
 };
 
 let shapeIdCounter = 1;
