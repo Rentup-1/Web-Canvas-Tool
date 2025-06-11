@@ -199,8 +199,8 @@ export const ElementRenderer = forwardRef<any, Props>(
           otherRect.y + otherRect.height, // Bottom
         ];
 
-        currentEdgesY.forEach((currentY, i) => {
-          otherEdgesY.forEach((otherY, j) => {
+        currentEdgesY.forEach((currentY) => {
+          otherEdgesY.forEach((otherY) => {
             if (Math.abs(currentY - otherY) < snapThreshold) {
               const minX = Math.min(shapeRect.x, otherRect.x);
               const maxX = Math.max(shapeRect.x + shapeRect.width, otherRect.x + otherRect.width);
@@ -228,8 +228,8 @@ export const ElementRenderer = forwardRef<any, Props>(
           otherRect.x + otherRect.width, // Right
         ];
 
-        currentEdgesX.forEach((currentX, i) => {
-          otherEdgesX.forEach((otherX, j) => {
+        currentEdgesX.forEach((currentX) => {
+          otherEdgesX.forEach((otherX) => {
             if (Math.abs(currentX - otherX) < snapThreshold) {
               const minY = Math.min(shapeRect.y, otherRect.y);
               const maxY = Math.max(shapeRect.y + shapeRect.height, otherRect.y + otherRect.height);
