@@ -30,7 +30,7 @@ import type {
 import { useSelector } from "react-redux";
 import useImage from "use-image";
 import { updateElement } from "@/features/canvas/canvasSlice";
-import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
+import { useAppDispatch } from "@/hooks/useRedux";
 import { Html } from "react-konva-utils";
 import Konva from "konva";
 import {
@@ -39,11 +39,18 @@ import {
 } from "@/hooks/usePercentConverter";
 import { useBrandingResolver } from "@/hooks/useBrandingResolver";
 
+type GuideLineType = {
+  points: number[];
+};
+
 interface Props {
   element: CanvasElementUnion;
   isSelected: boolean;
   onSelect?: (e?: Konva.KonvaEventObject<MouseEvent>, id?: string) => void;
   onChange: (updates: Partial<CanvasElementUnion>) => void;
+  stageWidth:number;
+  stageHeight:number;
+  setGuides: (guides: GuideLineType[]) => void;
 }
 type KonvaText = InstanceType<typeof Konva.Text>;
 interface RootState {
@@ -54,11 +61,11 @@ interface RootState {
 
 // Update the ElementRenderer to apply stroke and strokeWidth to all shapes
 export const ElementRenderer = forwardRef<any, Props>(
-  ({ element, onSelect, onChange }, ref) => {
+  ({ element, onSelect, onChange , stageWidth, stageHeight, setGuides }, ref) => {
     const elements = useSelector((store: any) => store.canvas.elements);
     const dispatch = useAppDispatch();
-    const stageWidth = useAppSelector((s) => s.canvas.stageWidth);
-    const stageHeight = useAppSelector((s) => s.canvas.stageHeight);
+    // const stageWidth = useAppSelector((s) => s.canvas.stageWidth);
+    // const stageHeight = useAppSelector((s) => s.canvas.stageHeight);
     const { toPercent } = usePercentConverter();
     const { resolveColor, resolveFont } = useBrandingResolver();
     const getBrandedFill = (element: CanvasElement) => {
@@ -87,6 +94,161 @@ export const ElementRenderer = forwardRef<any, Props>(
     //     element.backgroundBrandingType
     //   );
     // };
+
+    const drawGuidelines = (node: Konva.Node, stageWidth: number, stageHeight: number) => {
+      const snapThreshold = 80; // Pixels tolerance for snapping
+      const shapeRect = node.getClientRect();
+      const guidelines: {
+        points: number[];
+        text?: string;
+        textPosition?: { x: number; y: number };
+      }[] = [];
+
+      // Canvas edge guidelines (as before)
+      // Left edge
+      if (Math.abs(shapeRect.x) < snapThreshold) {
+        const distance = Math.round(shapeRect.x);
+        guidelines.push({
+          points: [0, shapeRect.y + shapeRect.height / 2, shapeRect.x, shapeRect.y + shapeRect.height / 2],
+          text: `${distance}px`,
+          textPosition: {
+            x: shapeRect.x / 2,
+            y: shapeRect.y + shapeRect.height / 2 + 10,
+          },
+        });
+      }
+      // Right edge
+      if (Math.abs(shapeRect.x + shapeRect.width - stageWidth) < snapThreshold) {
+        const distance = Math.round(stageWidth - (shapeRect.x + shapeRect.width));
+        guidelines.push({
+          points: [
+            shapeRect.x + shapeRect.width,
+            shapeRect.y + shapeRect.height / 2,
+            stageWidth,
+            shapeRect.y + shapeRect.height / 2,
+          ],
+          text: `${distance}px`,
+          textPosition: {
+            x: (shapeRect.x + shapeRect.width + stageWidth) / 2,
+            y: shapeRect.y + shapeRect.height / 2 + 10,
+          },
+        });
+      }
+      // Top edge
+      if (Math.abs(shapeRect.y) < snapThreshold) {
+        const distance = Math.round(shapeRect.y);
+        guidelines.push({
+          points: [shapeRect.x + shapeRect.width / 2, 0, shapeRect.x + shapeRect.width / 2, shapeRect.y],
+          text: `${distance}px`,
+          textPosition: {
+            x: shapeRect.x + shapeRect.width / 2 + 10,
+            y: shapeRect.y / 2,
+          },
+        });
+      }
+      // Bottom edge
+      if (Math.abs(shapeRect.y + shapeRect.height - stageHeight) < snapThreshold) {
+        const distance = Math.round(stageHeight - (shapeRect.y + shapeRect.height));
+        guidelines.push({
+          points: [
+            shapeRect.x + shapeRect.width / 2,
+            shapeRect.y + shapeRect.height,
+            shapeRect.x + shapeRect.width / 2,
+            stageHeight,
+          ],
+          text: `${distance}px`,
+          textPosition: {
+            x: shapeRect.x + shapeRect.width / 2 + 10,
+            y: (shapeRect.y + shapeRect.height + stageHeight) / 2,
+          },
+        });
+      }
+      // Horizontal center
+      if (Math.abs(shapeRect.x + shapeRect.width / 2 - stageWidth / 2) < snapThreshold) {
+        guidelines.push({
+          points: [stageWidth / 2, 0, stageWidth / 2, stageHeight],
+        });
+      }
+      // Vertical center
+      if (Math.abs(shapeRect.y + shapeRect.height / 2 - stageHeight / 2) < snapThreshold) {
+        guidelines.push({
+          points: [0, stageHeight / 2, stageWidth, stageHeight / 2],
+        });
+      }
+
+      // Shape-to-shape alignment guidelines
+      elements.forEach((otherElement:CanvasElementUnion) => {
+        if (otherElement.id === element.id || !(otherElement.visible ?? true)) return; // Skip self and invisible elements
+
+        const otherRect = {
+          x: otherElement.x - otherElement.width / 2,
+          y: otherElement.y - otherElement.height / 2,
+          width: otherElement.width,
+          height: otherElement.height,
+        };
+
+        // Horizontal alignment (top, center, bottom)
+        const currentEdgesY = [
+          shapeRect.y, // Top
+          shapeRect.y + shapeRect.height / 2, // Center
+          shapeRect.y + shapeRect.height, // Bottom
+        ];
+        const otherEdgesY = [
+          otherRect.y, // Top
+          otherRect.y + otherRect.height / 2, // Center
+          otherRect.y + otherRect.height, // Bottom
+        ];
+
+        currentEdgesY.forEach((currentY, i) => {
+          otherEdgesY.forEach((otherY, j) => {
+            if (Math.abs(currentY - otherY) < snapThreshold) {
+              const minX = Math.min(shapeRect.x, otherRect.x);
+              const maxX = Math.max(shapeRect.x + shapeRect.width, otherRect.x + otherRect.width);
+              guidelines.push({
+                points: [minX, currentY, maxX, currentY],
+                text: `${Math.round(Math.abs(shapeRect.x - otherRect.x))}px`,
+                textPosition: {
+                  x: (minX + maxX) / 2,
+                  y: currentY + 10, // Below the line
+                },
+              });
+            }
+          });
+        });
+
+        // Vertical alignment (left, center, right)
+        const currentEdgesX = [
+          shapeRect.x, // Left
+          shapeRect.x + shapeRect.width / 2, // Center
+          shapeRect.x + shapeRect.width, // Right
+        ];
+        const otherEdgesX = [
+          otherRect.x, // Left
+          otherRect.x + otherRect.width / 2, // Center
+          otherRect.x + otherRect.width, // Right
+        ];
+
+        currentEdgesX.forEach((currentX, i) => {
+          otherEdgesX.forEach((otherX, j) => {
+            if (Math.abs(currentX - otherX) < snapThreshold) {
+              const minY = Math.min(shapeRect.y, otherRect.y);
+              const maxY = Math.max(shapeRect.y + shapeRect.height, otherRect.y + otherRect.height);
+              guidelines.push({
+                points: [currentX, minY, currentX, maxY],
+                text: `${Math.round(Math.abs(shapeRect.y - otherRect.y))}px`,
+                textPosition: {
+                  x: currentX + 10, // Right of the line
+                  y: (minY + maxY) / 2,
+                },
+              });
+            }
+          });
+        });
+      });
+
+      setGuides(guidelines);
+    };
+
 
     switch (element.type) {
       case "text":
@@ -1106,7 +1268,7 @@ export const ElementRenderer = forwardRef<any, Props>(
           </Group>
         );
       }
-
+      
       case "rectangle":
         const rectangleElement = element as RectangleShape;
         const brandedFillRect = getBrandedFill(rectangleElement);
@@ -1141,7 +1303,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 offsetX={rectangleElement.width / 2}
                 offsetY={rectangleElement.height / 2}
                 onClick={onSelect}
-                onDragMove={(e) =>
+                onDragMove={(e) =>{
                   onChange({
                     x: e.target.x(),
                     y: e.target.y(),
@@ -1150,7 +1312,13 @@ export const ElementRenderer = forwardRef<any, Props>(
                     x_percent: toPercent(element.x, stageWidth),
                     y_percent: toPercent(element.y, stageHeight),
                   })
+                  // Draw alignment guidelines
+                  drawGuidelines(e.target as Konva.Rect, stageWidth, stageHeight);
+                  }
                 }
+                onDragEnd={() => {
+                  setGuides([]);
+                }}
                 onTransform={(e) => {
                   const node = e.target;
                   const newWidth = node.width() * node.scaleX();
