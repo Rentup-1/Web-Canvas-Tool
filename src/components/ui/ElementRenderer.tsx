@@ -48,8 +48,8 @@ interface Props {
   isSelected: boolean;
   onSelect?: (e?: Konva.KonvaEventObject<MouseEvent>, id?: string) => void;
   onChange: (updates: Partial<CanvasElementUnion>) => void;
-  stageWidth:number;
-  stageHeight:number;
+  stageWidth: number;
+  stageHeight: number;
   setGuides: (guides: GuideLineType[]) => void;
 }
 type KonvaText = InstanceType<typeof Konva.Text>;
@@ -65,7 +65,7 @@ const calculateSnappingPosition = (
   currentElement: CanvasElement,
   snapThreshold: number,
   offsetX: number, // e.g., width/2 for Rectangle, radius for Circle
-  offsetY: number  // e.g., height/2 for Rectangle, radius for Circle
+  offsetY: number // e.g., height/2 for Rectangle, radius for Circle
 ): { newX: number; newY: number } => {
   const shapeRect = node.getClientRect();
   let newX = node.x();
@@ -73,7 +73,11 @@ const calculateSnappingPosition = (
 
   // Snapping to other shapes
   elements.forEach((otherElement) => {
-    if (otherElement.id === currentElement.id || !(otherElement.visible ?? true)) return;
+    if (
+      otherElement.id === currentElement.id ||
+      !(otherElement.visible ?? true)
+    )
+      return;
 
     const otherRect = {
       x: otherElement.x - otherElement.width / 2,
@@ -126,14 +130,40 @@ const calculateSnappingPosition = (
   return { newX, newY };
 };
 
+// Utility function to load Google Fonts dynamically
+const loadGoogleFont = (fontFamily: string) => {
+  // Check if font is already loaded to avoid duplicates
+  if (
+    document.querySelector(`link[href*="${fontFamily.replace(/\s+/g, "+")}"]`)
+  ) {
+    return;
+  }
+
+  // Create link element to load the font
+  const link = document.createElement("link");
+  link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(
+    /\s+/g,
+    "+"
+  )}:wght@400;700&display=swap`;
+  link.rel = "stylesheet";
+  document.head.appendChild(link);
+};
+
 // Update the ElementRenderer to apply stroke and strokeWidth to all shapes
 export const ElementRenderer = forwardRef<any, Props>(
-  ({ element, onSelect, onChange , stageWidth, stageHeight, setGuides }, ref) => {
+  (
+    { element, onSelect, onChange, stageWidth, stageHeight, setGuides },
+    ref
+  ) => {
     const elements = useSelector((store: any) => store.canvas.elements);
     const dispatch = useAppDispatch();
     const snapThreshold = 2;
     const { toPercent } = usePercentConverter();
     const { resolveColor, resolveFont } = useBrandingResolver();
+    const brandingFamilies = useSelector(
+      (state: any) => state.branding.fontFamilies
+    ); // Added to check isFile
+
     const getBrandedFill = (element: CanvasElement) => {
       return resolveColor(element.fill, element.fillBrandingType);
     };
@@ -150,7 +180,7 @@ export const ElementRenderer = forwardRef<any, Props>(
         element.strokeBrandingType
       );
     };
-   
+
     const drawGuidelines = (node: Konva.Node) => {
       const shapeRect = node.getClientRect();
       const guidelines: {
@@ -161,7 +191,8 @@ export const ElementRenderer = forwardRef<any, Props>(
 
       // Shape-to-shape alignment guidelines
       elements.forEach((otherElement: CanvasElement) => {
-        if (otherElement.id === element.id || !(otherElement.visible ?? true)) return; // Skip self and invisible elements
+        if (otherElement.id === element.id || !(otherElement.visible ?? true))
+          return; // Skip self and invisible elements
 
         const otherRect = {
           x: otherElement.x - otherElement.width / 2,
@@ -205,7 +236,10 @@ export const ElementRenderer = forwardRef<any, Props>(
               } else {
                 // Overlapping shapes, use minimal line
                 lineX1 = Math.max(shapeRect.x, otherRect.x);
-                lineX2 = Math.min(shapeRect.x + shapeRect.width, otherRect.x + otherRect.width);
+                lineX2 = Math.min(
+                  shapeRect.x + shapeRect.width,
+                  otherRect.x + otherRect.width
+                );
                 distance = 0; // No distance if overlapping
               }
 
@@ -213,10 +247,13 @@ export const ElementRenderer = forwardRef<any, Props>(
                 guidelines.push({
                   points: [lineX1, currentY, lineX2, currentY],
                   text: distance > 0 ? `${distance}px` : undefined, // Show text only if there's a gap
-                  textPosition: distance > 0 ? {
-                    x: (lineX1 + lineX2) / 2,
-                    y: currentY + 10, // Below the line
-                  } : undefined,
+                  textPosition:
+                    distance > 0
+                      ? {
+                          x: (lineX1 + lineX2) / 2,
+                          y: currentY + 10, // Below the line
+                        }
+                      : undefined,
                 });
               }
             }
@@ -258,7 +295,10 @@ export const ElementRenderer = forwardRef<any, Props>(
               } else {
                 // Overlapping shapes, use minimal line
                 lineY1 = Math.max(shapeRect.y, otherRect.y);
-                lineY2 = Math.min(shapeRect.y + shapeRect.height, otherRect.y + otherRect.height);
+                lineY2 = Math.min(
+                  shapeRect.y + shapeRect.height,
+                  otherRect.y + otherRect.height
+                );
                 distance = 0; // No distance if overlapping
               }
 
@@ -266,10 +306,13 @@ export const ElementRenderer = forwardRef<any, Props>(
                 guidelines.push({
                   points: [currentX, lineY1, currentX, lineY2],
                   text: distance > 0 ? `${distance}px` : undefined, // Show text only if there's a gap
-                  textPosition: distance > 0 ? {
-                    x: currentX + 10, // Right of the line
-                    y: (lineY1 + lineY2) / 2,
-                  } : undefined,
+                  textPosition:
+                    distance > 0
+                      ? {
+                          x: currentX + 10, // Right of the line
+                          y: (lineY1 + lineY2) / 2,
+                        }
+                      : undefined,
                 });
               }
             }
@@ -280,14 +323,12 @@ export const ElementRenderer = forwardRef<any, Props>(
       setGuides(guidelines);
     };
 
-
     switch (element.type) {
       case "text":
         const textElement = element as CanvasTextElement;
         const refText = useRef<KonvaText>(null);
         const [bgSize, setBgSize] = useState({ width: 0, height: 0 });
         const trRef = useRef<Konva.Transformer>(null);
-        // const [isSelected, setIsSelected] = useState(false);
         const [isEditing, setIsEditing] = useState(false);
         const [editableText, setEditableText] = useState(textElement.text);
         const isSelected = useSelector(
@@ -314,6 +355,27 @@ export const ElementRenderer = forwardRef<any, Props>(
             state.canvas.elements.find((el) => el.id === textElement.id)
               ?.fontStyle || "normal"
         );
+
+        // Resolve the font family and variant based on fontBrandingType
+        const resolvedFont = resolveFont(
+          textElement.fontFamily || "",
+          textElement.fontBrandingType
+        );
+
+        // Load Google Font dynamically if it's not an uploaded font
+        useEffect(() => {
+          const fontData = brandingFamilies[
+            textElement.fontBrandingType || ""
+          ] || { isFile: false };
+          if (!fontData.isFile && resolvedFont.value) {
+            loadGoogleFont(resolvedFont.value);
+          }
+          // Note: Uploaded fonts are handled by @font-face rules in BrandingPanel
+        }, [
+          resolvedFont.value,
+          textElement.fontBrandingType,
+          brandingFamilies,
+        ]);
 
         const borderRadius = textElement.borderRadius || {};
         const textCornerRadius = [
@@ -357,7 +419,7 @@ export const ElementRenderer = forwardRef<any, Props>(
           textElement?.text,
           textElement?.fontSize,
           textElement?.fontFamily,
-          textElement?.fontBrandingType, // Add this dependency
+          textElement?.fontBrandingType, // Added dependency for branding
           textElement?.padding,
           textAlign,
           fontWeight,
@@ -373,7 +435,7 @@ export const ElementRenderer = forwardRef<any, Props>(
         }, [isSelected, isEditing]);
 
         const handleSelect = (e: Konva.KonvaEventObject<MouseEvent>) => {
-          if (onSelect) onSelect(e, textElement.id as string); // تأكد إن `id` هو string
+          if (onSelect) onSelect(e, textElement.id as string);
         };
 
         const handleDoubleClick = () => {
@@ -442,8 +504,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                 width={bgSize.width + (textElement.padding || 0) * 2}
                 height={bgSize.height + (textElement.padding || 0) * 2}
                 fill={getBrandedFillText(textElement)}
-                // stroke={textElement.backgroundStroke}
-                // strokeWidth={textElement.backgroundStrokeWidth}
                 opacity={textElement.opacity}
                 rotation={textElement.rotation}
                 cornerRadius={textCornerRadius}
@@ -460,20 +520,17 @@ export const ElementRenderer = forwardRef<any, Props>(
                   stroke={textElement.stroke}
                   padding={textElement.padding}
                   fontSize={textElement.fontSize}
-                  fontFamily={resolveFont(
-                    textElement.fontFamily || "",
-                    textElement.fontBrandingType
-                  )}
+                  fontFamily={resolvedFont.value} // Use resolved font family
+                  fontStyle={resolvedFont.variant || "normal"} // Use resolved font variant
                   opacity={textElement.opacity}
                   verticalAlign="middle"
                   align={textAlign}
-                  fontStyle={fontWeight}
                   draggable
-                  width={textElement.width || 100} // 🟢 Enforce fixed width for wrapping
-                  wrap="word" // Ensure word wrapping
+                  width={textElement.width || 100}
+                  wrap="word"
                   onClick={handleSelect}
                   onDblClick={handleDoubleClick}
-                  onDragMove={(e) =>{
+                  onDragMove={(e) => {
                     const node = e.target as Konva.Text;
                     const { newX, newY } = calculateSnappingPosition(
                       node,
@@ -484,7 +541,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                       textElement.height / 2
                     );
 
-                  
                     dispatch(
                       updateElement({
                         id: textElement.id,
@@ -505,23 +561,18 @@ export const ElementRenderer = forwardRef<any, Props>(
                           ),
                         },
                       })
-                    )
-                    drawGuidelines(node)
-                    }
-                  }
-
+                    );
+                    drawGuidelines(node);
+                  }}
                   onDragEnd={() => {
                     setGuides([]);
                   }}
-
                   onTransform={(e) => {
                     const node = refText.current;
                     const newWidth = Math.max(
                       30,
                       e.target.width() * e.target.scaleX()
                     );
-
-                    // fontSize_percent: toPercentFontSize(20, stageWidth, stageHeight)
 
                     if (node) {
                       node.width(newWidth);
@@ -552,7 +603,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                           width: newWidth,
                           height: newHeight,
                           align: textAlign,
-                          fontWeight,
                           width_percent: toPercent(newWidth, stageWidth),
                           height_percent: toPercent(newHeight, stageHeight),
                           x_percent: toPercent(node.x(), stageWidth),
@@ -574,11 +624,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                   <Transformer
                     ref={trRef}
                     rotateEnabled={false}
-                    // 'top-left', 'top-right',
-                    enabledAnchors={["bottom-left", "bottom-right"]}
+                    enabledAnchors={["middle-left", "middle-right"]}
                     boundBoxFunc={(oldBox, newBox) => {
                       if (newBox.width < 30) {
-                        return oldBox; // 🟢 Prevent width from going too small
+                        return oldBox; // Prevent width from going too small
                       }
                       return newBox;
                     }}
@@ -595,7 +644,15 @@ export const ElementRenderer = forwardRef<any, Props>(
                         width: textElement.width || 100,
                         height: bgSize.height,
                         fontSize: textElement.fontSize,
-                        fontFamily: textElement.fontFamily || "Arial",
+                        fontFamily: resolvedFont.value || "Arial", // Use resolved font
+                        fontWeight: /bold|700|800|900/.test(
+                          resolvedFont.variant || ""
+                        )
+                          ? "bold"
+                          : "normal", // Map variant to fontWeight
+                        fontStyle: /italic/.test(resolvedFont.variant || "")
+                          ? "italic"
+                          : "normal", // Map variant to fontStyle
                         padding: textElement.padding || 0,
                         color: textElement.fill,
                         background: "white",
@@ -605,8 +662,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                         overflow: "hidden",
                         lineHeight: "1",
                         textAlign: textAlign,
-                        fontWeight: fontWeight,
-                        fontStyle: fontStyle,
                       }}
                       value={editableText}
                       onChange={handleTextChange}
@@ -653,15 +708,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                   const newX = node.x();
                   const newY = node.y();
 
-                  // const { newX, newY } = calculateSnappingPosition(
-                  //   node,
-                  //   elements,
-                  //   element,
-                  //   snapThreshold,
-                  //   element.width / 2,
-                  //   element.height / 2
-                  // );
-
                   dispatch(
                     updateElement({
                       id: element.id,
@@ -675,14 +721,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                       },
                     })
                   );
-
-                  // drawGuidelines(node)
                 }}
-
-                // onDragEnd={() => {
-                //   setGuides([]);
-                // }}
-
                 onTransform={(e) => {
                   const node = e.target;
                   const newWidth = node.width() * node.scaleX();
@@ -726,7 +765,7 @@ export const ElementRenderer = forwardRef<any, Props>(
           element.fitMode || "fill"
         );
         const isDraggingImageRef = useRef(false);
-        const [isMovable, setIsMovable] = useState(false); // New state to track if image is movable
+        const [isMovable, setIsMovable] = useState(false);
 
         const applyFitMode = (
           newFitMode: string,
@@ -789,18 +828,6 @@ export const ElementRenderer = forwardRef<any, Props>(
             x_percent: toPercent(targetFrame.x + offsetX, stageWidth),
             y_percent: toPercent(targetFrame.y + offsetY, stageHeight),
           });
-
-          
-          
-          // dispatch(
-          //   updateElement({
-          //     id: targetFrame.id,
-          //     updates: {
-          //       fitMode: newFitMode,
-          //     },
-          //   })
-          // );
-          
         };
 
         if (frame) {
@@ -818,16 +845,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                   const newX = node.x();
                   const newY = node.y();
 
-                  // const { newX, newY } = calculateSnappingPosition(
-                  //   node,
-                  //   elements,
-                  //   element,
-                  //   snapThreshold,
-                  //   frame.width / 2,
-                  //   frame.height / 2
-                  // );
-
-                  // Update frame position
                   dispatch(
                     updateElement({
                       id: frame.id,
@@ -842,7 +859,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                     })
                   );
 
-                  // Update image position to stay aligned with frame
                   const offsetX = (frame.width - element.width) / 2;
                   const offsetY = (frame.height - element.height) / 2;
                   onChange({
@@ -859,16 +875,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                   });
 
                   console.log(frame);
-                  
-
-                  // drawGuidelines(node)
-
                 }}
-
-                // onDragEnd={() => {
-                //   setGuides([]);
-                // }}
-
                 onClick={() => {
                   if (onSelect) {
                     onSelect();
@@ -878,18 +885,18 @@ export const ElementRenderer = forwardRef<any, Props>(
                 <KonvaImage
                   ref={ref}
                   image={image}
-                  x={element.x - frame.x} // Relative to frame
-                  y={element.y - frame.y} // Relative to frame
+                  x={element.x - frame.x}
+                  y={element.y - frame.y}
                   width={element.width}
                   height={element.height}
-                  draggable={isMovable} // Draggable only when isMovable is true
+                  draggable={isMovable}
                   onClick={() => {
                     if (onSelect) {
                       onSelect();
                     }
                   }}
                   onDblClick={() => {
-                    setIsMovable((prev) => !prev); // Toggle movable state on double-click
+                    setIsMovable((prev) => !prev);
                   }}
                   onDragStart={() => {
                     isDraggingImageRef.current = true;
@@ -898,10 +905,9 @@ export const ElementRenderer = forwardRef<any, Props>(
                     if (!isDraggingImageRef.current || !isMovable) return;
 
                     const imageNode = e.target;
-                    let newX = imageNode.x(); // Relative to frame
-                    let newY = imageNode.y(); // Relative to frame
+                    let newX = imageNode.x();
+                    let newY = imageNode.y();
 
-                    // Constrain image position within frame boundaries
                     const minX = -(element.width - frame.width) / 2;
                     const maxX = (element.width - frame.width) / 2;
                     const minY = -(element.height - frame.height) / 2;
@@ -910,11 +916,9 @@ export const ElementRenderer = forwardRef<any, Props>(
                     newX = Math.max(minX, Math.min(maxX, newX));
                     newY = Math.max(minY, Math.min(maxY, newY));
 
-                    // Calculate new frame position to move with image
                     const newFrameX = frame.x + newX - (element.x - frame.x);
                     const newFrameY = frame.y + newY - (element.y - frame.y);
 
-                    // Update frame position
                     dispatch(
                       updateElement({
                         id: frame.id,
@@ -929,7 +933,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                       })
                     );
 
-                    // Update image position
                     onChange({
                       x: newFrameX + newX,
                       y: newFrameY + newY,
@@ -940,7 +943,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                       x_percent: toPercent(newFrameX + newX, stageWidth),
                       y_percent: toPercent(newFrameY + newY, stageHeight),
                     });
-                    drawGuidelines(imageNode)
+                    drawGuidelines(imageNode);
                   }}
                   onDragEnd={() => {
                     isDraggingImageRef.current = false;
@@ -952,14 +955,12 @@ export const ElementRenderer = forwardRef<any, Props>(
                     const oldHeight = element.height;
                     const newWidth = node.width() * node.scaleX();
                     const newHeight = node.height() * node.scaleY();
-                    const newX = node.x(); // Relative to frame
-                    const newY = node.y(); // Relative to frame
+                    const newX = node.x();
+                    const newY = node.y();
 
-                    // Calculate new absolute image position
                     const newImageX = newX + frame.x;
                     const newImageY = newY + frame.y;
 
-                    // Update image
                     onChange({
                       x: newImageX,
                       y: newImageY,
@@ -972,17 +973,14 @@ export const ElementRenderer = forwardRef<any, Props>(
                       y_percent: toPercent(newImageY, stageHeight),
                     });
 
-                    // Reset scale to avoid compounding
                     node.scaleX(1);
                     node.scaleY(1);
 
-                    // Update frame size to match image resize
                     const scaleX = newWidth / oldWidth;
                     const scaleY = newHeight / oldHeight;
                     const newFrameWidth = frame.width * scaleX;
                     const newFrameHeight = frame.height * scaleY;
 
-                    // Center the frame around the image
                     const imageCenterX = newImageX + newWidth / 2;
                     const imageCenterY = newImageY + newHeight / 2;
                     const newFrameX = imageCenterX - newFrameWidth / 2;
@@ -1014,7 +1012,6 @@ export const ElementRenderer = forwardRef<any, Props>(
           );
         }
 
-        // Image without a frame (unchanged)
         return (
           <>
             {(element.visible ?? true) && (
@@ -1342,7 +1339,7 @@ export const ElementRenderer = forwardRef<any, Props>(
           </Group>
         );
       }
-      
+
       case "rectangle":
         const rectangleElement = element as RectangleShape;
         const brandedFillRect = getBrandedFill(rectangleElement);
@@ -1377,22 +1374,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                 offsetX={rectangleElement.width / 2}
                 offsetY={rectangleElement.height / 2}
                 onClick={onSelect}
-                // onDragMove={(e) =>{
-                //   onChange({
-                //     x: e.target.x(),
-                //     y: e.target.y(),
-                //     width_percent: toPercent(element.width, stageWidth),
-                //     height_percent: toPercent(element.height, stageHeight),
-                //     x_percent: toPercent(element.x, stageWidth),
-                //     y_percent: toPercent(element.y, stageHeight),
-                //   })
-                //   // Draw alignment guidelines
-                //   drawGuidelines(e.target as Kon stageWidth, stageHeight);
-                //   }
-                // }
-                // onDragEnd={() => {
-                //   setGuides([]);
-                // }}
                 onDragMove={(e) => {
                   const node = e.target as Konva.Rect;
                   const { newX, newY } = calculateSnappingPosition(
@@ -1407,8 +1388,14 @@ export const ElementRenderer = forwardRef<any, Props>(
                   onChange({
                     x: newX,
                     y: newY,
-                    width_percent: toPercent(rectangleElement.width, stageWidth),
-                    height_percent: toPercent(rectangleElement.height, stageHeight),
+                    width_percent: toPercent(
+                      rectangleElement.width,
+                      stageWidth
+                    ),
+                    height_percent: toPercent(
+                      rectangleElement.height,
+                      stageHeight
+                    ),
                     x_percent: toPercent(newX, stageWidth),
                     y_percent: toPercent(newY, stageHeight),
                   });
@@ -1463,17 +1450,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                 opacity={circleElement.opacity}
                 draggable
                 onClick={onSelect}
-                // onDragMove={(e) => {
-                //   onChange({
-                //     x: e.target.x(),
-                //     y: e.target.y(),
-                //     width_percent: toPercent(element.width, stageWidth),
-                //     height_percent: toPercent(element.height, stageHeight),
-                //     x_percent: toPercent(element.x, stageWidth),
-                //     y_percent: toPercent(element.y, stageHeight),
-                //   });
-                // }}
-
                 onDragMove={(e) => {
                   const node = e.target as Konva.Circle;
                   const { newX, newY } = calculateSnappingPosition(
@@ -1497,7 +1473,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                 onDragEnd={() => {
                   setGuides([]);
                 }}
-
                 onTransform={(e) => {
                   const node = e.target;
                   const scaleX = node.scaleX();
@@ -1623,7 +1598,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 opacity={lineElement.opacity}
                 draggable
                 onClick={onSelect}
-                onDragMove={(e) =>{
+                onDragMove={(e) => {
                   const node = e.target as Konva.Line;
                   const { newX, newY } = calculateSnappingPosition(
                     node,
@@ -1640,13 +1615,11 @@ export const ElementRenderer = forwardRef<any, Props>(
                     height_percent: toPercent(element.height, stageHeight),
                     x_percent: toPercent(e.target.x() - centerX, stageWidth),
                     y_percent: toPercent(e.target.y() - centerY, stageHeight),
-                  })
-                  
-                  drawGuidelines(node);
+                  });
 
-                  }
-                }
-                 onDragEnd={() => {
+                  drawGuidelines(node);
+                }}
+                onDragEnd={() => {
                   setGuides([]);
                 }}
                 onTransform={(e) => {
@@ -1700,7 +1673,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 opacity={triangleElement.opacity}
                 draggable
                 onClick={onSelect}
-                onDragMove={(e) =>{
+                onDragMove={(e) => {
                   const node = e.target as Konva.RegularPolygon;
                   const { newX, newY } = calculateSnappingPosition(
                     node,
@@ -1710,7 +1683,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                     triangleElement.width / 2,
                     triangleElement.height / 2
                   );
-                
+
                   onChange({
                     x: newX,
                     y: newY,
@@ -1718,17 +1691,13 @@ export const ElementRenderer = forwardRef<any, Props>(
                     height_percent: toPercent(element.height, stageHeight),
                     x_percent: toPercent(e.target.x(), stageWidth),
                     y_percent: toPercent(e.target.y(), stageHeight),
-                  })
+                  });
 
                   drawGuidelines(node);
-
-                  }
-                }
-
+                }}
                 onDragEnd={() => {
                   setGuides([]);
                 }}
-
                 onTransform={(e) => {
                   const node = e.target;
                   const scaleX = node.scaleX();
@@ -1780,7 +1749,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 opacity={starElement.opacity}
                 draggable
                 onClick={onSelect}
-                onDragMove={(e) =>{
+                onDragMove={(e) => {
                   const node = e.target as Konva.Star;
                   const { newX, newY } = calculateSnappingPosition(
                     node,
@@ -1797,15 +1766,11 @@ export const ElementRenderer = forwardRef<any, Props>(
                     height_percent: toPercent(element.height, stageHeight),
                     x_percent: toPercent(e.target.x(), stageWidth),
                     y_percent: toPercent(e.target.y(), stageHeight),
-                  })
-                }
-                }
-
+                  });
+                }}
                 onDragEnd={() => {
                   setGuides([]);
                 }}
-
-
                 onTransform={(e) => {
                   const node = e.target;
                   const scaleX = node.scaleX();
@@ -1856,7 +1821,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 opacity={wedgeElement.opacity}
                 draggable
                 onClick={onSelect}
-                onDragMove={(e) =>{
+                onDragMove={(e) => {
                   const node = e.target as Konva.Wedge;
                   const { newX, newY } = calculateSnappingPosition(
                     node,
@@ -1866,7 +1831,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                     wedgeWidth / 2,
                     wedgeHeight / 2
                   );
-                
+
                   onChange({
                     x: newX,
                     y: newY,
@@ -1874,11 +1839,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                     height_percent: toPercent(element.height, stageHeight),
                     x_percent: toPercent(e.target.x(), stageWidth),
                     y_percent: toPercent(e.target.y(), stageHeight),
-                  })
+                  });
 
-                  drawGuidelines(node)
-                  }
-                }
+                  drawGuidelines(node);
+                }}
                 onDragEnd={() => {
                   setGuides([]);
                 }}
@@ -1927,7 +1891,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 opacity={ringElement.opacity}
                 draggable
                 onClick={onSelect}
-                onDragMove={(e) =>{
+                onDragMove={(e) => {
                   const node = e.target as Konva.Ring;
                   const { newX, newY } = calculateSnappingPosition(
                     node,
@@ -1937,7 +1901,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                     ringWidth / 2,
                     ringHeight / 2
                   );
-                
+
                   onChange({
                     x: newX,
                     y: newY,
@@ -1945,18 +1909,13 @@ export const ElementRenderer = forwardRef<any, Props>(
                     height_percent: toPercent(element.height, stageHeight),
                     x_percent: toPercent(e.target.x(), stageWidth),
                     y_percent: toPercent(e.target.y(), stageHeight),
-                  })
-                  
-                  drawGuidelines(node)
-                  
-                }
-                }
+                  });
 
+                  drawGuidelines(node);
+                }}
                 onDragEnd={() => {
                   setGuides([]);
                 }}
-
-
                 onTransform={(e) => {
                   const node = e.target;
                   const scaleX = node.scaleX();
@@ -1980,46 +1939,6 @@ export const ElementRenderer = forwardRef<any, Props>(
             )}
           </>
         );
-      
-      
-        /* qr code */
-      // case "qrcode": {
-      //   const qrElement = element as QRCodeElement;
-      //   const [qrError, setQrError] = useState<string | null>(null);
-
-      //   // Validate QR code data
-      //   const isValidQRData = qrElement.value && qrElement.value.trim() !== "";
-
-      //   if (!isValidQRData) {
-      //     return (
-      //       <Html
-      //         groupProps={{
-      //           x: qrElement.x,
-      //           y: qrElement.y,
-      //           draggable: true,
-      //           onClick: onSelect,
-      //         }}
-      //       >
-      //         <div
-      //           style={{
-      //             width: qrElement.width,
-      //             height: qrElement.height,
-      //             cursor: "move",
-      //             display: "flex",
-      //             alignItems: "center",
-      //             justifyContent: "center",
-      //             border: "2px dashed #ccc",
-      //             backgroundColor: "#f5f5f5",
-      //             color: "#666",
-      //             fontSize: "12px",
-      //             textAlign: "center",
-      //           }}
-      //         >
-      //           Invalid QR Data
-      //         </div>
-      //       </Html>
-      //     );
-      //   }
 
       default:
         return null;

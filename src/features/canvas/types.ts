@@ -18,8 +18,6 @@ export type ElementType =
 
 export type FitMode = "fill" | "fit" | "stretch";
 
-// | { type: "icon"; iconName: string } // ✅ هنا أضفنا الأيقونة
-
 export interface CanvasElement {
   id: string;
   type: ElementType;
@@ -39,38 +37,29 @@ export interface CanvasElement {
   strokeWidth?: number;
   fillBrandingType?: BrandingType;
   strokeBrandingType?: BrandingType;
-
   // frame specific
   dash?: number[];
   frameId?: string | null;
   tags?: string[];
-  // label?:string;
-
   // img
   src?: string;
   fitMode?: string;
   originalWidth?: number;
   originalHeight?: number;
-
   // icons
   icon?: string;
   iconName?: string;
   color?: string;
   text?: string;
-  align?: string;
-  fontWeight?: string;
-
   // for percentage
   newWidth?: number;
   newHeight?: number;
-
   fontSize?: number;
   isSelected?: string;
   scaleX?: number;
   scaleY?: number;
   radius?: number;
   fontSize_percent?: number;
-
   visible?: boolean;
 }
 
@@ -89,16 +78,17 @@ export interface CanvasTextElement extends CanvasElement {
   text?: string;
   fontSize?: number;
   fontFamily?: string;
+  fontVariant?: string;
   background?: string;
   padding?: number;
   backgroundStroke?: string;
   backgroundStrokeWidth: number;
-  fontBrandingType?: string;
+  fontBrandingType?: BrandingType;
   toi_labels?: string[];
+  fontWeight: string;
+  fontStyle: string;
   textDecoration?: "none" | "underline";
   align?: "left" | "center" | "right";
-  fontWeight?: "normal" | "bold";
-  fontStyle?: "normal" | "italic";
   borderRadius?: {
     topLeft?: number;
     topRight?: number;
@@ -110,7 +100,7 @@ export interface CanvasTextElement extends CanvasElement {
 export interface CanvasImageElement extends CanvasElement {
   type: "image";
   src?: string;
-  fitMode?: FitMode; // default "fill"
+  fitMode?: FitMode;
   originalWidth?: number;
 }
 
