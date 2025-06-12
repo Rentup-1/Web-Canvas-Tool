@@ -35,8 +35,8 @@ export interface CanvasElement {
   opacity?: number;
   stroke?: string;
   strokeWidth?: number;
-  fillBrandingType?: BrandingType;
-  strokeBrandingType?: BrandingType;
+  fillBrandingType?: string;
+  strokeBrandingType?: string;
   // frame specific
   dash?: number[];
   frameId?: string | null;
@@ -61,7 +61,7 @@ export interface CanvasElement {
   radius?: number;
   fontSize_percent?: number;
   visible?: boolean;
-  borderRadiusSpecial?:number
+  borderRadiusSpecial?: number;
 }
 
 export interface CanvasFrameElement extends CanvasElement {
@@ -84,7 +84,7 @@ export interface CanvasTextElement extends CanvasElement {
   padding?: number;
   backgroundStroke?: string;
   backgroundStrokeWidth: number;
-  fontBrandingType?: BrandingType;
+  fontBrandingType?: string;
   toi_labels?: string[];
   fontWeight: string;
   fontStyle: string;
@@ -203,4 +203,3 @@ export type CanvasElementUnion =
   | CanvasFrameElement;
 
 export type AspectRatio = "1:1" | "9:16";
-export type BrandingType = string;
