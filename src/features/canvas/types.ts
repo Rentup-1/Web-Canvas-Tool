@@ -61,6 +61,7 @@ export interface CanvasElement {
   radius?: number;
   fontSize_percent?: number;
   visible?: boolean;
+  borderRadiusSpecial?:number
 }
 
 export interface CanvasFrameElement extends CanvasElement {

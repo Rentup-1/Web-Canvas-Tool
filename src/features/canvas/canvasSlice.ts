@@ -118,6 +118,8 @@ const canvasSlice = createSlice({
             tags: [],
             visible: true,
             fitMode: "fill",
+            borderRadiusSpecial: 0,
+            fitMode: "fill",
           } as CanvasElement;
           break;
 

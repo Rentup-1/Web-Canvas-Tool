@@ -755,6 +755,589 @@ export const ElementRenderer = forwardRef<any, Props>(
         );
       }
 
+      // case "image": {
+      //   const [image] = useImage(element.src || "");
+      //   const frame = elements.find(
+      //     (f: CanvasElement) => f.id === element.frameId
+      //   );
+      //   const wasOverFrameRef = useRef(false);
+      //   const [currentFitMode, setCurrentFitMode] = useState(
+      //     element.fitMode || "fill"
+      //   );
+      //   const isDraggingImageRef = useRef(false);
+      //   const [isMovable, setIsMovable] = useState(false); // New state to track if image is movable
+
+      //   const applyFitMode = (
+      //     newFitMode: string,
+      //     targetFrame: CanvasElement
+      //   ) => {
+      //     const frameAspect = targetFrame.width / targetFrame.height;
+      //     const imgAspect = element.width / element.height;
+
+      //     let newWidth, newHeight, offsetX, offsetY;
+
+      //     switch (newFitMode) {
+      //       case "fit":
+      //         if (imgAspect > frameAspect) {
+      //           newWidth = targetFrame.width;
+      //           newHeight = targetFrame.width / imgAspect;
+      //         } else {
+      //           newHeight = targetFrame.height;
+      //           newWidth = targetFrame.height * imgAspect;
+      //         }
+      //         break;
+
+      //       case "fill":
+      //         if (imgAspect < frameAspect) {
+      //           newWidth = targetFrame.width;
+      //           newHeight = targetFrame.width / imgAspect;
+      //         } else {
+      //           newHeight = targetFrame.height;
+      //           newWidth = targetFrame.height * imgAspect;
+      //         }
+      //         break;
+
+      //       case "stretch":
+      //         newWidth = targetFrame.width;
+      //         newHeight = targetFrame.height;
+      //         break;
+
+      //       default:
+      //         if (imgAspect < frameAspect) {
+      //           newWidth = targetFrame.width;
+      //           newHeight = targetFrame.width / imgAspect;
+      //         } else {
+      //           newHeight = targetFrame.height;
+      //           newWidth = targetFrame.height * imgAspect;
+      //         }
+      //         break;
+      //     }
+
+      //     offsetX = (targetFrame.width - newWidth) / 2;
+      //     offsetY = (targetFrame.height - newHeight) / 2;
+
+      //     onChange({
+      //       x: targetFrame.x + offsetX,
+      //       y: targetFrame.y + offsetY,
+      //       width: newWidth,
+      //       height: newHeight,
+      //       frameId: targetFrame.id,
+      //       fitMode: newFitMode,
+      //       width_percent: toPercent(newWidth, stageWidth),
+      //       height_percent: toPercent(newHeight, stageHeight),
+      //       x_percent: toPercent(targetFrame.x + offsetX, stageWidth),
+      //       y_percent: toPercent(targetFrame.y + offsetY, stageHeight),
+      //     });
+
+      //     // dispatch(
+      //     //   updateElement({
+      //     //     id: targetFrame.id,
+      //     //     updates: {
+      //     //       fitMode: newFitMode,
+      //     //     },
+      //     //   })
+      //     // );
+
+      //   };
+
+      //   if (frame) {
+      //     return (
+      //       <>
+      //         <Group
+      //           x={frame.x}
+      //           y={frame.y}
+      //           clipFunc={(ctx) => {
+      //             ctx.rect(0, 0, frame.width, frame.height);
+      //           }}
+      //           draggable
+      //           onDragMove={(e) => {
+      //             const node = e.target as Konva.Group;
+      //             const newX = node.x();
+      //             const newY = node.y();
+
+      //             // const { newX, newY } = calculateSnappingPosition(
+      //             //   node,
+      //             //   elements,
+      //             //   element,
+      //             //   snapThreshold,
+      //             //   frame.width / 2,
+      //             //   frame.height / 2
+      //             // );
+
+      //             // Update frame position
+      //             dispatch(
+      //               updateElement({
+      //                 id: frame.id,
+      //                 updates: {
+      //                   x: newX,
+      //                   y: newY,
+      //                   width_percent: toPercent(frame.width, stageWidth),
+      //                   height_percent: toPercent(frame.height, stageHeight),
+      //                   x_percent: toPercent(newX, stageWidth),
+      //                   y_percent: toPercent(newY, stageHeight),
+      //                 },
+      //               })
+      //             );
+
+      //             // Update image position to stay aligned with frame
+      //             const offsetX = (frame.width - element.width) / 2;
+      //             const offsetY = (frame.height - element.height) / 2;
+      //             onChange({
+      //               x: newX + offsetX,
+      //               y: newY + offsetY,
+      //               width: element.width,
+      //               height: element.height,
+      //               frameId: frame.id,
+      //               fitMode: currentFitMode,
+      //               width_percent: toPercent(element.width, stageWidth),
+      //               height_percent: toPercent(element.height, stageHeight),
+      //               x_percent: toPercent(newX + offsetX, stageWidth),
+      //               y_percent: toPercent(newY + offsetY, stageHeight),
+      //             });
+
+      //             console.log(frame);
+
+      //             // drawGuidelines(node)
+
+      //           }}
+
+      //           // onDragEnd={() => {
+      //           //   setGuides([]);
+      //           // }}
+
+      //           onClick={() => {
+      //             if (onSelect) {
+      //               onSelect();
+      //             }
+      //           }}
+      //         >
+      //           <KonvaImage
+      //             ref={ref}
+      //             image={image}
+      //             x={element.x - frame.x} // Relative to frame
+      //             y={element.y - frame.y} // Relative to frame
+      //             width={element.width}
+      //             height={element.height}
+      //             draggable={isMovable} // Draggable only when isMovable is true
+      //             onClick={() => {
+      //               if (onSelect) {
+      //                 onSelect();
+      //               }
+      //             }}
+      //             onDblClick={() => {
+      //               setIsMovable((prev) => !prev); // Toggle movable state on double-click
+      //             }}
+      //             onDragStart={() => {
+      //               isDraggingImageRef.current = true;
+      //             }}
+      //             onDragMove={(e) => {
+      //               if (!isDraggingImageRef.current || !isMovable) return;
+
+      //               const imageNode = e.target;
+      //               let newX = imageNode.x(); // Relative to frame
+      //               let newY = imageNode.y(); // Relative to frame
+
+      //               // Constrain image position within frame boundaries
+      //               const minX = -(element.width - frame.width) / 2;
+      //               const maxX = (element.width - frame.width) / 2;
+      //               const minY = -(element.height - frame.height) / 2;
+      //               const maxY = (element.height - frame.height) / 2;
+
+      //               newX = Math.max(minX, Math.min(maxX, newX));
+      //               newY = Math.max(minY, Math.min(maxY, newY));
+
+      //               // Calculate new frame position to move with image
+      //               const newFrameX = frame.x + newX - (element.x - frame.x);
+      //               const newFrameY = frame.y + newY - (element.y - frame.y);
+
+      //               // Update frame position
+      //               dispatch(
+      //                 updateElement({
+      //                   id: frame.id,
+      //                   updates: {
+      //                     x: newFrameX,
+      //                     y: newFrameY,
+      //                     width_percent: toPercent(frame.width, stageWidth),
+      //                     height_percent: toPercent(frame.height, stageHeight),
+      //                     x_percent: toPercent(newFrameX, stageWidth),
+      //                     y_percent: toPercent(newFrameY, stageHeight),
+      //                   },
+      //                 })
+      //               );
+
+      //               // Update image position
+      //               onChange({
+      //                 x: newFrameX + newX,
+      //                 y: newFrameY + newY,
+      //                 width: element.width,
+      //                 height: element.height,
+      //                 width_percent: toPercent(element.width, stageWidth),
+      //                 height_percent: toPercent(element.height, stageHeight),
+      //                 x_percent: toPercent(newFrameX + newX, stageWidth),
+      //                 y_percent: toPercent(newFrameY + newY, stageHeight),
+      //               });
+      //               drawGuidelines(imageNode)
+      //             }}
+      //             onDragEnd={() => {
+      //               isDraggingImageRef.current = false;
+      //               setGuides([]);
+      //             }}
+      //             onTransform={(e) => {
+      //               const node = e.target;
+      //               const oldWidth = element.width;
+      //               const oldHeight = element.height;
+      //               const newWidth = node.width() * node.scaleX();
+      //               const newHeight = node.height() * node.scaleY();
+      //               const newX = node.x(); // Relative to frame
+      //               const newY = node.y(); // Relative to frame
+
+      //               // Calculate new absolute image position
+      //               const newImageX = newX + frame.x;
+      //               const newImageY = newY + frame.y;
+
+      //               // Update image
+      //               onChange({
+      //                 x: newImageX,
+      //                 y: newImageY,
+      //                 width: newWidth,
+      //                 height: newHeight,
+      //                 rotation: node.rotation(),
+      //                 width_percent: toPercent(newWidth, stageWidth),
+      //                 height_percent: toPercent(newHeight, stageHeight),
+      //                 x_percent: toPercent(newImageX, stageWidth),
+      //                 y_percent: toPercent(newImageY, stageHeight),
+      //               });
+
+      //               // Reset scale to avoid compounding
+      //               node.scaleX(1);
+      //               node.scaleY(1);
+
+      //               // Update frame size to match image resize
+      //               const scaleX = newWidth / oldWidth;
+      //               const scaleY = newHeight / oldHeight;
+      //               const newFrameWidth = frame.width * scaleX;
+      //               const newFrameHeight = frame.height * scaleY;
+
+      //               // Center the frame around the image
+      //               const imageCenterX = newImageX + newWidth / 2;
+      //               const imageCenterY = newImageY + newHeight / 2;
+      //               const newFrameX = imageCenterX - newFrameWidth / 2;
+      //               const newFrameY = imageCenterY - newFrameHeight / 2;
+
+      //               dispatch(
+      //                 updateElement({
+      //                   id: frame.id,
+      //                   updates: {
+      //                     x: newFrameX,
+      //                     y: newFrameY,
+      //                     width: newFrameWidth,
+      //                     height: newFrameHeight,
+      //                     rotation: node.rotation(),
+      //                     width_percent: toPercent(newFrameWidth, stageWidth),
+      //                     height_percent: toPercent(
+      //                       newFrameHeight,
+      //                       stageHeight
+      //                     ),
+      //                     x_percent: toPercent(newFrameX, stageWidth),
+      //                     y_percent: toPercent(newFrameY, stageHeight),
+      //                   },
+      //                 })
+      //               );
+      //             }}
+      //           />
+      //         </Group>
+      //       </>
+      //     );
+      //   }
+
+      //   // Image without a frame (unchanged)
+      //   return (
+      //     <>
+      //       {(element.visible ?? true) && (
+      //         <KonvaImage
+      //           ref={ref}
+      //           image={image}
+      //           x={element.x}
+      //           y={element.y}
+      //           width={element.width}
+      //           height={element.height}
+      //           draggable
+      //           onClick={() => {
+      //             if (onSelect) {
+      //               onSelect();
+      //             }
+      //           }}
+      //           onDragMove={(e) => {
+      //             const imageNode = e.target;
+      //             const imgX = imageNode.x();
+      //             const imgY = imageNode.y();
+      //             const imgW = imageNode.width();
+      //             const imgH = imageNode.height();
+
+      //             const centerX = imgX + imgW / 2;
+      //             const centerY = imgY + imgH / 2;
+
+      //             dispatch(
+      //               updateElement({
+      //                 id: element.id,
+      //                 updates: {
+      //                   x: imgX,
+      //                   y: imgY,
+      //                   width_percent: toPercent(imgW, stageWidth),
+      //                   height_percent: toPercent(imgH, stageHeight),
+      //                   x_percent: toPercent(imgX, stageWidth),
+      //                   y_percent: toPercent(imgY, stageHeight),
+      //                 },
+      //               })
+      //             );
+
+      //             const frames = elements
+      //               .filter(
+      //                 (el: CanvasElement) =>
+      //                   el.type === "frame" &&
+      //                   centerX >= el.x &&
+      //                   centerX <= el.x + el.width &&
+      //                   centerY >= el.y &&
+      //                   centerY <= el.y + el.height
+      //               )
+      //               .sort(
+      //                 (a: CanvasElement, b: CanvasElement) =>
+      //                   elements.indexOf(b) - elements.indexOf(a)
+      //               );
+
+      //             const frame = frames[0];
+
+      //             if (!frame) {
+      //               wasOverFrameRef.current = false;
+      //               return;
+      //             }
+
+      //             const isAlreadyHasImage = elements.some(
+      //               (el: CanvasElement) =>
+      //                 el.type === "image" &&
+      //                 el.frameId === frame.id &&
+      //                 el.id !== element.id
+      //             );
+
+      //             if (isAlreadyHasImage) {
+      //               return;
+      //             }
+
+      //             if (!wasOverFrameRef.current) {
+      //               const frameAspect = frame.width / frame.height;
+      //               const imgAspect = imgW / imgH;
+
+      //               let newWidth, newHeight, offsetX, offsetY;
+
+      //               switch (currentFitMode) {
+      //                 case "fit":
+      //                   if (imgAspect > frameAspect) {
+      //                     newWidth = frame.width;
+      //                     newHeight = frame.width / imgAspect;
+      //                   } else {
+      //                     newHeight = frame.height;
+      //                     newWidth = frame.height * imgAspect;
+      //                   }
+      //                   break;
+
+      //                 case "fill":
+      //                   if (imgAspect < frameAspect) {
+      //                     newWidth = frame.width;
+      //                     newHeight = frame.width / imgAspect;
+      //                   } else {
+      //                     newHeight = frame.height;
+      //                     newWidth = frame.height * imgAspect;
+      //                   }
+      //                   break;
+
+      //                 case "stretch":
+      //                   newWidth = frame.width;
+      //                   newHeight = frame.height;
+      //                   break;
+
+      //                 default:
+      //                   if (imgAspect < frameAspect) {
+      //                     newWidth = frame.width;
+      //                     newHeight = frame.width / imgAspect;
+      //                   } else {
+      //                     newHeight = frame.height;
+      //                     newWidth = frame.height * imgAspect;
+      //                   }
+      //                   break;
+      //               }
+
+      //               offsetX = (frame.width - newWidth) / 2;
+      //               offsetY = (frame.height - newHeight) / 2;
+
+      //               onChange({
+      //                 x: frame.x + offsetX,
+      //                 y: frame.y + offsetY,
+      //                 width: newWidth,
+      //                 height: newHeight,
+      //                 frameId: frame.id,
+      //                 fitMode: currentFitMode,
+      //                 width_percent: toPercent(newWidth, stageWidth),
+      //                 height_percent: toPercent(newHeight, stageHeight),
+      //                 x_percent: toPercent(frame.x + offsetX, stageWidth),
+      //                 y_percent: toPercent(frame.y + offsetY, stageHeight),
+      //               });
+
+      //               wasOverFrameRef.current = true;
+      //             }
+      //           }}
+      //           onDragEnd={(e) => {
+      //             const img = e.target;
+      //             const imgW = img.width();
+      //             const imgH = img.height();
+
+      //             const centerX = img.x() + imgW / 2;
+      //             const centerY = img.y() + imgH / 2;
+
+      //             const frames = elements
+      //               .filter(
+      //                 (el: CanvasElement) =>
+      //                   el.type === "frame" &&
+      //                   centerX >= el.x &&
+      //                   centerX <= el.x + el.width &&
+      //                   centerY >= el.y &&
+      //                   centerY <= el.y + el.height
+      //               )
+      //               .sort(
+      //                 (a: CanvasElement, b: CanvasElement) =>
+      //                   elements.indexOf(b) - elements.indexOf(a)
+      //               );
+
+      //             const frame = frames[0];
+
+      //             if (frame) {
+      //               const isAlreadyHasImage = elements.some(
+      //                 (el: CanvasElement) =>
+      //                   el.type === "image" &&
+      //                   el.frameId === frame.id &&
+      //                   el.id !== element.id
+      //               );
+
+      //               if (isAlreadyHasImage) {
+      //                 onChange({ x: img.x(), y: img.y(), frameId: null });
+      //                 wasOverFrameRef.current = false;
+      //                 return;
+      //               }
+
+      //               const frameAspect = frame.width / frame.height;
+      //               const imgAspect = imgW / imgH;
+
+      //               let newWidth, newHeight, offsetX, offsetY;
+
+      //               switch (currentFitMode) {
+      //                 case "fit":
+      //                   if (imgAspect > frameAspect) {
+      //                     newWidth = frame.width;
+      //                     newHeight = frame.width / imgAspect;
+      //                   } else {
+      //                     newHeight = frame.height;
+      //                     newWidth = frame.height * imgAspect;
+      //                   }
+      //                   break;
+
+      //                 case "fill":
+      //                   if (imgAspect < frameAspect) {
+      //                     newWidth = frame.width;
+      //                     newHeight = frame.width / imgAspect;
+      //                   } else {
+      //                     newHeight = frame.height;
+      //                     newWidth = frame.height * imgAspect;
+      //                   }
+      //                   break;
+
+      //                 case "stretch":
+      //                   newWidth = frame.width;
+      //                   newHeight = frame.height;
+      //                   break;
+
+      //                 default:
+      //                   if (imgAspect < frameAspect) {
+      //                     newWidth = frame.width;
+      //                     newHeight = frame.width / imgAspect;
+      //                   } else {
+      //                     newHeight = frame.height;
+      //                     newWidth = frame.height * imgAspect;
+      //                   }
+      //                   break;
+      //               }
+
+      //               offsetX = (frame.width - newWidth) / 2;
+      //               offsetY = (frame.height - newHeight) / 2;
+
+      //               onChange({
+      //                 x: frame.x + offsetX,
+      //                 y: frame.y + offsetY,
+      //                 width: newWidth,
+      //                 height: newHeight,
+      //                 frameId: frame.id,
+      //                 fitMode: currentFitMode,
+      //                 width_percent: toPercent(newWidth, stageWidth),
+      //                 height_percent: toPercent(newHeight, stageHeight),
+      //                 x_percent: toPercent(frame.x + offsetX, stageWidth),
+      //                 y_percent: toPercent(frame.y + offsetY, stageHeight),
+      //               });
+      //             } else {
+      //               onChange({ x: img.x(), y: img.y(), frameId: null });
+      //             }
+
+      //             wasOverFrameRef.current = false;
+      //           }}
+      //           onTransform={(e) => {
+      //             const node = e.target;
+      //             const newWidth = node.width() * node.scaleX();
+      //             const newHeight = node.height() * node.scaleY();
+      //             const newX = node.x();
+      //             const newY = node.y();
+
+      //             onChange({
+      //               x: newX,
+      //               y: newY,
+      //               width: newWidth,
+      //               height: newHeight,
+      //               rotation: node.rotation(),
+      //               width_percent: toPercent(newWidth, stageWidth),
+      //               height_percent: toPercent(newHeight, stageHeight),
+      //               x_percent: toPercent(newX, stageWidth),
+      //               y_percent: toPercent(newY, stageHeight),
+      //             });
+
+      //             node.scaleX(1);
+      //             node.scaleY(1);
+      //           }}
+      //         />
+      //       )}
+      //       {element.isSelected && (
+      //         <div
+      //           style={{
+      //             position: "absolute",
+      //             top: 10,
+      //             left: 10,
+      //             zIndex: 1000,
+      //           }}
+      //         >
+      //           <select
+      //             value={currentFitMode}
+      //             onChange={(e) => {
+      //               setCurrentFitMode(e.target.value);
+      //               if (frame) {
+      //                 applyFitMode(e.target.value, frame);
+      //               }
+      //             }}
+      //           >
+      //             <option value="fit">Fit</option>
+      //             <option value="fill">Fill</option>
+      //             <option value="stretch">Stretch</option>
+      //           </select>
+      //         </div>
+      //       )}
+      //     </>
+      //   );
+      // }
+
       case "image": {
         const [image] = useImage(element.src || "");
         const frame = elements.find(
@@ -831,55 +1414,80 @@ export const ElementRenderer = forwardRef<any, Props>(
         };
 
         if (frame) {
+          const borderRadius = frame.borderRadiusSpecial || 0; // Default border radius, adjust as needed
+
           return (
-            <>
+            <Group
+              x={frame.x}
+              y={frame.y}
+              draggable
+              onDragMove={(e) => {
+                const node = e.target;
+                const newX = node.x();
+                const newY = node.y();
+
+                dispatch(
+                  updateElement({
+                    id: frame.id,
+                    updates: {
+                      x: newX,
+                      y: newY,
+                      width_percent: toPercent(frame.width, stageWidth),
+                      height_percent: toPercent(frame.height, stageHeight),
+                      x_percent: toPercent(newX, stageWidth),
+                      y_percent: toPercent(newY, stageHeight),
+                    },
+                  })
+                );
+
+                const offsetX = (frame.width - element.width) / 2;
+                const offsetY = (frame.height - element.height) / 2;
+                onChange({
+                  x: newX + offsetX,
+                  y: newY + offsetY,
+                  width: element.width,
+                  height: element.height,
+                  frameId: frame.id,
+                  fitMode: currentFitMode,
+                  width_percent: toPercent(element.width, stageWidth),
+                  height_percent: toPercent(element.height, stageHeight),
+                  x_percent: toPercent(newX + offsetX, stageWidth),
+                  y_percent: toPercent(newY + offsetY, stageHeight),
+                });
+              }}
+              onClick={() => {
+                if (onSelect) {
+                  onSelect();
+                }
+              }}
+            >
+              <Rect
+                x={0}
+                y={0}
+                width={frame.width}
+                height={frame.height}
+                // stroke="black"
+                strokeWidth={2}
+                fill="transparent"
+                cornerRadius={borderRadius} // Apply border radius to frame border
+              />
               <Group
-                x={frame.x}
-                y={frame.y}
                 clipFunc={(ctx) => {
-                  ctx.rect(0, 0, frame.width, frame.height);
-                }}
-                draggable
-                onDragMove={(e) => {
-                  const node = e.target as Konva.Group;
-                  const newX = node.x();
-                  const newY = node.y();
-
-                  dispatch(
-                    updateElement({
-                      id: frame.id,
-                      updates: {
-                        x: newX,
-                        y: newY,
-                        width_percent: toPercent(frame.width, stageWidth),
-                        height_percent: toPercent(frame.height, stageHeight),
-                        x_percent: toPercent(newX, stageWidth),
-                        y_percent: toPercent(newY, stageHeight),
-                      },
-                    })
-                  );
-
-                  const offsetX = (frame.width - element.width) / 2;
-                  const offsetY = (frame.height - element.height) / 2;
-                  onChange({
-                    x: newX + offsetX,
-                    y: newY + offsetY,
-                    width: element.width,
-                    height: element.height,
-                    frameId: frame.id,
-                    fitMode: currentFitMode,
-                    width_percent: toPercent(element.width, stageWidth),
-                    height_percent: toPercent(element.height, stageHeight),
-                    x_percent: toPercent(newX + offsetX, stageWidth),
-                    y_percent: toPercent(newY + offsetY, stageHeight),
-                  });
-
-                  console.log(frame);
-                }}
-                onClick={() => {
-                  if (onSelect) {
-                    onSelect();
-                  }
+                  // Create a rounded rectangle for clipping
+                  const r = borderRadius;
+                  const width = frame.width;
+                  const height = frame.height;
+                  ctx.beginPath();
+                  ctx.moveTo(r, 0);
+                  ctx.lineTo(width - r, 0);
+                  ctx.quadraticCurveTo(width, 0, width, r);
+                  ctx.lineTo(width, height - r);
+                  ctx.quadraticCurveTo(width, height, width - r, height);
+                  ctx.lineTo(r, height);
+                  ctx.quadraticCurveTo(0, height, 0, height - r);
+                  ctx.lineTo(0, r);
+                  ctx.quadraticCurveTo(0, 0, r, 0);
+                  ctx.closePath();
                 }}
               >
                 <KonvaImage
@@ -1008,7 +1616,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                   }}
                 />
               </Group>
-            </>
+            </Group>
           );
         }
 
