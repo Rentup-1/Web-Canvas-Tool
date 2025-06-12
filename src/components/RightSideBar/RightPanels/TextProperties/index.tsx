@@ -148,10 +148,31 @@ export default function TextProperties({
               className="col-span-full"
               showOpacity
               label="Background"
-              value={element.background ?? "#000000"}
+              value={element.background as string}
               onChange={(val) => update({ background: val })}
+              disabled={element.fillBrandingType !== "fixed"}
             />
           </div>
+          <SelectInput
+            isClearable={false}
+            className="col-span-full"
+            label="Background Branding"
+            value={element.fillBrandingType as string}
+            onChange={(val) => {
+              if (val !== "fixed") {
+                update({
+                  fillBrandingType: val as (typeof branding)[number],
+                  background: brandingColors[val as (typeof branding)[number]],
+                });
+              } else {
+                update({
+                  fillBrandingType: "fixed",
+                  background: element.background,
+                });
+              }
+            }}
+            options={["fixed", ...branding]}
+          />
 
           <div className="text-sm font-medium mb-1">
             <div>Transparent</div>
@@ -294,8 +315,8 @@ export default function TextProperties({
                 // Revert to default font when switching to "fixed"
                 update({
                   fontBrandingType: "fixed",
-                  fontFamily: "Arial",
-                  fontVariant: "regular",
+                  fontFamily: element.fontFamily,
+                  fontVariant: element.fontVariant,
                 } as Partial<CanvasTextElement>);
               }
             }}
@@ -382,18 +403,6 @@ export default function TextProperties({
               errorLabels || postTextLabelError ? "Something went wrong" : null
             }
             placeholder="Create or select labels..."
-          />
-
-          <SelectInput
-            className="col-span-full"
-            label="Background Branding"
-            value={element.fillBrandingType ?? "fixed"}
-            onChange={(val) =>
-              update({
-                fillBrandingType: val as (typeof branding)[number],
-              })
-            }
-            options={branding as unknown as string[]}
           />
         </>
       )}
