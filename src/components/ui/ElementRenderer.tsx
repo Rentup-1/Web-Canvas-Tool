@@ -1979,8 +1979,8 @@ export const ElementRenderer = forwardRef<any, Props>(
                 cornerRadius={cornerRadiusValue}
                 opacity={rectangleElement.opacity}
                 draggable
-                offsetX={rectangleElement.width / 2}
-                offsetY={rectangleElement.height / 2}
+                // offsetX={rectangleElement.width / 2}
+                // offsetY={rectangleElement.height / 2}
                 onClick={onSelect}
                 onDragMove={(e) => {
                   const node = e.target as Konva.Rect;
@@ -2046,62 +2046,127 @@ export const ElementRenderer = forwardRef<any, Props>(
         return (
           <>
             {(element.visible ?? true) && (
+              // <Circle
+              //   ref={ref}
+              //   x={circleElement.x}
+              //   y={circleElement.y}
+              //   radius={circleElement.radius}
+              //   fill={brandedFillCircle}
+              //   stroke={brandedStrokeCircle}
+              //   strokeWidth={circleElement.strokeWidth}
+              //   rotation={circleElement.rotation}
+              //   opacity={circleElement.opacity}
+              //   draggable
+              //   onClick={onSelect}
+              //   onDragMove={(e) => {
+              //     const node = e.target as Konva.Circle;
+              //     const { newX, newY } = calculateSnappingPosition(
+              //       node,
+              //       elements,
+              //       element,
+              //       snapThreshold,
+              //       circleElement.radius,
+              //       circleElement.radius
+              //     );
+
+              //     onChange({
+              //       x: newX,
+              //       y: newY,
+              //       x_percent: toPercent(newX, stageWidth),
+              //       y_percent: toPercent(newY, stageHeight),
+              //     });
+
+              //     drawGuidelines(node);
+              //   }}
+              //   onDragEnd={() => {
+              //     setGuides([]);
+              //   }}
+              //   onTransform={(e) => {
+              //     const node = e.target;
+              //     const scaleX = node.scaleX();
+              //     const scaleY = node.scaleY();
+
+              //     const newRadius =
+              //       (circleElement.radius * (scaleX + scaleY)) / 2;
+
+              //     onChange({
+              //       x: node.x(),
+              //       y: node.y(),
+              //       x_percent: toPercent(node.x(), stageWidth),
+              //       y_percent: toPercent(node.y(), stageHeight),
+              //       radius: newRadius,
+              //       rotation: node.rotation(),
+              //     });
+
+              //     node.scaleX(1);
+              //     node.scaleY(1);
+              //   }}
+              // />
+
               <Circle
-                ref={ref}
-                x={circleElement.x}
-                y={circleElement.y}
-                radius={circleElement.radius}
-                fill={brandedFillCircle}
-                stroke={brandedStrokeCircle}
-                strokeWidth={circleElement.strokeWidth}
-                rotation={circleElement.rotation}
-                opacity={circleElement.opacity}
-                draggable
-                onClick={onSelect}
-                onDragMove={(e) => {
-                  const node = e.target as Konva.Circle;
-                  const { newX, newY } = calculateSnappingPosition(
-                    node,
-                    elements,
-                    element,
-                    snapThreshold,
-                    circleElement.radius,
-                    circleElement.radius
-                  );
+  ref={ref}
+  x={circleElement.x + circleElement.radius} // Shift x to account for radius
+  y={circleElement.y + circleElement.radius} // Shift y to account for radius
+  radius={circleElement.radius}
+  fill={brandedFillCircle}
+  stroke={brandedStrokeCircle}
+  strokeWidth={circleElement.strokeWidth}
+  rotation={circleElement.rotation}
+  opacity={circleElement.opacity}
+  draggable
+  onClick={onSelect}
+  onDragMove={(e) => {
+    const node = e.target as Konva.Circle;
+    const { newX, newY } = calculateSnappingPosition(
+      node,
+      elements,
+      element,
+      snapThreshold,
+      circleElement.radius,
+      circleElement.radius
+    );
 
-                  onChange({
-                    x: newX,
-                    y: newY,
-                    x_percent: toPercent(newX, stageWidth),
-                    y_percent: toPercent(newY, stageHeight),
-                  });
+    // Adjust the coordinates to represent the top-left corner
+    const adjustedX = newX - circleElement.radius;
+    const adjustedY = newY - circleElement.radius;
 
-                  drawGuidelines(node);
-                }}
-                onDragEnd={() => {
-                  setGuides([]);
-                }}
-                onTransform={(e) => {
-                  const node = e.target;
-                  const scaleX = node.scaleX();
-                  const scaleY = node.scaleY();
+    onChange({
+      x: adjustedX,
+      y: adjustedY,
+      x_percent: toPercent(adjustedX, stageWidth),
+      y_percent: toPercent(adjustedY, stageHeight),
+    });
 
-                  const newRadius =
-                    (circleElement.radius * (scaleX + scaleY)) / 2;
+    drawGuidelines(node);
+  }}
+  onDragEnd={() => {
+    setGuides([]);
+  }}
+  onTransform={(e) => {
+    const node = e.target;
+    const scaleX = node.scaleX();
+    const scaleY = node.scaleY();
 
-                  onChange({
-                    x: node.x(),
-                    y: node.y(),
-                    x_percent: toPercent(node.x(), stageWidth),
-                    y_percent: toPercent(node.y(), stageHeight),
-                    radius: newRadius,
-                    rotation: node.rotation(),
-                  });
+    const newRadius = (circleElement.radius * (scaleX + scaleY)) / 2;
 
-                  node.scaleX(1);
-                  node.scaleY(1);
-                }}
-              />
+    // Adjust the coordinates to represent the top-left corner
+    const adjustedX = node.x() - newRadius;
+    const adjustedY = node.y() - newRadius;
+
+    onChange({
+      x: adjustedX,
+      y: adjustedY,
+      x_percent: toPercent(adjustedX, stageWidth),
+      y_percent: toPercent(adjustedY, stageHeight),
+      radius: newRadius,
+      rotation: node.rotation(),
+    });
+
+    node.scaleX(1);
+    node.scaleY(1);
+  }}
+/>
+
             )}
           </>
         );
@@ -2112,62 +2177,72 @@ export const ElementRenderer = forwardRef<any, Props>(
         const brandedStrokeEllipse = getBrandedStroke(ellipseElement);
 
         return (
-          <>
-            {(element.visible ?? true) && (
-              <Ellipse
-                ref={ref}
-                x={ellipseElement.x}
-                y={ellipseElement.y}
-                radiusX={ellipseElement.radiusX}
-                radiusY={ellipseElement.radiusY}
-                fill={brandedFillEllipse}
-                stroke={brandedStrokeEllipse}
-                strokeWidth={ellipseElement.strokeWidth}
-                rotation={ellipseElement.rotation}
-                opacity={ellipseElement.opacity}
-                draggable
-                onClick={onSelect}
-                onDragMove={(e) => {
-                  const node = e.target as Konva.Ellipse;
-                  const { newX, newY } = calculateSnappingPosition(
-                    node,
-                    elements,
-                    element,
-                    snapThreshold,
-                    ellipseElement.radiusX,
-                    ellipseElement.radiusY
-                  );
-                  onChange({
-                    x: newX,
-                    y: newY,
-                    width_percent: toPercent(element.width, stageWidth),
-                    height_percent: toPercent(element.height, stageHeight),
-                    x_percent: toPercent(element.x, stageWidth),
-                    y_percent: toPercent(element.y, stageHeight),
-                  });
-                  drawGuidelines(node);
-                }}
-                onDragEnd={() => {
-                  setGuides([]);
-                }}
-                onTransform={(e) => {
-                  const node = e.target;
+      <>
+        {(element.visible ?? true) && (
+          <Ellipse
+            ref={ref}
+            x={ellipseElement.x + ellipseElement.radiusX} // Shift x to account for radiusX
+            y={ellipseElement.y + ellipseElement.radiusY} // Shift y to account for radiusY
+            radiusX={ellipseElement.radiusX}
+            radiusY={ellipseElement.radiusY}
+            fill={brandedFillEllipse}
+            stroke={brandedStrokeEllipse}
+            strokeWidth={ellipseElement.strokeWidth}
+            rotation={ellipseElement.rotation}
+            opacity={ellipseElement.opacity}
+            draggable
+            onClick={onSelect}
+            onDragMove={(e) => {
+              const node = e.target as Konva.Ellipse;
+              const { newX, newY } = calculateSnappingPosition(
+                node,
+                elements,
+                element,
+                snapThreshold,
+                ellipseElement.radiusX,
+                ellipseElement.radiusY
+              );
 
-                  const newRadiusX = ellipseElement.radiusX * node.scaleX();
-                  const newRadiusY = ellipseElement.radiusY * node.scaleY();
+              // Adjust the coordinates to represent the top-left corner
+              const adjustedX = newX - ellipseElement.radiusX;
+              const adjustedY = newY - ellipseElement.radiusY;
 
-                  onChange({
-                    x: node.x(),
-                    y: node.y(),
-                    x_percent: toPercent(node.x(), stageWidth),
-                    y_percent: toPercent(node.y(), stageHeight),
-                    radiusX: newRadiusX,
-                    radiusY: newRadiusY,
-                    rotation: node.rotation(),
-                  });
+              onChange({
+                x: adjustedX,
+                y: adjustedY,
+                width_percent: toPercent(element.width, stageWidth),
+                height_percent: toPercent(element.height, stageHeight),
+                x_percent: toPercent(adjustedX, stageWidth),
+                y_percent: toPercent(adjustedY, stageHeight),
+              });
 
-                  node.scaleX(1);
-                  node.scaleY(1);
+              drawGuidelines(node);
+            }}
+            onDragEnd={() => {
+              setGuides([]);
+            }}
+            onTransform={(e) => {
+              const node = e.target;
+
+              const newRadiusX = ellipseElement.radiusX * node.scaleX();
+              const newRadiusY = ellipseElement.radiusY * node.scaleY();
+
+              // Adjust the coordinates to represent the top-left corner
+              const adjustedX = node.x() - newRadiusX;
+              const adjustedY = node.y() - newRadiusY;
+
+              onChange({
+                x: adjustedX,
+                y: adjustedY,
+                x_percent: toPercent(adjustedX, stageWidth),
+                y_percent: toPercent(adjustedY, stageHeight),
+                radiusX: newRadiusX,
+                radiusY: newRadiusY,
+                rotation: node.rotation(),
+              });
+
+              node.scaleX(1);
+              node.scaleY(1);
                 }}
               />
             )}
@@ -2263,17 +2338,18 @@ export const ElementRenderer = forwardRef<any, Props>(
         const brandedFillTriangle = getBrandedFill(triangleElement);
         const brandedStrokeTriangle = getBrandedStroke(triangleElement);
 
+        // Calculate the radius from the maximum of width or height
+        const radius = Math.max(triangleElement.width, triangleElement.height) / 2;
+
         return (
           <>
             {(element.visible ?? true) && (
               <RegularPolygon
                 ref={ref}
-                x={triangleElement.x}
-                y={triangleElement.y}
+                x={triangleElement.x + radius} // Shift x to account for radius
+                y={triangleElement.y + radius} // Shift y to account for radius
                 sides={3}
-                radius={
-                  Math.max(triangleElement.width, triangleElement.height) / 2
-                }
+                radius={radius}
                 fill={brandedFillTriangle}
                 stroke={brandedStrokeTriangle}
                 strokeWidth={triangleElement.strokeWidth}
@@ -2292,13 +2368,17 @@ export const ElementRenderer = forwardRef<any, Props>(
                     triangleElement.height / 2
                   );
 
+                  // Adjust coordinates to represent the top-left corner
+                  const adjustedX = newX - radius;
+                  const adjustedY = newY - radius;
+
                   onChange({
-                    x: newX,
-                    y: newY,
-                    width_percent: toPercent(element.width, stageWidth),
-                    height_percent: toPercent(element.height, stageHeight),
-                    x_percent: toPercent(e.target.x(), stageWidth),
-                    y_percent: toPercent(e.target.y(), stageHeight),
+                    x: adjustedX,
+                    y: adjustedY,
+                    width_percent: toPercent(triangleElement.width, stageWidth),
+                    height_percent: toPercent(triangleElement.height, stageHeight),
+                    x_percent: toPercent(adjustedX, stageWidth),
+                    y_percent: toPercent(adjustedY, stageHeight),
                   });
 
                   drawGuidelines(node);
@@ -2311,16 +2391,20 @@ export const ElementRenderer = forwardRef<any, Props>(
                   const scaleX = node.scaleX();
                   const scaleY = node.scaleY();
 
+                  // Calculate new radius based on scaling
                   const newRadius =
-                    (Math.max(triangleElement.width, triangleElement.height) /
-                      2) *
+                    (Math.max(triangleElement.width, triangleElement.height) / 2) *
                     Math.max(scaleX, scaleY);
 
+                  // Adjust coordinates to represent the top-left corner
+                  const adjustedX = node.x() - newRadius;
+                  const adjustedY = node.y() - newRadius;
+
                   onChange({
-                    x: node.x(),
-                    y: node.y(),
-                    x_percent: toPercent(node.x(), stageWidth),
-                    y_percent: toPercent(node.y(), stageHeight),
+                    x: adjustedX,
+                    y: adjustedY,
+                    x_percent: toPercent(adjustedX, stageWidth),
+                    y_percent: toPercent(adjustedY, stageHeight),
                     rotation: node.rotation(),
                     width: newRadius * 2,
                     height: newRadius * 2,
@@ -2333,80 +2417,92 @@ export const ElementRenderer = forwardRef<any, Props>(
             )}
           </>
         );
-
+        
       case "star":
-        const starElement = element as StarShape;
-        const brandedFillStar = getBrandedFill(starElement);
-        const brandedStrokeStar = getBrandedStroke(starElement);
-        const starWidth = starElement.outerRadius * 2;
-        const starHeight = starElement.outerRadius * 2;
-        return (
-          <>
-            {(element.visible ?? true) && (
-              <Star
-                ref={ref}
-                x={starElement.x}
-                y={starElement.y}
-                innerRadius={starElement.innerRadius}
-                outerRadius={starElement.outerRadius}
-                numPoints={starElement.numPoints}
-                fill={brandedFillStar}
-                stroke={brandedStrokeStar}
-                strokeWidth={starElement.strokeWidth}
-                rotation={starElement.rotation}
-                opacity={starElement.opacity}
-                draggable
-                onClick={onSelect}
-                onDragMove={(e) => {
-                  const node = e.target as Konva.Star;
-                  const { newX, newY } = calculateSnappingPosition(
-                    node,
-                    elements,
-                    element,
-                    snapThreshold,
-                    starWidth / 2,
-                    starHeight / 2
-                  );
-                  onChange({
-                    x: newX,
-                    y: newY,
-                    width_percent: toPercent(element.width, stageWidth),
-                    height_percent: toPercent(element.height, stageHeight),
-                    x_percent: toPercent(e.target.x(), stageWidth),
-                    y_percent: toPercent(e.target.y(), stageHeight),
-                  });
-                }}
-                onDragEnd={() => {
-                  setGuides([]);
-                }}
-                onTransform={(e) => {
-                  const node = e.target;
-                  const scaleX = node.scaleX();
-                  const scaleY = node.scaleY();
+  const starElement = element as StarShape;
+  const brandedFillStar = getBrandedFill(starElement);
+  const brandedStrokeStar = getBrandedStroke(starElement);
+  const starWidth = starElement.outerRadius * 2;
+  const starHeight = starElement.outerRadius * 2;
 
-                  const newInnerRadius =
-                    starElement.innerRadius * Math.min(scaleX, scaleY);
-                  const newOuterRadius =
-                    starElement.outerRadius * Math.max(scaleX, scaleY);
+  return (
+    <>
+      {(element.visible ?? true) && (
+        <Star
+          ref={ref}
+          x={starElement.x + starElement.outerRadius} // Shift x to account for outerRadius
+          y={starElement.y + starElement.outerRadius} // Shift y to account for outerRadius
+          innerRadius={starElement.innerRadius}
+          outerRadius={starElement.outerRadius}
+          numPoints={starElement.numPoints}
+          fill={brandedFillStar}
+          stroke={brandedStrokeStar}
+          strokeWidth={starElement.strokeWidth}
+          rotation={starElement.rotation}
+          opacity={starElement.opacity}
+          draggable
+          onClick={onSelect}
+          onDragMove={(e) => {
+            const node = e.target as Konva.Star;
+            const { newX, newY } = calculateSnappingPosition(
+              node,
+              elements,
+              element,
+              snapThreshold,
+              starWidth / 2,
+              starHeight / 2
+            );
 
-                  onChange({
-                    x: node.x(),
-                    y: node.y(),
-                    x_percent: toPercent(node.x(), stageWidth),
-                    y_percent: toPercent(node.y(), stageHeight),
-                    rotation: node.rotation(),
-                    innerRadius: newInnerRadius,
-                    outerRadius: newOuterRadius,
-                  });
+            // Adjust coordinates to represent the top-left corner
+            const adjustedX = newX - starElement.outerRadius;
+            const adjustedY = newY - starElement.outerRadius;
 
-                  node.scaleX(1);
-                  node.scaleY(1);
-                }}
-              />
-            )}
-          </>
-        );
+            onChange({
+              x: adjustedX,
+              y: adjustedY,
+              width_percent: toPercent(starWidth, stageWidth),
+              height_percent: toPercent(starHeight, stageHeight),
+              x_percent: toPercent(adjustedX, stageWidth),
+              y_percent: toPercent(adjustedY, stageHeight),
+            });
 
+            drawGuidelines(node);
+          }}
+          onDragEnd={() => {
+            setGuides([]);
+          }}
+          onTransform={(e) => {
+            const node = e.target;
+            const scaleX = node.scaleX();
+            const scaleY = node.scaleY();
+
+            // Calculate new radii based on scaling
+            const newInnerRadius = starElement.innerRadius * Math.min(scaleX, scaleY);
+            const newOuterRadius = starElement.outerRadius * Math.max(scaleX, scaleY);
+
+            // Adjust coordinates to represent the top-left corner
+            const adjustedX = node.x() - newOuterRadius;
+            const adjustedY = node.y() - newOuterRadius;
+
+            onChange({
+              x: adjustedX,
+              y: adjustedY,
+              x_percent: toPercent(adjustedX, stageWidth),
+              y_percent: toPercent(adjustedY, stageHeight),
+              rotation: node.rotation(),
+              innerRadius: newInnerRadius,
+              outerRadius: newOuterRadius,
+            });
+
+            node.scaleX(1);
+            node.scaleY(1);
+          }}
+        />
+      )}
+    </>
+  );
+      
+  
       case "wedge":
         const wedgeElement = element as WedgeShape;
         const brandedFillWedge = getBrandedFill(wedgeElement);
@@ -2483,13 +2579,14 @@ export const ElementRenderer = forwardRef<any, Props>(
         const brandedStrokeRing = getBrandedStroke(ringElement);
         const ringWidth = ringElement.outerRadius * 2;
         const ringHeight = ringElement.outerRadius * 2;
+
         return (
           <>
             {(element.visible ?? true) && (
               <Ring
                 ref={ref}
-                x={ringElement.x}
-                y={ringElement.y}
+                x={ringElement.x + ringElement.outerRadius} // Shift x to account for outerRadius
+                y={ringElement.y + ringElement.outerRadius} // Shift y to account for outerRadius
                 innerRadius={ringElement.innerRadius}
                 outerRadius={ringElement.outerRadius}
                 fill={brandedFillRing}
@@ -2510,13 +2607,17 @@ export const ElementRenderer = forwardRef<any, Props>(
                     ringHeight / 2
                   );
 
+                  // Adjust coordinates to represent the top-left corner
+                  const adjustedX = newX - ringElement.outerRadius;
+                  const adjustedY = newY - ringElement.outerRadius;
+
                   onChange({
-                    x: newX,
-                    y: newY,
-                    width_percent: toPercent(element.width, stageWidth),
-                    height_percent: toPercent(element.height, stageHeight),
-                    x_percent: toPercent(e.target.x(), stageWidth),
-                    y_percent: toPercent(e.target.y(), stageHeight),
+                    x: adjustedX,
+                    y: adjustedY,
+                    width_percent: toPercent(ringWidth, stageWidth),
+                    height_percent: toPercent(ringHeight, stageHeight),
+                    x_percent: toPercent(adjustedX, stageWidth),
+                    y_percent: toPercent(adjustedY, stageHeight),
                   });
 
                   drawGuidelines(node);
@@ -2530,13 +2631,21 @@ export const ElementRenderer = forwardRef<any, Props>(
                   const scaleY = node.scaleY();
                   const scale = (scaleX + scaleY) / 2;
 
+                  // Calculate new radii based on scaling
+                  const newInnerRadius = ringElement.innerRadius * scale;
+                  const newOuterRadius = ringElement.outerRadius * scale;
+
+                  // Adjust coordinates to represent the top-left corner
+                  const adjustedX = node.x() - newOuterRadius;
+                  const adjustedY = node.y() - newOuterRadius;
+
                   onChange({
-                    x: node.x(),
-                    y: node.y(),
-                    x_percent: toPercent(node.x(), stageWidth),
-                    y_percent: toPercent(node.y(), stageHeight),
-                    innerRadius: ringElement.innerRadius * scale,
-                    outerRadius: ringElement.outerRadius * scale,
+                    x: adjustedX,
+                    y: adjustedY,
+                    x_percent: toPercent(adjustedX, stageWidth),
+                    y_percent: toPercent(adjustedY, stageHeight),
+                    innerRadius: newInnerRadius,
+                    outerRadius: newOuterRadius,
                     rotation: node.rotation(),
                   });
 
@@ -2547,7 +2656,6 @@ export const ElementRenderer = forwardRef<any, Props>(
             )}
           </>
         );
-
       default:
         return null;
     }

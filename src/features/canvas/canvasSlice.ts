@@ -38,23 +38,49 @@ const initialState: CanvasState = {
 
 let shapeIdCounter = 1;
 
-const createBaseElement = (id: string): Omit<CanvasElement, "type"> => ({
-  id,
-  x: 100,
-  y: 100,
-  width: 150,
-  height: 100,
-  x_percent: 0.1,
-  y_percent: 0.1,
-  width_percent: 0.15,
-  height_percent: 0.16,
-  rotation: 0,
-  selected: false,
-  fill: "#00A8E8",
-  opacity: 1,
-  fillBrandingType: "fixed",
-  strokeBrandingType: "fixed",
-});
+// const createBaseElement = (id: string): Omit<CanvasElement, "type"> => ({
+//   id,
+//   x: 100,
+//   y: 100,
+//   width: 150,
+//   height: 100,
+//   x_percent: 0.1,
+//   y_percent: 0.1,
+//   width_percent: 0.15,
+//   height_percent: 0.16,
+//   rotation: 0,
+//   selected: false,
+//   fill: "#00A8E8",
+//   opacity: 1,
+//   fillBrandingType: "fixed",
+//   strokeBrandingType: "fixed",
+// });
+
+
+const createBaseElement = (id: string): Omit<CanvasElement, "type"> => {
+  const width = 150;
+  const height = 100;
+
+  return {
+    id,
+    x: 100, 
+    y: 100,
+    width,
+    height,
+    x_percent: 0.1,
+    y_percent: 0.1,
+    width_percent: 0.15,
+    height_percent: 0.16,
+    rotation: 0,
+    selected: false,
+    fill: "#00A8E8",
+    opacity: 1,
+    fillBrandingType: "fixed",
+    strokeBrandingType: "fixed",
+  };
+};
+
+
 
 const canvasSlice = createSlice({
   name: "canvas",
