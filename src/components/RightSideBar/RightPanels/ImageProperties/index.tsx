@@ -102,17 +102,17 @@ export function ImageProperties({ element }: { element: CanvasElement }) {
       <PositionProperties element={element} />
       <ScaleProperties element={element} />
       <TextInput
-                label={<LuRadius />}
-                type="number"
-                value={globalFrame.borderRadiusSpecial}
-                // onChange={(val) => updateElement({ borderRadius: Number(val) })}
-                onChange={(val) =>
-  dispatch(updateElement({
-    id: globalFrame.id,
-    updates: { borderRadiusSpecial: Math.max(0, Number(val)) }
-  }))
-}
-/>
+        label={<LuRadius />}
+        type="number"
+        value={globalFrame?.borderRadiusSpecial ?? 0}
+        // onChange={(val) => updateElement({ borderRadius: Number(val) })}
+        onChange={(val) =>
+          dispatch(updateElement({
+            id: globalFrame.id,
+            updates: { borderRadiusSpecial: Math.max(0, Number(val)) }
+          }))
+        }
+      />
 
       <SelectInput
         label="Image Fit Mode"
