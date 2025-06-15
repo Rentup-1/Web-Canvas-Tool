@@ -78,8 +78,11 @@ export default function TextProperties({
     ? labelsData.results.map((item) => ({
         id: String(item.id),
         label: item.label,
+        example: item.example
       }))
     : [];
+    console.log(labelOptions);
+    
 
   // Handle tag creation and selection
   const handleLabelsChange = async (val: string | string[]) => {
