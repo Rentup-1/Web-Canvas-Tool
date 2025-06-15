@@ -71,7 +71,7 @@ export interface CanvasFrameElement extends CanvasElement {
   tags: string[];
   label: string;
   assetType: string;
-  position: string;
+  frame_position_in_template: string;
 }
 
 export interface CanvasTextElement extends CanvasElement {
