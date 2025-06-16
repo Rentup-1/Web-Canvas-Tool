@@ -1,8 +1,7 @@
 import { useRef, type FC } from "react";
 import { FaFileImport, FaSave } from "react-icons/fa";
 import { Button } from "../../ui/Button";
-import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
-import type { RootState } from "@/app/store";
+import { useAppDispatch } from "@/hooks/useRedux";
 import {
   setElements,
   setStageSize,
@@ -21,18 +20,7 @@ import { useCanvas } from "@/context/CanvasContext";
 
 const CanvasExportImport: FC = () => {
   const dispatch = useAppDispatch();
-  const { stageRef, handleExportJSON, handleExportPNG, handleExportSVG } =
-    useCanvas();
-  const elements = useAppSelector((state: RootState) => state.canvas.elements);
-  const stageHeight = useAppSelector(
-    (state: RootState) => state.canvas.stageHeight
-  );
-  const stageWidth = useAppSelector(
-    (state: RootState) => state.canvas.stageWidth
-  );
-  const aspectRatio = useAppSelector(
-    (state: RootState) => state.canvas.aspectRatio
-  );
+  const { handleExportJSON, handleExportPNG, handleExportSVG } = useCanvas();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Import handler
