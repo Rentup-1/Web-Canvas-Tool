@@ -8,9 +8,21 @@ import {
   setStageSize,
   setAspectRatio,
 } from "@/features/canvas/canvasSlice";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useCanvas } from "@/context/CanvasContext";
 
 const CanvasExportImport: FC = () => {
   const dispatch = useAppDispatch();
+  const { stageRef, handleExportJSON, handleExportPNG, handleExportSVG } =
+    useCanvas();
   const elements = useAppSelector((state: RootState) => state.canvas.elements);
   const stageHeight = useAppSelector(
     (state: RootState) => state.canvas.stageHeight
@@ -22,29 +34,6 @@ const CanvasExportImport: FC = () => {
     (state: RootState) => state.canvas.aspectRatio
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Export handler
-  const handleExport = () => {
-    const exportData = {
-      elements,
-      stage: {
-        height: stageHeight,
-        width: stageWidth,
-        aspectRatio: aspectRatio,
-      },
-    };
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "canvas-design.json";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
 
   // Import handler
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,7 +61,6 @@ const CanvasExportImport: FC = () => {
             })
           );
           dispatch(setAspectRatio(importedData.stage.aspectRatio));
-          // dispatch(setStageDimensions(importedData.stage));
         } else {
           alert("Invalid file format.");
         }
@@ -100,10 +88,25 @@ const CanvasExportImport: FC = () => {
           className="hidden"
           onChange={handleImport}
         />
-        <Button variant="default" onClick={handleExport}>
-          <FaSave className="mr-2" />
-          Export
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="default">
+              <FaSave className="mr-2" /> Export
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="start">
+            <DropdownMenuLabel>Save As</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={handleExportPNG}>PNG</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportSVG}>SVG</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportJSON}>
+                JSON File
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>Summary File</DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </>
   );
