@@ -52,6 +52,7 @@ interface Props {
   stageWidth: number;
   stageHeight: number;
   setGuides: (guides: GuideLineType[]) => void;
+  stageRef: React.RefObject<Konva.Stage>; // ✅ ضيف دي
 }
 
 interface RootState {
@@ -60,25 +61,101 @@ interface RootState {
   };
 }
 
+type GuideLine = {
+  points: number[];
+  text?: string;
+  textPosition?: { x: number; y: number };
+};
+
+// const calculateSnappingPosition = (
+//   node: Konva.Node,
+//   elements: CanvasElement[],
+//   currentElement: CanvasElement,
+//   snapThreshold: number,
+//   offsetX: number, // e.g., width/2 for Rectangle, radius for Circle
+//   offsetY: number // e.g., height/2 for Rectangle, radius for Circle
+// ): { newX: number; newY: number } => {
+//   const shapeRect = node.getClientRect();
+//   let newX = node.x();
+//   let newY = node.y();
+
+//   // Snapping to other shapes
+//   elements.forEach((otherElement) => {
+//     if (
+//       otherElement.id === currentElement.id ||
+//       !(otherElement.visible ?? true)
+//     )
+//       return;
+
+//     const otherRect = {
+//       x: otherElement.x - otherElement.width / 2,
+//       y: otherElement.y - otherElement.height / 2,
+//       width: otherElement.width,
+//       height: otherElement.height,
+//     };
+
+//     // Horizontal alignment
+//     const currentEdgesY = [
+//       shapeRect.y, // Top
+//       shapeRect.y + shapeRect.height / 2, // Center
+//       shapeRect.y + shapeRect.height, // Bottom
+//     ];
+//     const otherEdgesY = [
+//       otherRect.y, // Top
+//       otherRect.y + otherRect.height / 2, // Center
+//       otherRect.y + otherRect.height, // Bottom
+//     ];
+
+//     currentEdgesY.forEach((currentY) => {
+//       otherEdgesY.forEach((otherY) => {
+//         if (Math.abs(currentY - otherY) < snapThreshold) {
+//           newY = otherY + offsetY - (currentY - shapeRect.y);
+//         }
+//       });
+//     });
+
+//     // Vertical alignment
+//     const currentEdgesX = [
+//       shapeRect.x, // Left
+//       shapeRect.x + shapeRect.width / 2, // Center
+//       shapeRect.x + shapeRect.width, // Right
+//     ];
+//     const otherEdgesX = [
+//       otherRect.x, // Left
+//       otherRect.x + otherRect.width / 2, // Center
+//       otherRect.x + otherRect.width, // Right
+//     ];
+
+//     currentEdgesX.forEach((currentX) => {
+//       otherEdgesX.forEach((otherX) => {
+//         if (Math.abs(currentX - otherX) < snapThreshold) {
+//           newX = otherX + offsetX - (currentX - shapeRect.x);
+//         }
+//       });
+//     });
+//   });
+
+//   return { newX, newY };
+// };
+
+// Utility function to load Google Fonts dynamically
+
 const calculateSnappingPosition = (
   node: Konva.Node,
   elements: CanvasElement[],
   currentElement: CanvasElement,
   snapThreshold: number,
-  offsetX: number, // e.g., width/2 for Rectangle, radius for Circle
-  offsetY: number // e.g., height/2 for Rectangle, radius for Circle
+  offsetX: number,
+  offsetY: number
 ): { newX: number; newY: number } => {
   const shapeRect = node.getClientRect();
   let newX = node.x();
   let newY = node.y();
+  let minDistanceX = snapThreshold + 1;
+  let minDistanceY = snapThreshold + 1;
 
-  // Snapping to other shapes
   elements.forEach((otherElement) => {
-    if (
-      otherElement.id === currentElement.id ||
-      !(otherElement.visible ?? true)
-    )
-      return;
+    if (otherElement.id === currentElement.id || !(otherElement.visible ?? true)) return;
 
     const otherRect = {
       x: otherElement.x - otherElement.width / 2,
@@ -89,19 +166,21 @@ const calculateSnappingPosition = (
 
     // Horizontal alignment
     const currentEdgesY = [
-      shapeRect.y, // Top
-      shapeRect.y + shapeRect.height / 2, // Center
-      shapeRect.y + shapeRect.height, // Bottom
+      shapeRect.y,
+      shapeRect.y + shapeRect.height / 2,
+      shapeRect.y + shapeRect.height,
     ];
     const otherEdgesY = [
-      otherRect.y, // Top
-      otherRect.y + otherRect.height / 2, // Center
-      otherRect.y + otherRect.height, // Bottom
+      otherRect.y,
+      otherRect.y + otherRect.height / 2,
+      otherRect.y + otherRect.height,
     ];
 
     currentEdgesY.forEach((currentY) => {
       otherEdgesY.forEach((otherY) => {
-        if (Math.abs(currentY - otherY) < snapThreshold) {
+        const distance = Math.abs(currentY - otherY);
+        if (distance < snapThreshold && distance < minDistanceY) {
+          minDistanceY = distance;
           newY = otherY + offsetY - (currentY - shapeRect.y);
         }
       });
@@ -109,19 +188,21 @@ const calculateSnappingPosition = (
 
     // Vertical alignment
     const currentEdgesX = [
-      shapeRect.x, // Left
-      shapeRect.x + shapeRect.width / 2, // Center
-      shapeRect.x + shapeRect.width, // Right
+      shapeRect.x,
+      shapeRect.x + shapeRect.width / 2,
+      shapeRect.x + shapeRect.width,
     ];
     const otherEdgesX = [
-      otherRect.x, // Left
-      otherRect.x + otherRect.width / 2, // Center
-      otherRect.x + otherRect.width, // Right
+      otherRect.x,
+      otherRect.x + otherRect.width / 2,
+      otherRect.x + otherRect.width,
     ];
 
     currentEdgesX.forEach((currentX) => {
       otherEdgesX.forEach((otherX) => {
-        if (Math.abs(currentX - otherX) < snapThreshold) {
+        const distance = Math.abs(currentX - otherX);
+        if (distance < snapThreshold && distance < minDistanceX) {
+          minDistanceX = distance;
           newX = otherX + offsetX - (currentX - shapeRect.x);
         }
       });
@@ -131,7 +212,8 @@ const calculateSnappingPosition = (
   return { newX, newY };
 };
 
-// Utility function to load Google Fonts dynamically
+
+
 const loadGoogleFont = (fontFamily: string) => {
   // Check if font is already loaded to avoid duplicates
   if (
@@ -153,27 +235,19 @@ const loadGoogleFont = (fontFamily: string) => {
 // Update the ElementRenderer to apply stroke and strokeWidth to all shapes
 export const ElementRenderer = forwardRef<any, Props>(
   (
-    { element, onSelect, onChange, stageWidth, stageHeight, setGuides },
+    { element, onSelect, onChange, stageWidth, stageHeight, setGuides , stageRef },
     ref
   ) => {
     const elements = useSelector((store: any) => store.canvas.elements);
     const dispatch = useAppDispatch();
-    const snapThreshold = 2;
+    const snapThreshold = 6;
     const { toPercent } = usePercentConverter();
     const { resolveColor, resolveFont } = useBrandingResolver();
     const brandingFamilies = useSelector(
       (state: any) => state.branding.fontFamilies
     ); // Added to check isFile
+    const [guideLines] = useState<{ x?: number; y?: number }>({});
 
-    // const getBrandedFill = (element: CanvasElement) => {
-    //   return resolveColor(element.fill, element.fillBrandingType);
-    // };
-    // const getBrandedFillText = (element: CanvasTextElement) => {
-    //   return resolveColor(
-    //     element.background ?? "#fff",
-    //     element.fillBrandingType
-    //   );
-    // };
 
     const isBrandingType = (value: any): value is BrandingType => {
       return value === "fixed" || value === "dynamic";
@@ -203,151 +277,69 @@ export const ElementRenderer = forwardRef<any, Props>(
       return resolveColor(element.stroke || "#000000", brandingType);
     };
 
-
-
     const drawGuidelines = (node: Konva.Node) => {
-      const shapeRect = node.getClientRect();
-      const guidelines: {
-        points: number[];
-        text?: string;
-        textPosition?: { x: number; y: number };
-      }[] = [];
+  const nodeBox = node.getClientRect();
+  const threshold = 5;
+  const newGuides: GuideLine[] = [];
 
-      // Shape-to-shape alignment guidelines
-      elements.forEach((otherElement: CanvasElement) => {
-        if (otherElement.id === element.id || !(otherElement.visible ?? true))
-          return; // Skip self and invisible elements
+  elements.forEach((el) => {
+    if (el.id === element.id) return;
 
-        const otherRect = {
-          x: otherElement.x - otherElement.width / 2,
-          y: otherElement.y - otherElement.height / 2,
-          width: otherElement.width,
-          height: otherElement.height,
-        };
+    const otherNode = stageRef.current?.findOne(`#${el.id}`);
+    if (!otherNode) return;
 
-        // Horizontal alignment (top, center, bottom)
-        const currentEdgesY = [
-          shapeRect.y, // Top
-          shapeRect.y + shapeRect.height / 2, // Center
-          shapeRect.y + shapeRect.height, // Bottom
-        ];
-        const otherEdgesY = [
-          otherRect.y, // Top
-          otherRect.y + otherRect.height / 2, // Center
-          otherRect.y + otherRect.height, // Bottom
-        ];
+    const otherBox = otherNode.getClientRect();
 
-        currentEdgesY.forEach((currentY) => {
-          otherEdgesY.forEach((otherY) => {
-            if (Math.abs(currentY - otherY) < snapThreshold) {
-              // Determine closest edges for the line
-              const shapeRight = shapeRect.x + shapeRect.width;
-              const otherLeft = otherRect.x;
-              const shapeLeft = shapeRect.x;
-              const otherRight = otherRect.x + otherRect.width;
-
-              let lineX1, lineX2, distance;
-              if (shapeRight <= otherLeft) {
-                // Shape is to the left of other shape
-                lineX1 = shapeRight;
-                lineX2 = otherLeft;
-                distance = Math.round(otherLeft - shapeRight);
-              } else if (otherRight <= shapeLeft) {
-                // Other shape is to the left of shape
-                lineX1 = otherRight;
-                lineX2 = shapeLeft;
-                distance = Math.round(shapeLeft - otherRight);
-              } else {
-                // Overlapping shapes, use minimal line
-                lineX1 = Math.max(shapeRect.x, otherRect.x);
-                lineX2 = Math.min(
-                  shapeRect.x + shapeRect.width,
-                  otherRect.x + otherRect.width
-                );
-                distance = 0; // No distance if overlapping
-              }
-
-              if (lineX1 < lineX2) {
-                guidelines.push({
-                  points: [lineX1, currentY, lineX2, currentY],
-                  text: distance > 0 ? `${distance}px` : undefined, // Show text only if there's a gap
-                  textPosition:
-                    distance > 0
-                      ? {
-                          x: (lineX1 + lineX2) / 2,
-                          y: currentY + 10, // Below the line
-                        }
-                      : undefined,
-                });
-              }
-            }
-          });
-        });
-
-        // Vertical alignment (left, center, right)
-        const currentEdgesX = [
-          shapeRect.x, // Left
-          shapeRect.x + shapeRect.width / 2, // Center
-          shapeRect.x + shapeRect.width, // Right
-        ];
-        const otherEdgesX = [
-          otherRect.x, // Left
-          otherRect.x + otherRect.width / 2, // Center
-          otherRect.x + otherRect.width, // Right
-        ];
-
-        currentEdgesX.forEach((currentX) => {
-          otherEdgesX.forEach((otherX) => {
-            if (Math.abs(currentX - otherX) < snapThreshold) {
-              // Determine closest edges for the line
-              const shapeBottom = shapeRect.y + shapeRect.height;
-              const otherTop = otherRect.y;
-              const shapeTop = shapeRect.y;
-              const otherBottom = otherRect.y + otherRect.height;
-
-              let lineY1, lineY2, distance;
-              if (shapeBottom <= otherTop) {
-                // Shape is above other shape
-                lineY1 = shapeBottom;
-                lineY2 = otherTop;
-                distance = Math.round(otherTop - shapeBottom);
-              } else if (otherBottom <= shapeTop) {
-                // Other shape is above shape
-                lineY1 = otherBottom;
-                lineY2 = shapeTop;
-                distance = Math.round(shapeTop - otherBottom);
-              } else {
-                // Overlapping shapes, use minimal line
-                lineY1 = Math.max(shapeRect.y, otherRect.y);
-                lineY2 = Math.min(
-                  shapeRect.y + shapeRect.height,
-                  otherRect.y + otherRect.height
-                );
-                distance = 0; // No distance if overlapping
-              }
-
-              if (lineY1 < lineY2) {
-                guidelines.push({
-                  points: [currentX, lineY1, currentX, lineY2],
-                  text: distance > 0 ? `${distance}px` : undefined, // Show text only if there's a gap
-                  textPosition:
-                    distance > 0
-                      ? {
-                          x: currentX + 10, // Right of the line
-                          y: (lineY1 + lineY2) / 2,
-                        }
-                      : undefined,
-                });
-              }
-            }
-          });
-        });
+    // ✅ Left ↔ Left
+    const leftDiff = Math.abs(nodeBox.x - otherBox.x);
+    if (leftDiff < threshold) {
+      newGuides.push({
+        points: [otherBox.x, 0, otherBox.x, stageHeight],
+        text: `${leftDiff.toFixed(0)}px`,
+        textPosition: { x: otherBox.x + 5, y: 10 },
       });
+    }
 
-      setGuides(guidelines);
+    // ✅ Right ↔ Right
+    const rightDiff = Math.abs(
+      nodeBox.x + nodeBox.width - (otherBox.x + otherBox.width)
+    );
+    if (rightDiff < threshold) {
+      const x = otherBox.x + otherBox.width;
+      newGuides.push({
+        points: [x, 0, x, stageHeight],
+        text: `${rightDiff.toFixed(0)}px`,
+        textPosition: { x: x + 5, y: 10 },
+      });
+    }
+
+    // ✅ Top ↔ Top
+    const topDiff = Math.abs(nodeBox.y - otherBox.y);
+    if (topDiff < threshold) {
+      newGuides.push({
+        points: [0, otherBox.y, stageWidth, otherBox.y],
+        text: `${topDiff.toFixed(0)}px`,
+        textPosition: { x: 10, y: otherBox.y + 5 },
+      });
+    }
+
+    // ✅ Bottom ↔ Bottom
+    const bottomDiff = Math.abs(
+      nodeBox.y + nodeBox.height - (otherBox.y + otherBox.height)
+    );
+    if (bottomDiff < threshold) {
+      const y = otherBox.y + otherBox.height;
+      newGuides.push({
+        points: [0, y, stageWidth, y],
+        text: `${bottomDiff.toFixed(0)}px`,
+        textPosition: { x: 10, y: y + 5 },
+      });
+    }
+  });
+
+  setGuides(newGuides);
     };
 
-    
     switch (element.type) {
       
       case "text":
@@ -770,589 +762,6 @@ export const ElementRenderer = forwardRef<any, Props>(
           </>
         );
       }
-
-      // case "image": {
-      //   const [image] = useImage(element.src || "");
-      //   const frame = elements.find(
-      //     (f: CanvasElement) => f.id === element.frameId
-      //   );
-      //   const wasOverFrameRef = useRef(false);
-      //   const [currentFitMode, setCurrentFitMode] = useState(
-      //     element.fitMode || "fill"
-      //   );
-      //   const isDraggingImageRef = useRef(false);
-      //   const [isMovable, setIsMovable] = useState(false); // New state to track if image is movable
-
-      //   const applyFitMode = (
-      //     newFitMode: string,
-      //     targetFrame: CanvasElement
-      //   ) => {
-      //     const frameAspect = targetFrame.width / targetFrame.height;
-      //     const imgAspect = element.width / element.height;
-
-      //     let newWidth, newHeight, offsetX, offsetY;
-
-      //     switch (newFitMode) {
-      //       case "fit":
-      //         if (imgAspect > frameAspect) {
-      //           newWidth = targetFrame.width;
-      //           newHeight = targetFrame.width / imgAspect;
-      //         } else {
-      //           newHeight = targetFrame.height;
-      //           newWidth = targetFrame.height * imgAspect;
-      //         }
-      //         break;
-
-      //       case "fill":
-      //         if (imgAspect < frameAspect) {
-      //           newWidth = targetFrame.width;
-      //           newHeight = targetFrame.width / imgAspect;
-      //         } else {
-      //           newHeight = targetFrame.height;
-      //           newWidth = targetFrame.height * imgAspect;
-      //         }
-      //         break;
-
-      //       case "stretch":
-      //         newWidth = targetFrame.width;
-      //         newHeight = targetFrame.height;
-      //         break;
-
-      //       default:
-      //         if (imgAspect < frameAspect) {
-      //           newWidth = targetFrame.width;
-      //           newHeight = targetFrame.width / imgAspect;
-      //         } else {
-      //           newHeight = targetFrame.height;
-      //           newWidth = targetFrame.height * imgAspect;
-      //         }
-      //         break;
-      //     }
-
-      //     offsetX = (targetFrame.width - newWidth) / 2;
-      //     offsetY = (targetFrame.height - newHeight) / 2;
-
-      //     onChange({
-      //       x: targetFrame.x + offsetX,
-      //       y: targetFrame.y + offsetY,
-      //       width: newWidth,
-      //       height: newHeight,
-      //       frameId: targetFrame.id,
-      //       fitMode: newFitMode,
-      //       width_percent: toPercent(newWidth, stageWidth),
-      //       height_percent: toPercent(newHeight, stageHeight),
-      //       x_percent: toPercent(targetFrame.x + offsetX, stageWidth),
-      //       y_percent: toPercent(targetFrame.y + offsetY, stageHeight),
-      //     });
-
-      //     // dispatch(
-      //     //   updateElement({
-      //     //     id: targetFrame.id,
-      //     //     updates: {
-      //     //       fitMode: newFitMode,
-      //     //     },
-      //     //   })
-      //     // );
-
-      //   };
-
-      //   if (frame) {
-      //     return (
-      //       <>
-      //         <Group
-      //           x={frame.x}
-      //           y={frame.y}
-      //           clipFunc={(ctx) => {
-      //             ctx.rect(0, 0, frame.width, frame.height);
-      //           }}
-      //           draggable
-      //           onDragMove={(e) => {
-      //             const node = e.target as Konva.Group;
-      //             const newX = node.x();
-      //             const newY = node.y();
-
-      //             // const { newX, newY } = calculateSnappingPosition(
-      //             //   node,
-      //             //   elements,
-      //             //   element,
-      //             //   snapThreshold,
-      //             //   frame.width / 2,
-      //             //   frame.height / 2
-      //             // );
-
-      //             // Update frame position
-      //             dispatch(
-      //               updateElement({
-      //                 id: frame.id,
-      //                 updates: {
-      //                   x: newX,
-      //                   y: newY,
-      //                   width_percent: toPercent(frame.width, stageWidth),
-      //                   height_percent: toPercent(frame.height, stageHeight),
-      //                   x_percent: toPercent(newX, stageWidth),
-      //                   y_percent: toPercent(newY, stageHeight),
-      //                 },
-      //               })
-      //             );
-
-      //             // Update image position to stay aligned with frame
-      //             const offsetX = (frame.width - element.width) / 2;
-      //             const offsetY = (frame.height - element.height) / 2;
-      //             onChange({
-      //               x: newX + offsetX,
-      //               y: newY + offsetY,
-      //               width: element.width,
-      //               height: element.height,
-      //               frameId: frame.id,
-      //               fitMode: currentFitMode,
-      //               width_percent: toPercent(element.width, stageWidth),
-      //               height_percent: toPercent(element.height, stageHeight),
-      //               x_percent: toPercent(newX + offsetX, stageWidth),
-      //               y_percent: toPercent(newY + offsetY, stageHeight),
-      //             });
-
-      //             console.log(frame);
-
-      //             // drawGuidelines(node)
-
-      //           }}
-
-      //           // onDragEnd={() => {
-      //           //   setGuides([]);
-      //           // }}
-
-      //           onClick={() => {
-      //             if (onSelect) {
-      //               onSelect();
-      //             }
-      //           }}
-      //         >
-      //           <KonvaImage
-      //             ref={ref}
-      //             image={image}
-      //             x={element.x - frame.x} // Relative to frame
-      //             y={element.y - frame.y} // Relative to frame
-      //             width={element.width}
-      //             height={element.height}
-      //             draggable={isMovable} // Draggable only when isMovable is true
-      //             onClick={() => {
-      //               if (onSelect) {
-      //                 onSelect();
-      //               }
-      //             }}
-      //             onDblClick={() => {
-      //               setIsMovable((prev) => !prev); // Toggle movable state on double-click
-      //             }}
-      //             onDragStart={() => {
-      //               isDraggingImageRef.current = true;
-      //             }}
-      //             onDragMove={(e) => {
-      //               if (!isDraggingImageRef.current || !isMovable) return;
-
-      //               const imageNode = e.target;
-      //               let newX = imageNode.x(); // Relative to frame
-      //               let newY = imageNode.y(); // Relative to frame
-
-      //               // Constrain image position within frame boundaries
-      //               const minX = -(element.width - frame.width) / 2;
-      //               const maxX = (element.width - frame.width) / 2;
-      //               const minY = -(element.height - frame.height) / 2;
-      //               const maxY = (element.height - frame.height) / 2;
-
-      //               newX = Math.max(minX, Math.min(maxX, newX));
-      //               newY = Math.max(minY, Math.min(maxY, newY));
-
-      //               // Calculate new frame position to move with image
-      //               const newFrameX = frame.x + newX - (element.x - frame.x);
-      //               const newFrameY = frame.y + newY - (element.y - frame.y);
-
-      //               // Update frame position
-      //               dispatch(
-      //                 updateElement({
-      //                   id: frame.id,
-      //                   updates: {
-      //                     x: newFrameX,
-      //                     y: newFrameY,
-      //                     width_percent: toPercent(frame.width, stageWidth),
-      //                     height_percent: toPercent(frame.height, stageHeight),
-      //                     x_percent: toPercent(newFrameX, stageWidth),
-      //                     y_percent: toPercent(newFrameY, stageHeight),
-      //                   },
-      //                 })
-      //               );
-
-      //               // Update image position
-      //               onChange({
-      //                 x: newFrameX + newX,
-      //                 y: newFrameY + newY,
-      //                 width: element.width,
-      //                 height: element.height,
-      //                 width_percent: toPercent(element.width, stageWidth),
-      //                 height_percent: toPercent(element.height, stageHeight),
-      //                 x_percent: toPercent(newFrameX + newX, stageWidth),
-      //                 y_percent: toPercent(newFrameY + newY, stageHeight),
-      //               });
-      //               drawGuidelines(imageNode)
-      //             }}
-      //             onDragEnd={() => {
-      //               isDraggingImageRef.current = false;
-      //               setGuides([]);
-      //             }}
-      //             onTransform={(e) => {
-      //               const node = e.target;
-      //               const oldWidth = element.width;
-      //               const oldHeight = element.height;
-      //               const newWidth = node.width() * node.scaleX();
-      //               const newHeight = node.height() * node.scaleY();
-      //               const newX = node.x(); // Relative to frame
-      //               const newY = node.y(); // Relative to frame
-
-      //               // Calculate new absolute image position
-      //               const newImageX = newX + frame.x;
-      //               const newImageY = newY + frame.y;
-
-      //               // Update image
-      //               onChange({
-      //                 x: newImageX,
-      //                 y: newImageY,
-      //                 width: newWidth,
-      //                 height: newHeight,
-      //                 rotation: node.rotation(),
-      //                 width_percent: toPercent(newWidth, stageWidth),
-      //                 height_percent: toPercent(newHeight, stageHeight),
-      //                 x_percent: toPercent(newImageX, stageWidth),
-      //                 y_percent: toPercent(newImageY, stageHeight),
-      //               });
-
-      //               // Reset scale to avoid compounding
-      //               node.scaleX(1);
-      //               node.scaleY(1);
-
-      //               // Update frame size to match image resize
-      //               const scaleX = newWidth / oldWidth;
-      //               const scaleY = newHeight / oldHeight;
-      //               const newFrameWidth = frame.width * scaleX;
-      //               const newFrameHeight = frame.height * scaleY;
-
-      //               // Center the frame around the image
-      //               const imageCenterX = newImageX + newWidth / 2;
-      //               const imageCenterY = newImageY + newHeight / 2;
-      //               const newFrameX = imageCenterX - newFrameWidth / 2;
-      //               const newFrameY = imageCenterY - newFrameHeight / 2;
-
-      //               dispatch(
-      //                 updateElement({
-      //                   id: frame.id,
-      //                   updates: {
-      //                     x: newFrameX,
-      //                     y: newFrameY,
-      //                     width: newFrameWidth,
-      //                     height: newFrameHeight,
-      //                     rotation: node.rotation(),
-      //                     width_percent: toPercent(newFrameWidth, stageWidth),
-      //                     height_percent: toPercent(
-      //                       newFrameHeight,
-      //                       stageHeight
-      //                     ),
-      //                     x_percent: toPercent(newFrameX, stageWidth),
-      //                     y_percent: toPercent(newFrameY, stageHeight),
-      //                   },
-      //                 })
-      //               );
-      //             }}
-      //           />
-      //         </Group>
-      //       </>
-      //     );
-      //   }
-
-      //   // Image without a frame (unchanged)
-      //   return (
-      //     <>
-      //       {(element.visible ?? true) && (
-      //         <KonvaImage
-      //           ref={ref}
-      //           image={image}
-      //           x={element.x}
-      //           y={element.y}
-      //           width={element.width}
-      //           height={element.height}
-      //           draggable
-      //           onClick={() => {
-      //             if (onSelect) {
-      //               onSelect();
-      //             }
-      //           }}
-      //           onDragMove={(e) => {
-      //             const imageNode = e.target;
-      //             const imgX = imageNode.x();
-      //             const imgY = imageNode.y();
-      //             const imgW = imageNode.width();
-      //             const imgH = imageNode.height();
-
-      //             const centerX = imgX + imgW / 2;
-      //             const centerY = imgY + imgH / 2;
-
-      //             dispatch(
-      //               updateElement({
-      //                 id: element.id,
-      //                 updates: {
-      //                   x: imgX,
-      //                   y: imgY,
-      //                   width_percent: toPercent(imgW, stageWidth),
-      //                   height_percent: toPercent(imgH, stageHeight),
-      //                   x_percent: toPercent(imgX, stageWidth),
-      //                   y_percent: toPercent(imgY, stageHeight),
-      //                 },
-      //               })
-      //             );
-
-      //             const frames = elements
-      //               .filter(
-      //                 (el: CanvasElement) =>
-      //                   el.type === "frame" &&
-      //                   centerX >= el.x &&
-      //                   centerX <= el.x + el.width &&
-      //                   centerY >= el.y &&
-      //                   centerY <= el.y + el.height
-      //               )
-      //               .sort(
-      //                 (a: CanvasElement, b: CanvasElement) =>
-      //                   elements.indexOf(b) - elements.indexOf(a)
-      //               );
-
-      //             const frame = frames[0];
-
-      //             if (!frame) {
-      //               wasOverFrameRef.current = false;
-      //               return;
-      //             }
-
-      //             const isAlreadyHasImage = elements.some(
-      //               (el: CanvasElement) =>
-      //                 el.type === "image" &&
-      //                 el.frameId === frame.id &&
-      //                 el.id !== element.id
-      //             );
-
-      //             if (isAlreadyHasImage) {
-      //               return;
-      //             }
-
-      //             if (!wasOverFrameRef.current) {
-      //               const frameAspect = frame.width / frame.height;
-      //               const imgAspect = imgW / imgH;
-
-      //               let newWidth, newHeight, offsetX, offsetY;
-
-      //               switch (currentFitMode) {
-      //                 case "fit":
-      //                   if (imgAspect > frameAspect) {
-      //                     newWidth = frame.width;
-      //                     newHeight = frame.width / imgAspect;
-      //                   } else {
-      //                     newHeight = frame.height;
-      //                     newWidth = frame.height * imgAspect;
-      //                   }
-      //                   break;
-
-      //                 case "fill":
-      //                   if (imgAspect < frameAspect) {
-      //                     newWidth = frame.width;
-      //                     newHeight = frame.width / imgAspect;
-      //                   } else {
-      //                     newHeight = frame.height;
-      //                     newWidth = frame.height * imgAspect;
-      //                   }
-      //                   break;
-
-      //                 case "stretch":
-      //                   newWidth = frame.width;
-      //                   newHeight = frame.height;
-      //                   break;
-
-      //                 default:
-      //                   if (imgAspect < frameAspect) {
-      //                     newWidth = frame.width;
-      //                     newHeight = frame.width / imgAspect;
-      //                   } else {
-      //                     newHeight = frame.height;
-      //                     newWidth = frame.height * imgAspect;
-      //                   }
-      //                   break;
-      //               }
-
-      //               offsetX = (frame.width - newWidth) / 2;
-      //               offsetY = (frame.height - newHeight) / 2;
-
-      //               onChange({
-      //                 x: frame.x + offsetX,
-      //                 y: frame.y + offsetY,
-      //                 width: newWidth,
-      //                 height: newHeight,
-      //                 frameId: frame.id,
-      //                 fitMode: currentFitMode,
-      //                 width_percent: toPercent(newWidth, stageWidth),
-      //                 height_percent: toPercent(newHeight, stageHeight),
-      //                 x_percent: toPercent(frame.x + offsetX, stageWidth),
-      //                 y_percent: toPercent(frame.y + offsetY, stageHeight),
-      //               });
-
-      //               wasOverFrameRef.current = true;
-      //             }
-      //           }}
-      //           onDragEnd={(e) => {
-      //             const img = e.target;
-      //             const imgW = img.width();
-      //             const imgH = img.height();
-
-      //             const centerX = img.x() + imgW / 2;
-      //             const centerY = img.y() + imgH / 2;
-
-      //             const frames = elements
-      //               .filter(
-      //                 (el: CanvasElement) =>
-      //                   el.type === "frame" &&
-      //                   centerX >= el.x &&
-      //                   centerX <= el.x + el.width &&
-      //                   centerY >= el.y &&
-      //                   centerY <= el.y + el.height
-      //               )
-      //               .sort(
-      //                 (a: CanvasElement, b: CanvasElement) =>
-      //                   elements.indexOf(b) - elements.indexOf(a)
-      //               );
-
-      //             const frame = frames[0];
-
-      //             if (frame) {
-      //               const isAlreadyHasImage = elements.some(
-      //                 (el: CanvasElement) =>
-      //                   el.type === "image" &&
-      //                   el.frameId === frame.id &&
-      //                   el.id !== element.id
-      //               );
-
-      //               if (isAlreadyHasImage) {
-      //                 onChange({ x: img.x(), y: img.y(), frameId: null });
-      //                 wasOverFrameRef.current = false;
-      //                 return;
-      //               }
-
-      //               const frameAspect = frame.width / frame.height;
-      //               const imgAspect = imgW / imgH;
-
-      //               let newWidth, newHeight, offsetX, offsetY;
-
-      //               switch (currentFitMode) {
-      //                 case "fit":
-      //                   if (imgAspect > frameAspect) {
-      //                     newWidth = frame.width;
-      //                     newHeight = frame.width / imgAspect;
-      //                   } else {
-      //                     newHeight = frame.height;
-      //                     newWidth = frame.height * imgAspect;
-      //                   }
-      //                   break;
-
-      //                 case "fill":
-      //                   if (imgAspect < frameAspect) {
-      //                     newWidth = frame.width;
-      //                     newHeight = frame.width / imgAspect;
-      //                   } else {
-      //                     newHeight = frame.height;
-      //                     newWidth = frame.height * imgAspect;
-      //                   }
-      //                   break;
-
-      //                 case "stretch":
-      //                   newWidth = frame.width;
-      //                   newHeight = frame.height;
-      //                   break;
-
-      //                 default:
-      //                   if (imgAspect < frameAspect) {
-      //                     newWidth = frame.width;
-      //                     newHeight = frame.width / imgAspect;
-      //                   } else {
-      //                     newHeight = frame.height;
-      //                     newWidth = frame.height * imgAspect;
-      //                   }
-      //                   break;
-      //               }
-
-      //               offsetX = (frame.width - newWidth) / 2;
-      //               offsetY = (frame.height - newHeight) / 2;
-
-      //               onChange({
-      //                 x: frame.x + offsetX,
-      //                 y: frame.y + offsetY,
-      //                 width: newWidth,
-      //                 height: newHeight,
-      //                 frameId: frame.id,
-      //                 fitMode: currentFitMode,
-      //                 width_percent: toPercent(newWidth, stageWidth),
-      //                 height_percent: toPercent(newHeight, stageHeight),
-      //                 x_percent: toPercent(frame.x + offsetX, stageWidth),
-      //                 y_percent: toPercent(frame.y + offsetY, stageHeight),
-      //               });
-      //             } else {
-      //               onChange({ x: img.x(), y: img.y(), frameId: null });
-      //             }
-
-      //             wasOverFrameRef.current = false;
-      //           }}
-      //           onTransform={(e) => {
-      //             const node = e.target;
-      //             const newWidth = node.width() * node.scaleX();
-      //             const newHeight = node.height() * node.scaleY();
-      //             const newX = node.x();
-      //             const newY = node.y();
-
-      //             onChange({
-      //               x: newX,
-      //               y: newY,
-      //               width: newWidth,
-      //               height: newHeight,
-      //               rotation: node.rotation(),
-      //               width_percent: toPercent(newWidth, stageWidth),
-      //               height_percent: toPercent(newHeight, stageHeight),
-      //               x_percent: toPercent(newX, stageWidth),
-      //               y_percent: toPercent(newY, stageHeight),
-      //             });
-
-      //             node.scaleX(1);
-      //             node.scaleY(1);
-      //           }}
-      //         />
-      //       )}
-      //       {element.isSelected && (
-      //         <div
-      //           style={{
-      //             position: "absolute",
-      //             top: 10,
-      //             left: 10,
-      //             zIndex: 1000,
-      //           }}
-      //         >
-      //           <select
-      //             value={currentFitMode}
-      //             onChange={(e) => {
-      //               setCurrentFitMode(e.target.value);
-      //               if (frame) {
-      //                 applyFitMode(e.target.value, frame);
-      //               }
-      //             }}
-      //           >
-      //             <option value="fit">Fit</option>
-      //             <option value="fill">Fill</option>
-      //             <option value="stretch">Stretch</option>
-      //           </select>
-      //         </div>
-      //       )}
-      //     </>
-      //   );
-      // }
 
       case "image": {
         const [image] = useImage(element.src || "");
@@ -1981,77 +1390,85 @@ export const ElementRenderer = forwardRef<any, Props>(
         }
         return (
           <>
-            {(element.visible ?? true) && (
-              <Rect
-                ref={ref}
-                x={rectangleElement.x}
-                y={rectangleElement.y}
-                width={rectangleElement.width}
-                height={rectangleElement.height}
-                fill={brandedFillRect}
-                stroke={brandedStrokeRect}
-                strokeWidth={rectangleElement.strokeWidth}
-                rotation={rectangleElement.rotation}
-                cornerRadius={cornerRadiusValue}
-                opacity={rectangleElement.opacity}
-                draggable
-                // offsetX={rectangleElement.width / 2}
-                // offsetY={rectangleElement.height / 2}
-                onClick={onSelect}
-                onDragMove={(e) => {
-                  const node = e.target as Konva.Rect;
-                  const { newX, newY } = calculateSnappingPosition(
-                    node,
-                    elements,
-                    element,
-                    snapThreshold,
-                    rectangleElement.width / 2,
-                    rectangleElement.height / 2
-                  );
+  {(element.visible ?? true) && (
+    <>
+      <Rect
+        ref={ref}
+        id={element.id?.toString()} // مهم علشان نجيب العنصر نفسه
+        x={rectangleElement.x}
+        y={rectangleElement.y}
+        width={rectangleElement.width}
+        height={rectangleElement.height}
+        fill={brandedFillRect}
+        stroke={brandedStrokeRect}
+        strokeWidth={rectangleElement.strokeWidth}
+        rotation={rectangleElement.rotation}
+        cornerRadius={cornerRadiusValue}
+        opacity={rectangleElement.opacity}
+        draggable
+        onClick={onSelect}
+        onDragMove={(e) => {
+          const node = e.target as Konva.Rect;
+          const newX = node.x();
+          const newY = node.y();
 
-                  onChange({
-                    x: newX,
-                    y: newY,
-                    width_percent: toPercent(
-                      rectangleElement.width,
-                      stageWidth
-                    ),
-                    height_percent: toPercent(
-                      rectangleElement.height,
-                      stageHeight
-                    ),
-                    x_percent: toPercent(newX, stageWidth),
-                    y_percent: toPercent(newY, stageHeight),
-                  });
+          onChange({
+            x: newX,
+            y: newY,
+            width_percent: toPercent(rectangleElement.width, stageWidth),
+            height_percent: toPercent(rectangleElement.height, stageHeight),
+            x_percent: toPercent(newX, stageWidth),
+            y_percent: toPercent(newY, stageHeight),
+          });
 
-                  drawGuidelines(node);
-                }}
-                onDragEnd={() => {
-                  setGuides([]);
-                }}
-                onTransform={(e) => {
-                  const node = e.target;
-                  const newWidth = node.width() * node.scaleX();
-                  const newHeight = node.height() * node.scaleY();
+          drawGuidelines(node); // ← نرسم الخطوط فقط لو فيه قرب من عنصر تاني
+        }}
+        onDragEnd={() => {
+          setGuides([]); // ← نفضي الخطوط لما نسحب
+        }}
+        onTransform={(e) => {
+          const node = e.target;
+          const newWidth = node.width() * node.scaleX();
+          const newHeight = node.height() * node.scaleY();
 
-                  onChange({
-                    x: node.x(),
-                    y: node.y(),
-                    width: newWidth,
-                    height: newHeight,
-                    width_percent: toPercent(newWidth, stageWidth),
-                    height_percent: toPercent(newHeight, stageHeight),
-                    x_percent: toPercent(node.x(), stageWidth),
-                    y_percent: toPercent(node.y(), stageHeight),
-                    rotation: node.rotation(),
-                  });
+          onChange({
+            x: node.x(),
+            y: node.y(),
+            width: newWidth,
+            height: newHeight,
+            width_percent: toPercent(newWidth, stageWidth),
+            height_percent: toPercent(newHeight, stageHeight),
+            x_percent: toPercent(node.x(), stageWidth),
+            y_percent: toPercent(node.y(), stageHeight),
+            rotation: node.rotation(),
+          });
 
-                  node.scaleX(1);
-                  node.scaleY(1);
-                }}
-              />
-            )}
-          </>
+          node.scaleX(1);
+          node.scaleY(1);
+        }}
+      />
+
+      {/* ✅ خطوط الإرشاد */}
+      {guideLines.x && (
+        <Line
+          points={[guideLines.x, 0, guideLines.x, stageHeight]}
+          stroke="blue"
+          dash={[4, 4]}
+          strokeWidth={1}
+        />
+      )}
+      {guideLines.y && (
+        <Line
+          points={[0, guideLines.y, stageWidth, guideLines.y]}
+          stroke="blue"
+          dash={[4, 4]}
+          strokeWidth={1}
+        />
+      )}
+    </>
+  )}
+</>
+
         );
 
       case "circle":
