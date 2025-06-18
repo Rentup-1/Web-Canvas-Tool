@@ -21,6 +21,8 @@ export const CanvasProvider: FC<{
   const stageHeight = useAppSelector((state) => state.canvas.stageHeight);
   const stageWidth = useAppSelector((state) => state.canvas.stageWidth);
   const aspectRatio = useAppSelector((state) => state.canvas.aspectRatio);
+  const brandingColors = useAppSelector((state) => state.branding.colors);
+  const brandingFonts = useAppSelector((state) => state.branding.fontFamilies);
 
   const handleExportJSON = () => {
     const exportData = {
@@ -29,6 +31,10 @@ export const CanvasProvider: FC<{
         height: stageHeight,
         width: stageWidth,
         aspectRatio: aspectRatio,
+      },
+      branding: {
+        colors: brandingColors,
+        fonts: brandingFonts,
       },
     };
     const dataStr = JSON.stringify(exportData, null, 2);
