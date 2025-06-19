@@ -16,6 +16,13 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ["FrameTags", "FrameTypes", "TextLables", "FramePostion"], // ممكن تزود عليها بعدين: Labels, Users, etc.
+  tagTypes: [
+    "FrameTags",
+    "FrameTypes",
+    "TextLables",
+    "FramePostion",
+    "Templates",
+    "Template",
+  ], // ممكن تزود عليها بعدين: Labels, Users, etc.
   endpoints: () => ({}),
 });
