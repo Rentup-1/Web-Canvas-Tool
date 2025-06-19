@@ -1,15 +1,22 @@
-export const transformElementsKeys = (
+const transformElementsKeys = (
   elements: any[],
-  keyMapping: Record<string, string>
-): any[] => {
-  return elements.map((element) => {
-    const transformed: any = {};
+  mappingsByType: Record<string, Record<string, string>>,
+  fallbackMapping: Record<string, string> // 👈 للتحويلات الافتراضية
+) => {
+  return elements.map((el) => {
+    const type = el.type;
+    const keyMap = mappingsByType[type] || fallbackMapping; // 👈 استخدم fallback لو مش موجود
 
-    for (const key in element) {
-      const newKey = keyMapping[key] || key;
-      transformed[newKey] = element[key];
+    const transformed: any = { ...el };
+
+    for (const [oldKey, newKey] of Object.entries(keyMap)) {
+      if (oldKey in el) {
+        transformed[newKey] = el[oldKey];
+        delete transformed[oldKey];
+      }
     }
 
     return transformed;
   });
 };
+export default transformElementsKeys;

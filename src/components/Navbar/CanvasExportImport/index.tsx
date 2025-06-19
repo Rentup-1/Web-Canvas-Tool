@@ -17,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCanvas } from "@/context/CanvasContext";
+import { addColor, addFont } from "@/features/branding/brandingSlice";
+import transformElementsKeys from "@/utils/transformElementKeys";
 
 const CanvasExportImport: FC = () => {
   const dispatch = useAppDispatch();
@@ -33,6 +35,26 @@ const CanvasExportImport: FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const keyMappingsByType = {
+      text: {
+        borderColor: "backgroundStroke",
+        borderWidth: "backgroundStrokeWidth",
+        borderStyle: "dashed",
+      },
+      frame: {
+        borderStyle: "dash",
+        borderWidth: "strokeWidth",
+        borderColor: "stroke",
+        objectFit: "fitMode",
+      },
+    };
+
+    const fallbackMapping = {
+      borderColor: "stroke",
+      borderWidth: "strokeWidth",
+      borderStyle: "dashed",
+    };
+
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -46,7 +68,14 @@ const CanvasExportImport: FC = () => {
           importedData.stage.width &&
           importedData.stage.aspectRatio
         ) {
-          dispatch(setElements(importedData.elements));
+          // ⬅️ استرجاع العناصر بعد عكس التحويلات
+          const restoredElements = transformElementsKeys(
+            importedData.elements,
+            keyMappingsByType,
+            fallbackMapping
+          );
+
+          dispatch(setElements(restoredElements));
           dispatch(
             setStageSize({
               height: importedData.stage.height,
@@ -54,6 +83,32 @@ const CanvasExportImport: FC = () => {
             })
           );
           dispatch(setAspectRatio(importedData.stage.aspectRatio));
+
+          // ✅ استيراد الـ branding
+          if (importedData.branding) {
+            if (importedData.branding.colors) {
+              Object.entries(importedData.branding.colors).forEach(
+                ([key, value]) => {
+                  dispatch(addColor({ key, value: String(value) }));
+                }
+              );
+            }
+
+            if (importedData.branding.fonts) {
+              Object.entries(importedData.branding.fonts).forEach(
+                ([key, fontData]: [string, any]) => {
+                  dispatch(
+                    addFont({
+                      key,
+                      value: fontData.value,
+                      isFile: fontData.isFile,
+                      variant: fontData.variant,
+                    })
+                  );
+                }
+              );
+            }
+          }
         } else {
           alert("Invalid file format.");
         }
@@ -61,6 +116,7 @@ const CanvasExportImport: FC = () => {
         alert("Failed to import. Invalid JSON.");
       }
     };
+
     reader.readAsText(file);
   };
 
