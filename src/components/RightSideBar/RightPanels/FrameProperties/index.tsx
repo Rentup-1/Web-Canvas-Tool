@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { MdBlurOn } from "react-icons/md";
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 import {
-  useGetFrameTagsQuery,
+  useGetAllFrameTagsQuery,
   usePostFrameTagMutation,
 } from "@/services/frameTagsApi";
 import { useGetFrameTypesQuery } from "@/services/frameTypesApi";
@@ -24,7 +24,7 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
     data: tagsData,
     isLoading: tagsLoading,
     error: errorTags,
-  } = useGetFrameTagsQuery();
+  } = useGetAllFrameTagsQuery();
 
   // const {
   //   data: positionData,
@@ -52,8 +52,8 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
   };
 
   // Normalize tagsData.results to options format
-  const tagOptions = tagsData?.results
-    ? tagsData.results.map((item) => ({
+  const tagOptions = tagsData
+    ? tagsData.map((item) => ({
         id: String(item.id),
         tag: item.tag,
       }))
@@ -69,21 +69,15 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
 
   // Handle tag creation and selection
   const handleTagsChange = async (val: string | string[]) => {
-    console.log("handleTagsChange received values:", val);
     const values = Array.isArray(val) ? val : val ? [val] : [];
-    console.log("Normalized values:", values);
     const currentTags = tagOptions.map((opt) => opt.tag);
-    console.log("Current tags:", currentTags);
 
     // Identify new tags (not in tagOptions)
     const newTags = values.filter(
       (tag) => tag && !currentTags.includes(tag) && tag.trim().length > 0
     );
-    console.log("New tags:", newTags);
-
     // Post new tags to the API
     for (const newTag of newTags) {
-      console.log("Attempting to create tag:", newTag);
       try {
         await postFrameTag({ tag: newTag }).unwrap();
       } catch (err) {
