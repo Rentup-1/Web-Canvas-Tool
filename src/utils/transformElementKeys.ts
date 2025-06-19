@@ -5,14 +5,13 @@ const transformElementsKeys = (
 ) => {
   return elements.map((el) => {
     const type = el.type;
-    const keyMap = mappingsByType[type] || fallbackMapping; // 👈 استخدم fallback لو مش موجود
+    const keyMap = mappingsByType[type] || fallbackMapping;
 
     const transformed: any = { ...el };
 
     for (const [oldKey, newKey] of Object.entries(keyMap)) {
       if (oldKey in el) {
         transformed[newKey] = el[oldKey];
-        delete transformed[oldKey];
       }
     }
 

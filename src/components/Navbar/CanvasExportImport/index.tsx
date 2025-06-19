@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCanvas } from "@/context/CanvasContext";
 import { addColor, addFont } from "@/features/branding/brandingSlice";
-import transformElementsKeys from "@/utils/transformElementKeys";
 
 const CanvasExportImport: FC = () => {
   const dispatch = useAppDispatch();
@@ -35,26 +34,6 @@ const CanvasExportImport: FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const keyMappingsByType = {
-      text: {
-        borderColor: "backgroundStroke",
-        borderWidth: "backgroundStrokeWidth",
-        borderStyle: "dashed",
-      },
-      frame: {
-        borderStyle: "dash",
-        borderWidth: "strokeWidth",
-        borderColor: "stroke",
-        objectFit: "fitMode",
-      },
-    };
-
-    const fallbackMapping = {
-      borderColor: "stroke",
-      borderWidth: "strokeWidth",
-      borderStyle: "dashed",
-    };
-
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -68,14 +47,7 @@ const CanvasExportImport: FC = () => {
           importedData.stage.width &&
           importedData.stage.aspectRatio
         ) {
-          // ⬅️ استرجاع العناصر بعد عكس التحويلات
-          const restoredElements = transformElementsKeys(
-            importedData.elements,
-            keyMappingsByType,
-            fallbackMapping
-          );
-
-          dispatch(setElements(restoredElements));
+          dispatch(setElements(importedData.elements));
           dispatch(
             setStageSize({
               height: importedData.stage.height,
