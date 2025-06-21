@@ -23,10 +23,9 @@ import { X } from "lucide-react";
 import { useAppSelector } from "@/hooks/useRedux";
 import { useCreateTemplateMutation } from "@/services/templateApi";
 import { useGetAllFrameTagsQuery } from "@/services/frameTagsApi";
-import { useState } from "react";
-import transformElementsKeys from "@/utils/transformElementKeys";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/badge";
+import transformElementsKeys from "@/utils/transformElementKeys";
 
 const formSchema = z.object({
   name: z
@@ -45,8 +44,6 @@ const formSchema = z.object({
 });
 
 export default function GeneralForm() {
-  const [selectedTagId, setSelectedTagId] = useState<string>("");
-
   function rgbaToHex(color: string): string {
     const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
 
@@ -131,11 +128,10 @@ export default function GeneralForm() {
 
   const [createTemplate, { isLoading }] = useCreateTemplateMutation();
   const { data: frameTags } = useGetAllFrameTagsQuery();
-  console.log("Frame Tags Data:", frameTags);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log("Submitting values:");
-      console.log(values);
+      console.log("Submitting values:", values);
       const response = await createTemplate(values).unwrap();
       console.log("Template created:", response);
     } catch (error) {
@@ -143,34 +139,21 @@ export default function GeneralForm() {
     }
   }
 
-  const addTag = (tagId: string) => {
-    const id = Number.parseInt(tagId);
+  const toggleTag = (tagId: number) => {
     const currentTags = form.getValues("tags");
-
-    if (!currentTags.includes(id)) {
-      form.setValue("tags", [...currentTags, id]);
+    if (currentTags.includes(tagId)) {
+      form.setValue(
+        "tags",
+        currentTags.filter((id) => id !== tagId)
+      );
+    } else {
+      form.setValue("tags", [...currentTags, tagId]);
     }
-    setSelectedTagId("");
-  };
-
-  const removeTag = (tagId: number) => {
-    const currentTags = form.getValues("tags");
-    form.setValue(
-      "tags",
-      currentTags.filter((id) => id !== tagId)
-    );
   };
 
   const getTagById = (id: number) => {
     return frameTags?.find((tag) => tag.id === id);
   };
-
-  const getAvailableTags = () => {
-    const selectedTags = form.watch("tags");
-    return frameTags?.filter((tag) => !selectedTags.includes(tag.id)) || [];
-  };
-
-  console.log("Frame Tags:", frameTags);
 
   return (
     <div>
@@ -279,9 +262,8 @@ export default function GeneralForm() {
               <FormItem>
                 <FormLabel>Tags</FormLabel>
                 <FormDescription>
-                  Select tags to categorize your template
+                  Click tags to add or remove them from your template
                 </FormDescription>
-                {/* Selected Tags Display */}
                 <div className="flex flex-wrap gap-2 mb-3">
                   {form.watch("tags").map((tagId) => {
                     const tag = getTagById(tagId);
@@ -289,43 +271,30 @@ export default function GeneralForm() {
                       <Badge
                         key={tagId}
                         variant="secondary"
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 cursor-pointer"
+                        onClick={() => toggleTag(tagId)}
                       >
                         {tag.tag}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-auto p-0 text-muted-foreground hover:text-foreground"
-                          onClick={() => removeTag(tagId)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
+                        <X className="h-3 w-3" />
                       </Badge>
                     ) : null;
                   })}
                 </div>
-
-                {/* Tag Selection Dropdown */}
-                <Select
-                  value={selectedTagId}
-                  onValueChange={(value) => {
-                    addTag(value);
-                  }}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a tag to add" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="max-h-60 overflow-y-auto">
-                    {getAvailableTags().map((tag) => (
-                      <SelectItem key={tag.id} value={tag.id.toString()}>
-                        {tag.tag}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap gap-2">
+                  {frameTags?.map(
+                    (tag) =>
+                      !form.watch("tags").includes(tag.id) && (
+                        <Badge
+                          key={tag.id}
+                          variant="outline"
+                          className="cursor-pointer"
+                          onClick={() => toggleTag(tag.id)}
+                        >
+                          {tag.tag}
+                        </Badge>
+                      )
+                  )}
+                </div>
                 <FormMessage />
               </FormItem>
             )}
