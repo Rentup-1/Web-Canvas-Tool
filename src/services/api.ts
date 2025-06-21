@@ -17,7 +17,7 @@ export const api = createApi({
     },
   }),
   tagTypes: [
-    "FrameTags",
+    "Tags",
     "FrameTypes",
     "TextLables",
     "FramePostion",

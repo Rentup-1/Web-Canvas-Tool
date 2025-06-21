@@ -25,13 +25,13 @@ export type AllTagsData = {
 const extendedApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // الـ endpoint الأصلي للصفحة الواحدة
-    getFrameTags: builder.query<TagsData, { page?: number }>({
+    getTag: builder.query<TagsData, { page?: number }>({
       query: ({ page = 1 } = {}) => `creatives/tags/?page=${page}`,
-      providesTags: ["FrameTags"],
+      providesTags: ["Tags"],
     }),
 
     // endpoint جديد لجلب كل الـ tags من كل الصفحات
-    getAllFrameTags: builder.query<AllTagsData, void>({
+    getAllTag: builder.query<AllTagsData, void>({
       queryFn: async (arg, api, extraOptions, baseQuery) => {
         let allTags: AllTagsData = [];
         let nextUrl: string | null = "creatives/tags/";
@@ -61,17 +61,15 @@ const extendedApi = api.injectEndpoints({
           return { error: { status: "FETCH_ERROR", error: String(error) } };
         }
       },
-      providesTags: ["FrameTags"],
+      providesTags: ["Tags"],
     }),
 
     // endpoint للبحث في الـ tags
-    searchFrameTags: builder.query<TagsData, { search: string; page?: number }>(
-      {
-        query: ({ search, page = 1 }) =>
-          `creatives/tags/?search=${search}&page=${page}`,
-        providesTags: ["FrameTags"],
-      }
-    ),
+    searchTag: builder.query<TagsData, { search: string; page?: number }>({
+      query: ({ search, page = 1 }) =>
+        `creatives/tags/?search=${search}&page=${page}`,
+      providesTags: ["Tags"],
+    }),
 
     postFrameTag: builder.mutation<TagResponse, { tag: string }>({
       query: (newTag) => ({
@@ -79,15 +77,15 @@ const extendedApi = api.injectEndpoints({
         method: "POST",
         body: { tag: newTag.tag },
       }),
-      invalidatesTags: ["FrameTags"],
+      invalidatesTags: ["Tags"],
     }),
   }),
   overrideExisting: false,
 });
 
 export const {
-  useGetFrameTagsQuery,
-  useGetAllFrameTagsQuery,
-  useSearchFrameTagsQuery,
+  useGetTagQuery,
+  useGetAllTagQuery,
+  useSearchTagQuery,
   usePostFrameTagMutation,
 } = extendedApi;

@@ -22,7 +22,7 @@ import { z } from "zod";
 import { X } from "lucide-react";
 import { useAppSelector } from "@/hooks/useRedux";
 import { useCreateTemplateMutation } from "@/services/templateApi";
-import { useGetAllFrameTagsQuery } from "@/services/frameTagsApi";
+import { useGetAllTagQuery } from "@/services/TagsApi";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/badge";
 import transformElementsKeys from "@/utils/transformElementKeys";
@@ -127,7 +127,7 @@ export default function GeneralForm() {
   });
 
   const [createTemplate, { isLoading }] = useCreateTemplateMutation();
-  const { data: frameTags } = useGetAllFrameTagsQuery();
+  const { data: frameTags } = useGetAllTagQuery();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
