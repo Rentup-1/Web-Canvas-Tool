@@ -11,8 +11,6 @@ export const api = createApi({
       if (csrfToken) {
         headers.set("X-CSRFTOKEN", csrfToken);
       } */
-      headers.set("Accept", "*/*");
-      headers.set("Content-Type", "application/json");
       return headers;
     },
   }),

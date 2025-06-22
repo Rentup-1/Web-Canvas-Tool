@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Form,
   FormControl,
@@ -16,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -23,9 +26,9 @@ import { X } from "lucide-react";
 import { useAppSelector } from "@/hooks/useRedux";
 import { useCreateTemplateMutation } from "@/services/templateApi";
 import { useGetAllTagQuery } from "@/services/TagsApi";
-import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/badge";
 import transformElementsKeys from "@/utils/transformElementKeys";
+import { useCanvas } from "@/context/CanvasContext";
+import { Button } from "@/components/ui/Button";
 
 const formSchema = z.object({
   name: z
@@ -41,9 +44,12 @@ const formSchema = z.object({
   is_public: z.boolean(),
   default_primary: z.string(),
   default_secondary_color: z.string(),
+  icon: z.string(),
 });
 
 export default function GeneralForm() {
+  const { stageRef } = useCanvas();
+
   function rgbaToHex(color: string): string {
     const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
 
@@ -56,6 +62,32 @@ export default function GeneralForm() {
 
     return color;
   }
+
+  // Function to capture Konva stage as PNG and convert to Blob
+  const captureStageAsPNG = async (): Promise<Blob | null> => {
+    if (!stageRef?.current) {
+      console.warn("Stage reference is not available");
+      return null;
+    }
+
+    try {
+      // Capture the stage as data URL with high quality
+      const dataURL = stageRef.current.toDataURL({
+        mimeType: "image/png",
+        quality: 1,
+        pixelRatio: 2, // Higher resolution for better quality
+      });
+
+      // Convert data URL to Blob
+      const response = await fetch(dataURL);
+      const blob = await response.blob();
+
+      return blob;
+    } catch (error) {
+      console.error("Failed to capture stage as PNG:", error);
+      return null;
+    }
+  };
 
   const elements = useAppSelector((state) => state.canvas.elements);
   const stageHeight = useAppSelector((state) => state.canvas.stageHeight);
@@ -123,6 +155,7 @@ export default function GeneralForm() {
       default_secondary_color: rgbaToHex(
         brandingColors?.secondary || "#ffffff"
       ),
+      icon: "",
     },
   });
 
@@ -132,12 +165,72 @@ export default function GeneralForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       console.log("Submitting values:", values);
-      const response = await createTemplate(values).unwrap();
+
+      // Create FormData object
+      const formData = new FormData();
+
+      // Append all form fields
+      formData.append("name", values.name);
+      formData.append("group", values.group);
+      formData.append("type", values.type);
+      formData.append("category", values.category);
+      values.tags.forEach((tag) => {
+        formData.append("tags", tag.toString());
+      });
+      formData.append("aspect_ratio", values.aspect_ratio);
+      formData.append("raw_input", values.raw_input);
+      formData.append("is_public", values.is_public.toString());
+      formData.append("default_primary", values.default_primary);
+      formData.append(
+        "default_secondary_color",
+        values.default_secondary_color
+      );
+
+      // Capture stage as PNG and append to FormData
+      const pngBlob = await captureStageAsPNG();
+      if (pngBlob) {
+        const pngFile = new File([pngBlob], "stage-preview.png", {
+          type: "image/png",
+        });
+        formData.append("icon", pngFile);
+        console.log("Stage PNG captured and added to FormData as File");
+      } else {
+        console.warn("Failed to capture stage PNG");
+      }
+
+      // Log FormData contents for debugging
+      console.log("FormData contents:");
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof Blob) {
+          console.log(`${key}: Blob (${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`${key}: ${value}`);
+        }
+      }
+      // Uncomment to actually submit
+      const response = await createTemplate(formData).unwrap();
       console.log("Template created:", response);
     } catch (error) {
       console.error("Failed to create template:", error);
     }
   }
+
+  // Function to manually trigger PNG capture (for testing/preview)
+  const handleCapturePreview = async () => {
+    const pngBlob = await captureStageAsPNG();
+    if (pngBlob) {
+      // Create a download link for preview
+      const url = URL.createObjectURL(pngBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "stage-preview.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      console.log("Preview PNG downloaded");
+    }
+  };
 
   const toggleTag = (tagId: number) => {
     const currentTags = form.getValues("tags");
@@ -158,6 +251,19 @@ export default function GeneralForm() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">General Form</h1>
+
+      {/* Preview capture button for testing */}
+      <div className="mb-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCapturePreview}
+          className="mb-4"
+        >
+          Preview Stage Capture
+        </Button>
+      </div>
+
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
