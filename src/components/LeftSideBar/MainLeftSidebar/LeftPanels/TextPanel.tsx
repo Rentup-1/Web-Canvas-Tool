@@ -69,8 +69,8 @@ export function TextPanel() {
               ) : null 
             ))
           : "No result found"}
-          
-          {filteredLabels && 
+
+          {filteredLabels.length > 0 && 
           
             <div className="flex gap-4 mt-4">
               <button className="w-1/2 cursor-pointer border py-2" onClick={() => setUrl(labelsData?.previous)} disabled={!labelsData?.previous}>
