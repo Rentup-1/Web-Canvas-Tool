@@ -51,8 +51,6 @@ export function TextPanel() {
                         type: "text",
                         text: item.example,
                         toi_labels: item.label,
-                        labelId: item.id,
-                        initialValue: item.example,
                       })
                     )
                   }

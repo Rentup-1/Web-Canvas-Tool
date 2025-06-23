@@ -152,9 +152,9 @@ export default function TextProperties({
       }
     }
     update({ toi_labels: getLabelOption(label)?.label });
-    update({ initialValue: getLabelOption(label)?.example });
-    update({ labelId: parseInt(getLabelOption(label)?.id || "0") });
-    console.log(element);
+    /*     update({ initialValue: getLabelOption(label)?.example });
+    update({ labelId: parseInt(getLabelOption(label)?.id || "0") }); */
+    // console.log(element);
   };
 
   const update = <T extends CanvasTextElement>(updates: Partial<T>) => {

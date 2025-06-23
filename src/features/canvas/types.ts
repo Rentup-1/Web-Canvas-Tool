@@ -91,8 +91,6 @@ export interface CanvasTextElement extends CanvasElement {
   backgroundStrokeWidth: number;
   fontBrandingType?: BrandingType;
   toi_labels?: string;
-  initialValue?: string;
-  labelId?: number;
   fontWeight: string;
   fontStyle: string;
   textDecoration?: "none" | "underline";
