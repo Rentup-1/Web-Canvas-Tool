@@ -1,78 +1,197 @@
-import { Button } from "@/components/ui/Button";
+import { useForm, FormProvider } from "react-hook-form"; // Import React Hook Form
+import { Badge } from "@/components/ui/badge";
+import { FormLabel, FormItem, FormControl } from "@/components/ui/form"; // Adjust imports as needed
+import { Input } from "@/components/ui/input";
 import { useAppSelector } from "@/hooks/useRedux";
 import { useGetAllTagQuery } from "@/services/TagsApi";
 import { useCreateTemplateFrameMutation } from "@/services/templateFramesApi";
+import { Button } from "@/components/ui/Button";
+
+// Define interfaces for type safety
+interface Tag {
+  id: number;
+  tag: string;
+}
+
+interface Frame {
+  assetType: string | null;
+  tags: number[];
+  frame_position_in_template: number | null;
+}
+
+interface CanvasElement {
+  type: string;
+  assetType?: string;
+  tags?: string[];
+  frame_position_in_template?: number;
+}
+
+// Form data type (for read-only display, we don't need editable fields, but defining for clarity)
+interface FormData {
+  frames: Frame[];
+}
 
 export default function FramesForm() {
-  const elements = useAppSelector((state) => state.canvas.elements);
+  const { data: tags, isLoading: isTagsLoading } = useGetAllTagQuery();
+  const [createFrame, { isLoading: isCreatingFrame }] =
+    useCreateTemplateFrameMutation();
+  const elements = useAppSelector(
+    (state) => state.canvas.elements
+  ) as CanvasElement[];
   const templateId = useAppSelector((state) => state.saveForm.templateId);
-  const [createTemplateFrame, { isLoading }] = useCreateTemplateFrameMutation();
-  const { data: frameTags } = useGetAllTagQuery();
 
-  const getTagById = (id: number) => {
-    return frameTags?.find((tag) => tag.id === id);
+  // Initialize React Hook Form
+  const methods = useForm<FormData>({
+    defaultValues: {
+      frames: [], // Initialize with empty frames; we'll populate dynamically
+    },
+  });
+
+  // Function to get tag ID by tag name
+  const getIdByTag = (tag: string): number | null => {
+    const item = tags?.find((obj: Tag) => obj.tag === tag);
+    return item ? item.id : null;
   };
 
-  const frames = elements
-    .filter((el) => el.type === "frame")
-    .map((el) => ({
-      assetType: el.assetType || null,
-      tags: el.tags || [],
-      frame_position_in_template: el.frame_position_in_template ?? null,
-      template: templateId,
-      type: el.assetType || "", // Assuming type from assetType
-    }));
+  // Generate frames array
+  const frames = (): Frame[] => {
+    const result: Frame[] = [];
 
-  const handleSubmitAll = async () => {
-    try {
-      for (const frame of frames) {
-        await createTemplateFrame(frame).unwrap();
-        console.log("Frame submitted:", frame);
+    elements.forEach((el) => {
+      if (el.type === "frame") {
+        result.push({
+          assetType: el.assetType || null,
+          tags:
+            el.tags
+              ?.map((tag) => getIdByTag(tag))
+              .filter((id): id is number => id !== null) || [],
+          frame_position_in_template: el.frame_position_in_template ?? null,
+        });
       }
-      alert("All frames submitted successfully!");
-    } catch (error) {
-      console.error("Error submitting frames:", error);
+    });
+
+    return result;
+  };
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    if (!templateId) {
+      console.error(
+        "Template ID is missing. Please submit the general form first."
+      );
+      return;
+    }
+
+    const allFrames = frames();
+
+    if (allFrames.length === 0) {
+      console.error("No frames to submit. Please add frames to the canvas.");
+      return;
+    }
+
+    for (const frame of allFrames) {
+      const payload = {
+        frame_position_in_template: frame.frame_position_in_template ?? 0,
+        template: templateId,
+        type: frame.assetType || "image",
+        tags: frame.tags,
+      };
+
+      try {
+        const res = await createFrame(payload).unwrap();
+        console.log("Frame sent successfully:", res);
+      } catch (error) {
+        console.error("Error sending frame:", error);
+      }
     }
   };
 
+  if (isTagsLoading) {
+    return <p>Loading tags...</p>;
+  }
+
+  if (!elements || elements.length === 0) {
+    return <p>Please add frames to the canvas</p>;
+  }
+
+  if (!templateId) {
+    return <p>Please submit the general form first</p>;
+  }
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Frames Preview</h1>
-
-      {frames.length === 0 ? (
-        <p>No frames available to submit.</p>
-      ) : (
-        <div className="space-y-4">
-          {frames.map((frame, index) => (
-            <div
-              key={index}
-              className="p-4 border rounded flex justify-between items-start"
-            >
-              <p>Frame {index + 1}</p>
-              <div>
-                <p>
-                  <strong>Position:</strong> {frame.frame_position_in_template}
-                </p>
-                <p>
-                  <strong>Type:</strong> {frame.assetType}
-                </p>
-                <p>
-                  <strong>Tags:</strong>
-                  {frame.tags.join(", ")}
-                </p>
-              </div>
-            </div>
-          ))}
-
-          <Button
-            onClick={handleSubmitAll}
-            className="w-full mt-6 bg-green-600 hover:bg-green-700"
-            disabled={isLoading}
+    <FormProvider {...methods}>
+      <div className="space-y-4">
+        {frames().map((frame, index) => (
+          <div
+            key={index}
+            className="space-y-2 border-2 border-accent p-2 rounded"
           >
-            {isLoading ? "Submitting..." : "Submit All Frames"}
-          </Button>
-        </div>
-      )}
-    </div>
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input
+                  value={`Frame ${index + 1}`}
+                  placeholder="Frame Name"
+                  disabled
+                />
+              </FormControl>
+            </FormItem>
+            <FormItem>
+              <FormLabel>Asset Type</FormLabel>
+              <FormControl>
+                <Input
+                  value={frame.assetType || "N/A"}
+                  placeholder="Asset Type"
+                  disabled
+                />
+              </FormControl>
+            </FormItem>
+            <FormItem>
+              <FormLabel>Tags</FormLabel>
+              <div className="flex gap-2">
+                {frame.tags.length > 0 ? (
+                  frame.tags.map((tagId, tagIndex) => {
+                    const tagName =
+                      tags?.find((t: Tag) => t.id === tagId)?.tag || "Unknown";
+                    return (
+                      <Badge
+                        key={tagIndex}
+                        variant="outline"
+                        className="flex items-center gap-1"
+                      >
+                        {tagName}
+                      </Badge>
+                    );
+                  })
+                ) : (
+                  <p>No tags assigned</p>
+                )}
+              </div>
+            </FormItem>
+            <FormItem>
+              <FormLabel>Frame Position</FormLabel>
+              <FormControl>
+                <Input
+                  value={frame.frame_position_in_template ?? "Not Set"}
+                  placeholder="Frame Position"
+                  disabled
+                />
+              </FormControl>
+            </FormItem>
+          </div>
+        ))}
+        {/* discription if need update on it update on template first */}
+        <p className="text-red-500">
+          If you want to update the frames, please update the template first
+        </p>
+        <Button
+          onClick={() => handleSubmit()}
+          className="w-full"
+          disabled={isCreatingFrame}
+        >
+          {isCreatingFrame ? "Saving..." : "Save Frames"}
+        </Button>
+      </div>
+    </FormProvider>
   );
 }
