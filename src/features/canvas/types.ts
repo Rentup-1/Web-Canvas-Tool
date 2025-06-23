@@ -65,8 +65,8 @@ export interface CanvasElement {
   visible?: boolean;
   borderRadiusSpecial?: number;
 
-  fontWeight?:string
-  fontStyle?:string
+  fontWeight?: string;
+  fontStyle?: string;
 }
 
 export interface CanvasFrameElement extends CanvasElement {
@@ -90,7 +90,9 @@ export interface CanvasTextElement extends CanvasElement {
   backgroundStroke?: string;
   backgroundStrokeWidth: number;
   fontBrandingType?: BrandingType;
-  toi_labels?: string[];
+  toi_labels?: string;
+  initialValue?: string;
+  labelId?: number;
   fontWeight: string;
   fontStyle: string;
   textDecoration?: "none" | "underline";
