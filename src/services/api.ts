@@ -23,6 +23,7 @@ export const api = createApi({
     "Template",
     "TemplateFrames",
     "FrameTags",
+    "TemplateTextBoxes",
   ], // ممكن تزود عليها بعدين: Labels, Users, etc.
   endpoints: () => ({}),
 });

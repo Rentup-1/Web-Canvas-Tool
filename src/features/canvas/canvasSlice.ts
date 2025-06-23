@@ -91,8 +91,6 @@ const canvasSlice = createSlice({
             type: "text";
             text: string;
             toi_labels?: string;
-            labelId?: number;
-            initialValue?: string;
           }
         | { type: Exclude<ElementType, "icon" | "text"> }
       >
@@ -109,8 +107,6 @@ const canvasSlice = createSlice({
             fontSize_percent: 2.5,
             text: action.payload.text ?? "Edit Me Now...",
             toi_labels: action.payload.toi_labels ?? "", // ✅ لو جت من الديسباتش خدها، لو لأ خالي
-            labelId: action.payload.labelId ?? 0,
-            initialValue: action.payload.initialValue ?? "",
             fill: "#524C4C", // background rect
             background: "#fff",
             padding: 8,

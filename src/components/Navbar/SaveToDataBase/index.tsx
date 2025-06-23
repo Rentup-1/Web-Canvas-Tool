@@ -11,6 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GeneralForm from "./GeneralForm";
 import FramesForm from "./FramesForm";
+import TextsForm from "./TextsForm";
 
 export function SaveToDataBase() {
   return (
@@ -39,7 +40,7 @@ export function SaveToDataBase() {
             <FramesForm />
           </TabsContent>
           <TabsContent value="texts">
-            Change your template text boxes here.
+            <TextsForm />
           </TabsContent>
         </Tabs>
         {/*         <DialogFooter>
