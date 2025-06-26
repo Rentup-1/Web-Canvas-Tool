@@ -11,12 +11,32 @@ import {
   useLazyGetAssetsQuery,
   type ImageDataWithId,
 } from "@/services/images";
+import { useGetProjectsQuery } from "@/services/projectsApi";
+import { toast } from "sonner";
+import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 
 export function UploadPanel() {
+  // saving project id
+  const [projectId, setProjectId] = useState<number | null>(null);
+
   const dispatch = useDispatch();
+  const {
+    data: projects,
+    isLoading: isProjectsLoading,
+    isError: isProjectsError,
+    error: projectsError,
+  } = useGetProjectsQuery();
+  console.log(projects?.results);
+
+  if (isProjectsError) {
+    console.error("Error fetching projects:", projectsError);
+    toast.error("Error fetching projects");
+  }
 
   // Fetch first page
-  const { data, isLoading, isError } = useGetAssetsQuery();
+  const { data, isLoading, isError } = useGetAssetsQuery({
+    project_id: projectId ?? undefined,
+  });
 
   // Lazy fetch next page
   const [triggerNext] = useLazyGetAssetsQuery();
@@ -111,7 +131,24 @@ export function UploadPanel() {
       {/* Remote Assets */}
       {isLoading && <p>Loading assets...</p>}
       {isError && <p className="text-destructive">Failed to load assets.</p>}
-
+      <SelectInput
+        value={""}
+        isSearchable
+        className="col-span-full"
+        label="projects"
+        options={projects?.results || []}
+        valueKey="id"
+        labelKey="name"
+        onChange={(value) => {
+          if (typeof value === "number") {
+            setProjectId(value);
+          }
+          console.log(typeof value);
+        }}
+        isLoading={isProjectsLoading}
+        error={isError ? "Error fetching projects" : undefined}
+        placeholder="Filter Assets by Project"
+      />
       <div
         className="grid grid-cols-2
       
