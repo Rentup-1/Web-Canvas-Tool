@@ -309,17 +309,6 @@ export default function TextProperties({
               } as Partial<CanvasTextElement>)
             }
           />
-          {/* whiteSapce wrap or stretch text */}
-          <SelectInput
-            isClearable={false}
-            label="White Space"
-            value={element.white_space as string}
-            onChange={(val) => update({ white_space: val as string })}
-            options={[
-              { label: "stretch", value: "stretch" },
-              { label: "wrap", value: "wrap" },
-            ]}
-          />
 
           {/* Updated Font Family SelectInput to handle both Google Fonts and branded fonts */}
           <SelectInput
@@ -459,7 +448,17 @@ export default function TextProperties({
               }
             />
           </div>
-
+          {/* whiteSapce wrap or stretch text */}
+          <SelectInput
+            isClearable={false}
+            label="White Space"
+            value={element.white_space as string}
+            onChange={(val) => update({ white_space: val as string })}
+            options={[
+              { label: "stretch", value: "stretch" },
+              { label: "wrap", value: "wrap" },
+            ]}
+          />
           <SelectInput
             creatable
             isSearchable
