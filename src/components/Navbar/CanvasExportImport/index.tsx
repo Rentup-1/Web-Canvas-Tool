@@ -221,7 +221,7 @@ const CanvasExportImport: FC = () => {
               height: frameElement.height,
               rotation: 0,
               selected: false,
-              src: `${BASE_API_URL}${frame.assets[0].image_url}`,
+              src: `https://api.markomlabs.com${frame.assets[0].image_url}`,
               originalWidth: frame.assets[0].width,
               originalHeight: frame.assets[0].height,
               fill: "",
