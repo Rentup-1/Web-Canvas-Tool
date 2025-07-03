@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCanvas } from "@/context/CanvasContext";
 import { addColor, addFont } from "@/features/branding/brandingSlice";
-import { BASE_API_URL } from "@/services/api";
 
 const CanvasExportImport: FC = () => {
   const dispatch = useAppDispatch();
