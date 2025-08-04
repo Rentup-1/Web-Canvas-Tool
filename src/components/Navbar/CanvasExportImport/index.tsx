@@ -29,6 +29,7 @@ const CanvasExportImport: FC = () => {
   } = useCanvas();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileViaBackEndInputRef = useRef<HTMLInputElement>(null);
+  const fileViaMixer = useRef<HTMLInputElement>(null);
 
   // Import handler
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,7 +100,6 @@ const CanvasExportImport: FC = () => {
 
     const reader = new FileReader();
 
-    // 🧠 هنا المابنج
     const mapFitMode = (backendFit: string): "fit" | "fill" | "stretch" => {
       switch (backendFit) {
         case "contain":
@@ -128,7 +128,6 @@ const CanvasExportImport: FC = () => {
         ) {
           const elements = [...importedData.results.templates[0].json_template.elements];
 
-          // 💡 معالجة الصور داخل الفريمز
           importedData.results.templates[0].frames.forEach((frame: any) => {
             const frameIndex = elements.findIndex(
               (el: any) =>
@@ -138,14 +137,12 @@ const CanvasExportImport: FC = () => {
             if (frameIndex !== -1) {
               const frameElement = elements[frameIndex];
 
-              // تعديل الفريم
               elements[frameIndex] = {
                 ...frameElement,
                 type: "frame",
-                zIndex: 1, // الفريم فوق الصورة
+                zIndex: 1,
               };
 
-              // إضافة صورة مرتبطة بالفريم
               if (frame.assets?.[0]?.image_url) {
                 console.log(frame);
                 const fitMode = mapFitMode(frame.objectFit || frame.fitMode || "fill");
@@ -164,7 +161,7 @@ const CanvasExportImport: FC = () => {
                   originalHeight: frame.assets[0].height || frameElement.height,
                   fitMode,
                   opacity: frameElement.opacity ?? 1,
-                  zIndex: 0, // الصورة في الخلفية
+                  zIndex: 0,
                 };
 
                 // إضافة الصورة بعد الفريم مباشرة
@@ -173,10 +170,8 @@ const CanvasExportImport: FC = () => {
             }
           });
 
-          // 🟢 فرز العناصر حسب zIndex لو موجود
           elements.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
 
-          // 🟢 Apply to Redux
           dispatch(setElements([...elements]));
           dispatch(
             setStageSize({
@@ -225,9 +220,143 @@ const CanvasExportImport: FC = () => {
     reader.readAsText(file);
   };
 
+  const handleImportNewFormat = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    const mapFitMode = (backendFit: string): "fit" | "fill" | "stretch" => {
+      switch (backendFit) {
+        case "contain":
+          return "fit";
+        case "cover":
+          return "fill";
+        case "stretch":
+          return "stretch";
+        default:
+          return "fill";
+      }
+    };
+
+    reader.onload = () => {
+      try {
+        const importedData = JSON.parse(reader.result as string);
+        console.log("Imported Data:", importedData);
+
+        if (
+          importedData &&
+          Array.isArray(importedData.elements) &&
+          importedData.width &&
+          importedData.height &&
+          importedData.scale
+        ) {
+          const elements = [...importedData.elements];
+          
+          importedData.frames.forEach((frame: any) => {
+            
+            const frameIndex = elements.findIndex(
+              (el: any) =>
+                Number(el.frame_position_in_template) === Number(frame.frame_position_in_template)
+            );
+
+
+            if (frameIndex !== -1) {
+
+              const frameElement = elements[frameIndex];
+
+              elements[frameIndex] = {
+                ...frameElement,
+                type: "frame",
+                zIndex: 1,
+              };
+
+              console.log(`https://api.markomlabs.com${frame.assets[0].image_url}`);
+
+              if (frame.assets?.[0]?.image_url) {
+                const fitMode = mapFitMode(frame.objectFit || frame.fitMode || "fill");
+
+                const imageElement = {
+                  id: `image-${frameElement.id}`,
+                  type: "image",
+                  frameId: frameElement.id,
+                  x: frameElement.x,
+                  y: frameElement.y,
+                  width: frameElement.width,
+                  height: frameElement.height,
+                  src: `https://api.markomlabs.com${frame.assets[0].image_url}`,
+                  originalWidth: frame.assets[0].width || frameElement.width,
+                  originalHeight: frame.assets[0].height || frameElement.height,
+                  fitMode,
+                  opacity: frameElement.opacity ?? 1,
+                  zIndex: 0,
+                };
+
+                elements.splice(frameIndex + 1, 0, imageElement);
+              }
+            }
+          });
+
+          // Sort elements by zIndex if present
+          elements.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+
+          // Apply to Redux
+          dispatch(setElements([...elements]));
+          dispatch(
+            setStageSize({
+              height: importedData.height,
+              width: importedData.width,
+            })
+          );
+          dispatch(setAspectRatio(importedData.scale));
+
+          // Import branding if present
+          if (importedData.branding) {
+            const branding = importedData.branding;
+
+            if (branding.colors) {
+              Object.entries(branding.colors).forEach(([key, value]) => {
+                dispatch(addColor({ key, value: String(value) }));
+              });
+            }
+
+            if (branding.fonts) {
+              Object.entries(branding.fonts).forEach(([key, fontData]: [string, any]) => {
+                dispatch(
+                  addFont({
+                    key,
+                    value: fontData.value,
+                    isFile: fontData.isFile,
+                    variant: fontData.variant,
+                  })
+                );
+              });
+            }
+          }
+        } else {
+          alert("Invalid file format.");
+        }
+      } catch (error) {
+        alert("Failed to import. Invalid JSON.");
+        console.error("Import error:", error);
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
   return (
     <>
       <div className="flex flex-row items-center justify-center gap-2">
+
+        <Button
+          variant="secondary"
+          onClick={() => fileViaMixer.current?.click()}
+        >
+          <FaFileImport className="mr-2" />
+          Import from mixer
+        </Button>
+
         <Button
           variant="secondary"
           onClick={() => fileViaBackEndInputRef.current?.click()}
@@ -242,6 +371,17 @@ const CanvasExportImport: FC = () => {
           <FaFileImport className="mr-2" />
           Import
         </Button>
+
+        
+
+        <input
+          type="file"
+          accept=".json"
+          ref={fileViaMixer}
+          className="hidden"
+          onChange={handleImportNewFormat}
+        />
+
         <input
           type="file"
           accept=".json"
@@ -256,6 +396,7 @@ const CanvasExportImport: FC = () => {
           className="hidden"
           onChange={handleImport}
         />
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="default">
