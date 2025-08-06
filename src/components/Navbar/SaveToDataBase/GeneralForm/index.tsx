@@ -112,7 +112,6 @@ export default function GeneralForm() {
         dash: "borderStyle",
         strokeWidth: "borderWidth",
         stroke: "borderColor",
-        // ❌ متشيلش fitMode خلاص! خليه زي ما هو، عايزينه يظهر في الـ export
       },
   };
 
