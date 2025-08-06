@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FC } from "react";
+import {  useRef, useState, type FC } from "react";
 import { FaFileImport, FaSave } from "react-icons/fa";
 import { Button } from "../../ui/Button";
 import { useAppDispatch } from "@/hooks/useRedux";
@@ -19,7 +19,6 @@ import {
 import { useCanvas } from "@/context/CanvasContext";
 import { addColor, addFont } from "@/features/branding/brandingSlice";
 import { Textarea } from "@/components/ui/textarea";
-import { processImportedJson } from "./parseJson";
 
 const CanvasExportImport: FC = () => {
   const dispatch = useAppDispatch();
