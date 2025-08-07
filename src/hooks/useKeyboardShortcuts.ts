@@ -54,10 +54,7 @@ export function useKeyboardShortcuts() {
           if (isCtrl && selectedElement) {
             e.preventDefault();
             // Store in localStorage for simple copy functionality
-            localStorage.setItem(
-              "copiedElement",
-              JSON.stringify(selectedElement)
-            );
+            localStorage.setItem("copiedElement", JSON.stringify(selectedElement));
           }
           break;
 

@@ -1,7 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Provider } from "react-redux";
-import { store } from "./app/store";
+
 import App from "./App";
 import "./index.css";
 import { ThemeProvider } from "./components/ui/theme-provider";
@@ -26,14 +25,10 @@ import "@fontsource/fira-sans";
 import "@fontsource/inconsolata";
 import "@fontsource/manrope";
 
-
-
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <Provider store={store}>
-      <ThemeProvider defaultTheme="dark" storageKey="Markom Theme">
-        <App />
-      </ThemeProvider>
-    </Provider>
+    <ThemeProvider defaultTheme="dark" storageKey="Markom Theme">
+      <App />
+    </ThemeProvider>
   </React.StrictMode>
 );
