@@ -1,1 +1,0 @@
-export { useCanvas } from "./CanvasContext";

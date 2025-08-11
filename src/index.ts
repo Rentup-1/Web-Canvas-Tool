@@ -1,5 +1,5 @@
 import App from "./App";
-import { useCanvas } from "./context";
+import * as canvas from "./context/CanvasContext";
 
 export default App;
-export { useCanvas };
+export { canvas };
