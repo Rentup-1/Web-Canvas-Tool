@@ -1,4 +1,4 @@
-import {  useRef, useState, type FC } from "react";
+import { useEffect, useRef, useState, type FC } from "react";
 import { FaFileImport, FaSave } from "react-icons/fa";
 import { Button } from "../../ui/Button";
 import { useAppDispatch } from "@/hooks/useRedux";
@@ -31,7 +31,9 @@ const CanvasExportImport: FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileViaBackEndInputRef = useRef<HTMLInputElement>(null);
   const fileViaMixer = useRef<HTMLInputElement>(null);
-  const [jsonInput, setJsonInput] = useState<string>(localStorage.getItem("mixerTemplate") || "");
+  const [jsonInput, setJsonInput] = useState<string>(
+    localStorage.getItem("mixerTemplate") || ""
+  );
 
   // Handle import from file (original format)
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,18 +125,23 @@ const CanvasExportImport: FC = () => {
 
         if (
           importedData &&
-          Array.isArray(importedData.results.templates[0].json_template.elements) &&
+          Array.isArray(
+            importedData.results.templates[0].json_template.elements
+          ) &&
           importedData.results.templates[0].json_template.stage &&
           importedData.results.templates[0].json_template.stage.height &&
           importedData.results.templates[0].json_template.stage.width &&
           importedData.results.templates[0].json_template.stage.aspectRatio
         ) {
-          const elements = [...importedData.results.templates[0].json_template.elements];
+          const elements = [
+            ...importedData.results.templates[0].json_template.elements,
+          ];
 
           importedData.results.templates[0].frames.forEach((frame: any) => {
             const frameIndex = elements.findIndex(
               (el: any) =>
-                el.frame_position_in_template == frame.frame_position_in_template
+                el.frame_position_in_template ==
+                frame.frame_position_in_template
             );
 
             if (frameIndex !== -1) {
@@ -147,7 +154,9 @@ const CanvasExportImport: FC = () => {
               };
 
               if (frame.assets?.[0]?.image_url) {
-                const fitMode = mapFitMode(frame.objectFit || frame.fitMode || "fill");
+                const fitMode = mapFitMode(
+                  frame.objectFit || frame.fitMode || "fill"
+                );
 
                 const imageElement = {
                   id: `image-${frameElement.id}`,
@@ -175,8 +184,10 @@ const CanvasExportImport: FC = () => {
           dispatch(setElements([...elements]));
           dispatch(
             setStageSize({
-              height: importedData.results.templates[0].json_template.stage.height,
-              width: importedData.results.templates[0].json_template.stage.width,
+              height:
+                importedData.results.templates[0].json_template.stage.height,
+              width:
+                importedData.results.templates[0].json_template.stage.width,
             })
           );
           dispatch(
@@ -187,7 +198,8 @@ const CanvasExportImport: FC = () => {
 
           // Import branding
           if (importedData.results.templates[0].json_template.branding) {
-            const branding = importedData.results.templates[0].json_template.branding;
+            const branding =
+              importedData.results.templates[0].json_template.branding;
 
             if (branding.colors) {
               Object.entries(branding.colors).forEach(([key, value]) => {
@@ -196,16 +208,18 @@ const CanvasExportImport: FC = () => {
             }
 
             if (branding.fonts) {
-              Object.entries(branding.fonts).forEach(([key, fontData]: [string, any]) => {
-                dispatch(
-                  addFont({
-                    key,
-                    value: fontData.value,
-                    isFile: fontData.isFile,
-                    variant: fontData.variant,
-                  })
-                );
-              });
+              Object.entries(branding.fonts).forEach(
+                ([key, fontData]: [string, any]) => {
+                  dispatch(
+                    addFont({
+                      key,
+                      value: fontData.value,
+                      isFile: fontData.isFile,
+                      variant: fontData.variant,
+                    })
+                  );
+                }
+              );
             }
           }
         } else {
@@ -257,7 +271,8 @@ const CanvasExportImport: FC = () => {
           importedData.frames.forEach((frame: any) => {
             const frameIndex = elements.findIndex(
               (el: any) =>
-                Number(el.frame_position_in_template) === Number(frame.frame_position_in_template)
+                Number(el.frame_position_in_template) ===
+                Number(frame.frame_position_in_template)
             );
 
             if (frameIndex !== -1) {
@@ -270,7 +285,9 @@ const CanvasExportImport: FC = () => {
               };
 
               if (frame.assets?.[0]?.image_url) {
-                const fitMode = mapFitMode(frame.objectFit || frame.fitMode || "fill");
+                const fitMode = mapFitMode(
+                  frame.objectFit || frame.fitMode || "fill"
+                );
 
                 const imageElement = {
                   id: `image-${frameElement.id}`,
@@ -315,16 +332,18 @@ const CanvasExportImport: FC = () => {
             }
 
             if (branding.fonts) {
-              Object.entries(branding.fonts).forEach(([key, fontData]: [string, any]) => {
-                dispatch(
-                  addFont({
-                    key,
-                    value: fontData.value,
-                    isFile: fontData.isFile,
-                    variant: fontData.variant,
-                  })
-                );
-              });
+              Object.entries(branding.fonts).forEach(
+                ([key, fontData]: [string, any]) => {
+                  dispatch(
+                    addFont({
+                      key,
+                      value: fontData.value,
+                      isFile: fontData.isFile,
+                      variant: fontData.variant,
+                    })
+                  );
+                }
+              );
             }
           }
         } else {
@@ -370,7 +389,8 @@ const CanvasExportImport: FC = () => {
         importedData.frames?.forEach((frame: any) => {
           const frameIndex = elements.findIndex(
             (el: any) =>
-              Number(el.frame_position_in_template) === Number(frame.frame_position_in_template)
+              Number(el.frame_position_in_template) ===
+              Number(frame.frame_position_in_template)
           );
 
           if (frameIndex !== -1) {
@@ -385,7 +405,9 @@ const CanvasExportImport: FC = () => {
 
             // Add image element if asset exists
             if (frame.assets?.[0]?.image_url) {
-              const fitMode = mapFitMode(frame.objectFit || frame.fitMode || "fill");
+              const fitMode = mapFitMode(
+                frame.objectFit || frame.fitMode || "fill"
+              );
 
               const imageElement = {
                 id: `image-${frameElement.id}`,
@@ -432,37 +454,43 @@ const CanvasExportImport: FC = () => {
           }
 
           if (branding.fonts) {
-            Object.entries(branding.fonts).forEach(([key, fontData]: [string, any]) => {
-              dispatch(
-                addFont({
-                  key,
-                  value: fontData.value,
-                  isFile: fontData.isFile,
-                  variant: fontData.variant,
-                })
-              );
-            });
+            Object.entries(branding.fonts).forEach(
+              ([key, fontData]: [string, any]) => {
+                dispatch(
+                  addFont({
+                    key,
+                    value: fontData.value,
+                    isFile: fontData.isFile,
+                    variant: fontData.variant,
+                  })
+                );
+              }
+            );
           }
         }
       } else {
-        throw new Error("Invalid JSON format. Required fields: elements (array), width, height, scale.");
+        throw new Error(
+          "Invalid JSON format. Required fields: elements (array), width, height, scale."
+        );
       }
     } catch (error) {
       console.error("Import error:", error);
     }
   };
 
+  useEffect(() => {
+    handleJsonTextImport();
+  }, []);
+
   const handleJsonTextImport = () => {
     try {
       const parsedJson = JSON.parse(jsonInput);
       handleImportJson(parsedJson);
-      setJsonInput(""); // Clear textarea after import
+      setJsonInput("");
     } catch (error) {
-      alert("Invalid JSON format. Please check your input.");
       console.error("JSON parse error:", error);
     }
   };
-
 
   return (
     <>
@@ -502,7 +530,9 @@ const CanvasExportImport: FC = () => {
               <DropdownMenuLabel>Save As</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={handleExportPNG}>PNG</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPNG}>
+                  PNG
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleExportJSON}>
                   JSON File
                 </DropdownMenuItem>
@@ -518,7 +548,7 @@ const CanvasExportImport: FC = () => {
         </div>
 
         {/* New UI for direct JSON import */}
-        
+
         <div className="w-full max-w-md">
           <Textarea
             value={jsonInput}
