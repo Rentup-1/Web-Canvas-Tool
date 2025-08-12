@@ -3,6 +3,6 @@ import { buildTemplateFromJson } from "./components/Navbar/CanvasExportImport/Mi
 import { addColor, addFont } from "./features/branding/brandingSlice";
 import { setAspectRatio, setElements, setStageSize } from "./features/canvas/canvasSlice";
 
-// test
+// test2
 export default App;
 export { buildTemplateFromJson, setAspectRatio, setElements, setStageSize, addColor, addFont };
