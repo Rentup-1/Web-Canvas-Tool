@@ -1,5 +1,6 @@
 import App from "./App";
-import * as canvas from "./context/CanvasContext";
+import { buildTemplateFromJson } from "./components/Navbar/CanvasExportImport/MixerLogic";
+
 
 export default App;
-export { canvas };
+export { buildTemplateFromJson };
