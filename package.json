@@ -1,6 +1,6 @@
 {
   "name": "@yahyanegm/design-tool",
-  "version": "0.3.18",
+  "version": "0.3.19",
   "description": "A component library for designing social media templates.",
   "main": "./dist/design-tool.umd.js",
   "module": "./dist/design-tool.es.js",
