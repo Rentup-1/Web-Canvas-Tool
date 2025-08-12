@@ -549,17 +549,18 @@ const CanvasExportImport: FC = () => {
 
         {/* New UI for direct JSON import */}
 
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md " style={{display: "none"}}>
           <Textarea
             value={jsonInput}
             onChange={(e) => setJsonInput(e.target.value)}
             placeholder="Paste your JSON here..."
-            className="w-full h-32 mb-2"
+            className="w-full h-32 mb-2 "
           />
           <Button
             variant="secondary"
             onClick={handleJsonTextImport}
             disabled={!jsonInput.trim()}
+            className="hidden"
           >
             <FaFileImport className="mr-2" />
             Import JSON Text
