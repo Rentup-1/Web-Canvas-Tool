@@ -31,23 +31,24 @@ const CanvasExportImport: FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileViaBackEndInputRef = useRef<HTMLInputElement>(null);
   const fileViaMixer = useRef<HTMLInputElement>(null);
-  const [jsonInput, setJsonInput] = useState<string>(
-    localStorage.getItem("mixerTemplate") || ""
-  );
+  const [jsonInput, setJsonInput] = useState<string>("");
 
   // useEffect(() => {
   //   setJsonInput(localStorage.getItem("mixerTemplate") || "");
   // }, [jsonInput]);
 
   useEffect(() => {
-    const handleStorageChange = () => {
+    const updateFromStorage = () => {
       const jsonData = localStorage.getItem("mixerTemplate");
-      localStorage.getItem("mixerTemplate")
+      if (jsonData) {
+        setJsonInput(jsonData);
+        handleJsonTextImport();
+      }
     };
 
-    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("mixerTemplateUpdated", updateFromStorage);
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("mixerTemplateUpdated", updateFromStorage);
     };
   }, []);
 
