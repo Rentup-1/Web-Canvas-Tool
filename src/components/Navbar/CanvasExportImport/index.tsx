@@ -35,6 +35,22 @@ const CanvasExportImport: FC = () => {
     localStorage.getItem("mixerTemplate") || ""
   );
 
+  // useEffect(() => {
+  //   setJsonInput(localStorage.getItem("mixerTemplate") || "");
+  // }, [jsonInput]);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const jsonData = localStorage.getItem("mixerTemplate");
+      localStorage.getItem("mixerTemplate")
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
   // Handle import from file (original format)
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -549,7 +565,7 @@ const CanvasExportImport: FC = () => {
 
         {/* New UI for direct JSON import */}
         {/* test */}
-        <div className="w-full max-w-md " style={{display: "none"}}>
+        <div className="w-full max-w-md " style={{ display: "none" }}>
           <Textarea
             value={jsonInput}
             onChange={(e) => setJsonInput(e.target.value)}
