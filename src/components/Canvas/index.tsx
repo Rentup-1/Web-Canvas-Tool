@@ -32,11 +32,7 @@ export function Canvas({ stageRef }: CanvasProps) {
   const isAnyElementSelected = elements.some((el) => el.selected);
 
   useEffect(() => {
-    if (
-      transformerRef.current &&
-      selectedNodeRef.current &&
-      isAnyElementSelected
-    ) {
+    if (transformerRef.current && selectedNodeRef.current && isAnyElementSelected) {
       transformerRef.current.nodes([selectedNodeRef.current]);
       transformerRef.current.getLayer()?.batchDraw();
     } else if (transformerRef.current) {
@@ -152,13 +148,11 @@ export function Canvas({ stageRef }: CanvasProps) {
             element={el}
             isSelected={el.selected as boolean}
             onSelect={() => dispatch(selectElement(el.id))}
-            onChange={(updates) =>
-              dispatch(updateElement({ id: el.id, updates }))
-            }
+            onChange={(updates) => dispatch(updateElement({ id: el.id, updates }))}
             ref={el.selected ? selectedNodeRef : null}
             stageWidth={stageWidth}
             stageHeight={stageHeight}
-            stageRef={stageRef}         // ✅ ضيف دي
+            stageRef={stageRef} // ✅ ضيف دي
             setGuides={setGuides} // Pass setGuides to update guidelines
           />
         ))}
@@ -168,13 +162,7 @@ export function Canvas({ stageRef }: CanvasProps) {
       <Layer ref={guidesLayerRef} listening={false}>
         {guides.map((guide, i) => (
           <>
-            <Line
-              key={`line-${i}`}
-              points={guide.points}
-              stroke="#fb6f92"
-              strokeWidth={1}
-              dash={[4, 4]}
-            />
+            <Line key={`line-${i}`} points={guide.points} stroke="#fb6f92" strokeWidth={1} dash={[4, 4]} />
             {guide.text && guide.textPosition && (
               <Text
                 key={`text-${i}`}
