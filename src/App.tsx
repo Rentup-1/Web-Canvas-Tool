@@ -234,7 +234,8 @@ const App: React.FC<AppProps> = ({ templateJson }) => {
 const InnerApp: React.FC<AppProps> = ({ templateJson }) => {
   const stageRef = useRef<Konva.Stage | null>(null);
   const dispatch = useDispatch();
-
+  console.log(templateJson);
+  
   const handleImportJson = (importedData: any) => {
     try {
       if (!importedData || !Array.isArray(importedData.elements)) return;
