@@ -24,26 +24,6 @@ const CanvasExportImport: FC = () => {
   const fileViaMixer = useRef<HTMLInputElement>(null);
   const [jsonInput, setJsonInput] = useState<string>("");
 
-  useEffect(() => {
-    const updateFromStorage = () => {
-      const jsonData = localStorage.getItem("mixerTemplate");
-
-      if (jsonData?.trim()) {
-        try {
-          JSON.parse(jsonData); // Just to test if it's valid
-          setJsonInput(jsonData);
-          handleJsonTextImport();
-        } catch (e) {
-          console.warn("Skipped parsing due to invalid JSON in localStorage.");
-        }
-      }
-    };
-
-    window.addEventListener("mixerTemplateUpdated", updateFromStorage);
-    return () => {
-      window.removeEventListener("mixerTemplateUpdated", updateFromStorage);
-    };
-  }, []);
 
   // Handle import from file (original format)
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -513,8 +493,6 @@ const CanvasExportImport: FC = () => {
           </DropdownMenu>
         </div>
 
-        {/* New UI for direct JSON import */}
-        {/* test */}
         <div className="w-full max-w-md " style={{ display: "none" }}>
           <Textarea
             value={jsonInput}
