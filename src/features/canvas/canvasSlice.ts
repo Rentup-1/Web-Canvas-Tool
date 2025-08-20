@@ -88,7 +88,7 @@ const canvasSlice = createSlice({
     addElement: (
       state,
       action: PayloadAction<
-        | { type: "icon"; iconName: string }
+        | { type: "icon"; iconName: string; path: string }
         | {
             type: "text";
             text: string;
@@ -159,10 +159,11 @@ const canvasSlice = createSlice({
             ...base,
             type: "icon",
             iconName: action.payload.iconName,
-            width: 50,
-            height: 50,
+            scaleX: 1,
+            scaleY: 1,
             color: "#000000",
             visible: true,
+            path: action.payload.path,
           } as CanvasElement;
           break;
 

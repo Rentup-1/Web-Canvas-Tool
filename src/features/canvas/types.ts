@@ -53,6 +53,7 @@ export interface CanvasElement {
   iconName?: string;
   color?: string;
   text?: string;
+  path?: string;
   // for percentage
   newWidth?: number;
   newHeight?: number;
@@ -68,7 +69,7 @@ export interface CanvasElement {
   fontWeight?: string;
   fontStyle?: string;
   white_space?: string;
-  objectFit?: 'cover' | 'contain' | 'fill';
+  objectFit?: "cover" | "contain" | "fill";
 }
 export interface CanvasFrameElement extends CanvasElement {
   type: "frame";

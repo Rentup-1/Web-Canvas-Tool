@@ -1,9 +1,11 @@
-// components/IconsPanel.tsx
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "@/hooks/useRedux";
 import { addElement } from "@/features/canvas/canvasSlice";
 
-type IconItem = { name: string };
+type IconItem = {
+  name: string;
+  path: string; // only one path
+};
 
 export function IconsPanel() {
   const [icons, setIcons] = useState<IconItem[]>([]);
@@ -11,12 +13,73 @@ export function IconsPanel() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    fetch(`https://api.iconify.design/search?query=${query}&limit=20`)
-      .then((res) => res.json())
-      .then((data) => {
-        const results = data.icons || [];
-        setIcons(results.map((name: string) => ({ name })));
-      });
+    if (!query.trim()) {
+      setIcons([]);
+      return;
+    }
+
+    const controller = new AbortController(); // controller for cancellation
+    const { signal } = controller;
+
+    (async () => {
+      try {
+        const res = await fetch(
+          `https://api.iconify.design/search?query=${encodeURIComponent(
+            query
+          )}&limit=32`,
+          { signal }
+        );
+        const data = await res.json();
+        const results: string[] = data.icons || [];
+
+        const filtered: IconItem[] = [];
+
+        for (const fullName of results) {
+          if (signal.aborted) return; // stop if aborted
+
+          const [prefix, name] = fullName.split(":");
+          if (!prefix || !name) continue;
+
+          try {
+            const metaRes = await fetch(
+              `https://api.iconify.design/${prefix}.json?icons=${name}`,
+              { signal }
+            );
+            if (!metaRes.ok) continue;
+
+            const json = await metaRes.json();
+            const iconData = json.icons?.[name];
+            if (!iconData) continue;
+
+            // Extract paths
+            const paths = [...iconData.body.matchAll(/d="([^"]+)"/g)].map(
+              (m) => m[1]
+            );
+
+            if (paths.length === 1) {
+              filtered.push({
+                name: fullName,
+                path: paths[0],
+              });
+            }
+          } catch (err) {
+            if ((err as any).name === "AbortError") return; // ignore canceled
+            console.error("Failed to fetch icon details:", fullName, err);
+          }
+        }
+
+        if (!signal.aborted) {
+          setIcons(filtered);
+        }
+      } catch (err) {
+        if ((err as any).name === "AbortError") return;
+        console.error("Search failed", err);
+      }
+    })();
+
+    return () => {
+      controller.abort(); // cancel request if query changes
+    };
   }, [query]);
 
   return (
@@ -36,6 +99,7 @@ export function IconsPanel() {
                 addElement({
                   type: "icon",
                   iconName: icon.name,
+                  path: icon.path,
                 })
               )
             }
