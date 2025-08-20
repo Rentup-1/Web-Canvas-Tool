@@ -302,6 +302,10 @@ const InnerApp: React.FC<AppProps> = ({ templateJson }) => {
     }
   }, [templateJson]);
 
+
+  
+
+
   return (
     <CanvasProvider stageRef={stageRef as RefObject<Konva.Stage>}>
       <KeyboardShortcutsHandler />
