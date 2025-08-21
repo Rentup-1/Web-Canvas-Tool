@@ -19,8 +19,8 @@ export function Canvas({ stageRef }: CanvasProps) {
     const elements = useAppSelector((state) => state.canvas.elements);
     const { stageWidth, stageHeight } = useAppSelector((state) => state.canvas);
     const dispatch = useAppDispatch();
-    // const selectedElements = elements.filter((el) => el.selected);
-    // const selectedNodeRef = useRef<any>(null);
+    const selectedElements = elements.filter((el) => el.selected);
+    const selectedNodeRef = useRef<any>(null);
     const transformerRef = useRef<any>(null);
     const guidesLayerRef = useRef<Konva.Layer>(null);
     const [guides, setGuides] = useState<
@@ -44,7 +44,7 @@ export function Canvas({ stageRef }: CanvasProps) {
     const isAnyElementSelected = elements.some((el) => el.selected);
 
     // useEffect(() => {
-        //     if (transformerRef.current && selectedNodeRef.current && isAnyElementSelected) {
+    //     if (transformerRef.current && selectedNodeRef.current && isAnyElementSelected) {
     //         transformerRef.current.nodes([selectedNodeRef.current]);
     //         transformerRef.current.getLayer()?.batchDraw();
     //     } else if (transformerRef.current) {
@@ -53,7 +53,7 @@ export function Canvas({ stageRef }: CanvasProps) {
     //         transformerRef.current.getLayer()?.batchDraw();
     //     }
     // }, [elements, isAnyElementSelected]);
-    
+
     // Update Transformer nodes for selected element
     useEffect(() => {
         const stage = stageRef.current;
@@ -61,11 +61,11 @@ export function Canvas({ stageRef }: CanvasProps) {
 
         const selectedNodes = elements
             // take elements selected and search in stage by id and filter out undefined
-            .filter((el) => el.selected) 
-            .map((el) => stage.findOne(`#${el.id}`)) 
+            .filter((el) => el.selected)
+            .map((el) => stage.findOne(`#${el.id}`))
             .filter(Boolean);
         // Set Transformer nodes to selected elements
-        transformerRef.current.nodes(selectedNodes); 
+        transformerRef.current.nodes(selectedNodes);
         transformerRef.current.getLayer()?.batchDraw();
     }, [elements]);
 
@@ -81,8 +81,7 @@ export function Canvas({ stageRef }: CanvasProps) {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [dispatch]);
 
-
-    // Handle selection rect for multiple selection 
+    // Handle selection rect for multiple selection
     useEffect(() => {
         const stage = stageRef.current;
         if (!stage) return;
@@ -135,7 +134,7 @@ export function Canvas({ stageRef }: CanvasProps) {
     // End selection rect and select elements
     const handleMouseUp = (e: any) => {
         if (!selectionRect.visible) return;
-        // 
+        //
         const stage = e.target.getStage();
         console.log(stage);
         const box = {
@@ -275,7 +274,7 @@ export function Canvas({ stageRef }: CanvasProps) {
                         stageHeight={stageHeight}
                         stageRef={stageRef} // ✅ ضيف دي
                         setGuides={setGuides} // Pass setGuides to update guidelines
-                        // draggable = {el.isSelected}
+                        draggable = {el.selected}
                        
                     />
                 ))}
@@ -284,7 +283,7 @@ export function Canvas({ stageRef }: CanvasProps) {
 
             {/* <Layer>
                 {selectedElements.length > 1 ? (
-                    <Group
+                    <   
                         id="selection-group"
                         draggable
                         onClick={(e) => {
@@ -296,36 +295,48 @@ export function Canvas({ stageRef }: CanvasProps) {
                                 <ElementRenderer
                                     key={el.id}
                                     element={el}
+                                    stageWidth={stageWidth}
+                                    stageHeight={stageHeight}
+                                    stageRef={stageRef}
+                                    setGuides={setGuides}
                                     isSelected={true}
                                     onSelect={() => {}}
                                     onChange={(updates) =>
                                         dispatch(updateElement({ id: el.id, updates }))
                                     }
-                                    draggable={false} // العناصر المختارة مش هتتحرك منفردة
+                                    draggable={el.selected} // العناصر المختارة مش هتتحرك منفردة
                                 />
                             ) : (
                                 <ElementRenderer
                                     key={el.id}
                                     element={el}
+                                    stageWidth={stageWidth}
+                                    stageHeight={stageHeight}
+                                    stageRef={stageRef}
+                                    setGuides={setGuides}
                                     isSelected={false}
                                     onSelect={() => dispatch(selectElement(el.id))}
                                     onChange={(updates) =>
                                         dispatch(updateElement({ id: el.id, updates }))
                                     }
-                                    draggable={true}
+                                    draggable={el.selected}
                                 />
                             )
                         )}
-                    </Group>
+                    </>
                 ) : (
                     elements.map((el) => (
                         <ElementRenderer
                             key={el.id}
                             element={el}
+                            stageWidth={stageWidth}
+                            stageHeight={stageHeight}
+                            stageRef={stageRef}
+                            setGuides={setGuides}
                             isSelected={el.selected as boolean}
                             onSelect={() => dispatch(selectElement(el.id))}
                             onChange={(updates) => dispatch(updateElement({ id: el.id, updates }))}
-                            draggable={true }
+                            draggable={el.selected}
                         />
                     ))
                 )}
