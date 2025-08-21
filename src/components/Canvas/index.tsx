@@ -11,7 +11,6 @@ import {
 } from "../../features/canvas/canvasSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 import { ElementRenderer } from "../ui/ElementRenderer";
-import { log } from "console";
 interface CanvasProps {
     stageRef: RefObject<Konva.Stage>;
 }
@@ -20,8 +19,8 @@ export function Canvas({ stageRef }: CanvasProps) {
     const elements = useAppSelector((state) => state.canvas.elements);
     const { stageWidth, stageHeight } = useAppSelector((state) => state.canvas);
     const dispatch = useAppDispatch();
-    const selectedElements = elements.filter((el) => el.selected);
-    const selectedNodeRef = useRef<any>(null);
+    // const selectedElements = elements.filter((el) => el.selected);
+    // const selectedNodeRef = useRef<any>(null);
     const transformerRef = useRef<any>(null);
     const guidesLayerRef = useRef<Konva.Layer>(null);
     const [guides, setGuides] = useState<
@@ -44,9 +43,8 @@ export function Canvas({ stageRef }: CanvasProps) {
     // Check if any element is selected
     const isAnyElementSelected = elements.some((el) => el.selected);
 
-    // Update Transformer nodes for selected element
     // useEffect(() => {
-    //     if (transformerRef.current && selectedNodeRef.current && isAnyElementSelected) {
+        //     if (transformerRef.current && selectedNodeRef.current && isAnyElementSelected) {
     //         transformerRef.current.nodes([selectedNodeRef.current]);
     //         transformerRef.current.getLayer()?.batchDraw();
     //     } else if (transformerRef.current) {
@@ -55,17 +53,19 @@ export function Canvas({ stageRef }: CanvasProps) {
     //         transformerRef.current.getLayer()?.batchDraw();
     //     }
     // }, [elements, isAnyElementSelected]);
-
+    
+    // Update Transformer nodes for selected element
     useEffect(() => {
         const stage = stageRef.current;
         if (!stage || !transformerRef.current) return;
 
         const selectedNodes = elements
-            .filter((el) => el.selected) // خد العناصر المتحددة
-            .map((el) => stage.findOne(`#${el.id}`)) // دور عليهم بالـ id
-            .filter(Boolean); // استبعد undefined
-
-        transformerRef.current.nodes(selectedNodes); // ربط الـ Transformer بكل العناصر
+            // take elements selected and search in stage by id and filter out undefined
+            .filter((el) => el.selected) 
+            .map((el) => stage.findOne(`#${el.id}`)) 
+            .filter(Boolean);
+        // Set Transformer nodes to selected elements
+        transformerRef.current.nodes(selectedNodes); 
         transformerRef.current.getLayer()?.batchDraw();
     }, [elements]);
 
@@ -275,6 +275,8 @@ export function Canvas({ stageRef }: CanvasProps) {
                         stageHeight={stageHeight}
                         stageRef={stageRef} // ✅ ضيف دي
                         setGuides={setGuides} // Pass setGuides to update guidelines
+                        // draggable = {el.isSelected}
+                       
                     />
                 ))}
                 {isAnyElementSelected && <Transformer ref={transformerRef} />}

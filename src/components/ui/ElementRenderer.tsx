@@ -245,6 +245,8 @@ export const ElementRenderer = forwardRef<any, Props>(
       stageHeight,
       setGuides,
       stageRef,
+      isSelected,
+    //   draggable,
     },
     ref
   ) => {
@@ -1317,7 +1319,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                     <>
                         {(element.visible ?? true) && (
                             <KonvaImage
-                                key={element.id}
+                                id={element.id}
                                 ref={ref}
                                 image={image}
                                 x={element.x}
@@ -1581,14 +1583,14 @@ export const ElementRenderer = forwardRef<any, Props>(
         return (
           <Path
             ref={ref}
-            key={element.id}
+            id={element.id}
             x={element.x}
             y={element.y}
             data={element.path}
             fill={element.color}
             scaleX={element.scaleX}
             scaleY={element.scaleY}
-            draggable
+            draggable // Make the element draggable
             onDragEnd={(e) => {
               const node = e.target;
               const newX = node.x();
