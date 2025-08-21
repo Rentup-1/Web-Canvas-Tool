@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 
 import { useDispatch } from "react-redux";
@@ -20,6 +18,7 @@ import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 import { useGetFrameTypesQuery } from "@/services/frameTypesApi";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/Button";
+import { urlToBase64 } from "@/utils/urlToBase64"; // ✅ added import
 
 export function UploadPanel() {
   // saving project id
@@ -35,7 +34,6 @@ export function UploadPanel() {
 
   const {
     data: assetsTypes,
-    // isLoading: isAssetsTypesLoading,
     isError: isAssetTypesError,
     error: assetTypesError,
   } = useGetFrameTypesQuery();
@@ -114,15 +112,27 @@ export function UploadPanel() {
   };
 
   // Handle clicking a remote image to add to canvas
-  const handleRemoteClick = (asset: ImageDataWithId) => {
-    dispatch(
-      addImageElement({
-        src: `${BASE_API_URL}${asset.image}`,
-        width: 300,
-        height: 300,
-      })
-    );
-    toast.success(`${asset.name} added to canvas`);
+  const handleRemoteClick = async (asset: ImageDataWithId) => {
+    try {
+      const remoteUrl = `${BASE_API_URL}${asset.image}`;
+      const base64 = await urlToBase64(remoteUrl); // ✅ convert here
+
+      const img = new Image();
+      img.src = base64;
+      img.onload = () => {
+        dispatch(
+          addImageElement({
+            src: img.src,
+            width: img.width,
+            height: img.height,
+          })
+        );
+        toast.success(`${asset.name} added to canvas`);
+      };
+    } catch (err) {
+      console.error("Failed to load remote asset:", err);
+      toast.error("Failed to add asset to canvas");
+    }
   };
 
   return (
