@@ -119,6 +119,12 @@ export interface CircleShape extends CanvasElement {
   radius: number;
 }
 
+export interface IconShape extends CanvasElement {
+  type: "icon";
+  iconName: string;
+  color: string;
+}
+
 export interface RectangleShape extends CanvasElement {
   type: "rectangle";
   width: number;
@@ -145,7 +151,7 @@ export interface LineShape extends CanvasElement {
 
 export interface TriangleShape extends CanvasElement {
   type: "triangle";
-  points: number[];
+  radius: number;
 }
 
 export interface StarShape extends CanvasElement {
