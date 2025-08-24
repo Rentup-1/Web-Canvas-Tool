@@ -17,6 +17,13 @@ import type {
     RingShape,
     ArrowShape,
 } from "./types";
+import { WritableDraft } from "immer";
+
+// Define UpdateManyPayload type
+type UpdateManyPayload = {
+    ids: string[];
+    updates: Partial<CanvasElementUnion>;
+};
 
 interface CanvasState {
     elements: CanvasElement[];
@@ -82,24 +89,24 @@ const createBaseElement = (id: string): Omit<CanvasElement, "type"> => {
 };
 
 const canvasSlice = createSlice({
-  name: "canvas",
-  initialState,
-  reducers: {
-    addElement: (
-      state,
-      action: PayloadAction<
-        | { type: "icon"; iconName: string; path: string }
-        | {
-            type: "text";
-            text: string;
-            toi_labels?: string;
-          }
-        | { type: Exclude<ElementType, "icon" | "text"> }
-      >
-    ) => {
-      const currentId = shapeIdCounter++;
-      const base = createBaseElement(String(currentId));
-      let newElement: CanvasElement;
+    name: "canvas",
+    initialState,
+    reducers: {
+        addElement: (
+            state,
+            action: PayloadAction<
+                | { type: "icon"; iconName: string; path: string }
+                | {
+                      type: "text";
+                      text: string;
+                      toi_labels?: string;
+                  }
+                | { type: Exclude<ElementType, "icon" | "text"> }
+            >
+        ) => {
+            const currentId = shapeIdCounter++;
+            const base = createBaseElement(String(currentId));
+            let newElement: CanvasElement;
 
             switch (action.payload.type) {
                 case "text":
@@ -154,18 +161,18 @@ const canvasSlice = createSlice({
                     } as CanvasElement;
                     break;
 
-        case "icon":
-          newElement = {
-            ...base,
-            type: "icon",
-            iconName: action.payload.iconName,
-            scaleX: 1,
-            scaleY: 1,
-            color: "#000000",
-            visible: true,
-            path: action.payload.path,
-          } as CanvasElement;
-          break;
+                case "icon":
+                    newElement = {
+                        ...base,
+                        type: "icon",
+                        iconName: action.payload.iconName,
+                        scaleX: 1,
+                        scaleY: 1,
+                        color: "#000000",
+                        visible: true,
+                        path: action.payload.path,
+                    } as CanvasElement;
+                    break;
 
                 case "circle":
                     newElement = {
@@ -369,6 +376,16 @@ const canvasSlice = createSlice({
             }));
         },
 
+        // update all multiple elements at once
+        // updateMultipleElements: (state, action: PayloadAction<UpdateManyPayload>) => {
+        //     const ids = new Set(action.payload.ids);
+        //     state.elements.forEach((el) => {
+        //         if (ids.has(el.id)) {
+        //             Object.assign(el, action.payload.updates);
+        //         }
+        //     });
+        // },
+
         deselectAllElements: (state) => {
             state.elements = state.elements.map((el) => ({
                 ...el,
@@ -390,14 +407,14 @@ const canvasSlice = createSlice({
                 state.elements[index] = { ...state.elements[index], ...updates };
             }
         },
-        deleteSelectedElement: (state) => {
-            const selectedIndex = state.elements.findIndex((el) => el.selected);
-            if (selectedIndex !== -1) {
-                state.past.push(state.elements.map((el) => ({ ...el })));
-                state.future = [];
-                state.elements.splice(selectedIndex, 1);
-            }
+
+        // delete all selected elements at once
+        deleteSelectedElements: (state) => {
+            state.past.push(state.elements.map((el) => ({ ...el })));
+            state.future = [];
+            state.elements = state.elements.filter((el) => !el.selected);
         },
+
         undo: (state) => {
             if (state.past.length > 0) {
                 const previous = state.past.pop();
@@ -461,6 +478,54 @@ const canvasSlice = createSlice({
             state.future = [];
             state.elements = [];
         },
+
+
+
+
+
+        updateElementsBulk: (
+            state,
+            action: PayloadAction<{
+                changes: { id: string; updates: Partial<CanvasElementUnion> }[];
+            }>
+        ) => {
+            snapshot(state);
+            const map = new Map(action.payload.changes.map((c) => [c.id, c.updates]));
+            state.elements = state.elements.map((el) =>
+                map.has(el.id) ? { ...el, ...(map.get(el.id) as any) } : el
+            );
+        },
+
+        // ✅ تحريك جماعي بالـ delta (batch واحد) — لحل سحب السليكشن
+        translateSelectedBy: (state, action: PayloadAction<{ dx: number; dy: number }>) => {
+            const { dx, dy } = action.payload;
+            snapshot(state);
+            state.elements = state.elements.map((el) =>
+                el.selected ? { ...el, x: el.x + dx, y: el.y + dy } : el
+            );
+        },
+
+        // ✅ تعديل جماعي بنفس القيم لكل المختارين (مثلاً تغيير لون من panel)
+        updateSelectedElements: (state, action: PayloadAction<Partial<CanvasElementUnion>>) => {
+            const updates = action.payload;
+            snapshot(state);
+            state.elements = state.elements.map((el) => (el.selected ? { ...el, ...updates } : el));
+        },
+
+        // ✏️ (اختياري لكن مُستحسَن) خلّي updateMultipleElements يسجّل history مرّة واحدة
+        updateMultipleElements: (
+            state,
+            action: PayloadAction<{
+                ids: string[];
+                updates: Partial<CanvasElementUnion>;
+            }>
+        ) => {
+            snapshot(state);
+            const ids = new Set(action.payload.ids);
+            state.elements.forEach((el) => {
+                if (ids.has(el.id)) Object.assign(el, action.payload.updates);
+            });
+        },
     },
 });
 
@@ -471,7 +536,6 @@ export const {
     toggleSelectElement,
     selectMultipleElements,
     updateElement,
-    deleteSelectedElement,
     moveElementDown,
     moveElementUp,
     undo,
@@ -482,6 +546,16 @@ export const {
     clearCanvas,
     deselectAllElements,
     toggleElementVisibility,
+    // updateMultipleElements,
+    deleteSelectedElements,
+
+    updateElementsBulk,
+    translateSelectedBy,
+    updateSelectedElements,
+    updateMultipleElements,
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;
+function snapshot(state: WritableDraft<CanvasState>) {
+    throw new Error("Function not implemented.");
+}

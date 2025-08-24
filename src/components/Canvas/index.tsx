@@ -2,12 +2,13 @@ import Konva from "konva";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { Group, Layer, Line, Rect, Stage, Text, Transformer } from "react-konva";
 import {
-    deleteSelectedElement,
     deselectAllElements,
     selectElement,
     updateElement,
     toggleSelectElement,
     selectMultipleElements,
+    deleteSelectedElements,
+    updateMultipleElements,
 } from "../../features/canvas/canvasSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 import { ElementRenderer } from "../ui/ElementRenderer";
@@ -43,37 +44,25 @@ export function Canvas({ stageRef }: CanvasProps) {
     // Check if any element is selected
     const isAnyElementSelected = elements.some((el) => el.selected);
 
-    // useEffect(() => {
-    //     if (transformerRef.current && selectedNodeRef.current && isAnyElementSelected) {
-    //         transformerRef.current.nodes([selectedNodeRef.current]);
-    //         transformerRef.current.getLayer()?.batchDraw();
-    //     } else if (transformerRef.current) {
-    //         // Clear Transformer nodes when no element is selected
-    //         transformerRef.current.nodes([]);
-    //         transformerRef.current.getLayer()?.batchDraw();
-    //     }
-    // }, [elements, isAnyElementSelected]);
-
     // Update Transformer nodes for selected element
     useEffect(() => {
         const stage = stageRef.current;
         if (!stage || !transformerRef.current) return;
 
         const selectedNodes = elements
-            // take elements selected and search in stage by id and filter out undefined
+
             .filter((el) => el.selected)
             .map((el) => stage.findOne(`#${el.id}`))
-            .filter(Boolean);
+            .filter(Boolean) as Konva.Node[];
         // Set Transformer nodes to selected elements
         transformerRef.current.nodes(selectedNodes);
         transformerRef.current.getLayer()?.batchDraw();
-    }, [elements]);
-
+    }, [elements, stageRef]);
     // Delete selected element
     useEffect(() => {
         const handleKeyDown = (e: any) => {
             if (e.key === "Delete") {
-                dispatch(deleteSelectedElement());
+                dispatch(deleteSelectedElements());
             }
         };
 
@@ -92,14 +81,12 @@ export function Canvas({ stageRef }: CanvasProps) {
             if (!selectionRect.visible) return;
             const pos = stage.getPointerPosition();
             if (pos) {
-                console.log("Mouse move at", pos);
                 setSelectionRect((prev) => ({ ...prev, x2: pos.x, y2: pos.y }));
             }
         };
 
         const onUp = () => {
             if (!selectionRect.visible) return;
-            console.log("mouse up");
             setSelectionRect((prev) => ({ ...prev, visible: false }));
         };
 
@@ -127,7 +114,6 @@ export function Canvas({ stageRef }: CanvasProps) {
     const handleMouseMove = (e: any) => {
         if (!selectionRect.visible) return;
         const p = pointerPos(e);
-        console.log("Mouse move at", p);
         setSelectionRect((prev) => ({ ...prev, x2: p.x, y2: p.y }));
     };
 
@@ -136,7 +122,6 @@ export function Canvas({ stageRef }: CanvasProps) {
         if (!selectionRect.visible) return;
         //
         const stage = e.target.getStage();
-        console.log(stage);
         const box = {
             x: Math.min(selectionRect.x1, selectionRect.x2),
             y: Math.min(selectionRect.y1, selectionRect.y2),
@@ -153,19 +138,13 @@ export function Canvas({ stageRef }: CanvasProps) {
         });
 
         if (ids.length) {
-            ids.forEach((id) => dispatch(selectMultipleElements(ids)));
+            dispatch(selectMultipleElements(ids));
         } else {
             dispatch(deselectAllElements());
         }
 
         setSelectionRect((prev) => ({ ...prev, visible: false }));
     };
-
-    // const handleStageClick = (e: any) => {
-    //     if (e.target === e.target.getStage()) {
-    //         dispatch(deselectAllElements());
-    //     }
-    // };
 
     /* handle zooming */
     const handleWheel = (e: any) => {
@@ -257,25 +236,31 @@ export function Canvas({ stageRef }: CanvasProps) {
                         key={el.id}
                         element={el}
                         isSelected={el.selected as boolean}
-                        // onSelect={() => dispatch(selectElement(el.id))}
-
-                        // handel click on element to select it and move it if shift key is pressed 
+                        // handel click on element to select it and move it if shift key is pressed
                         onSelect={(e) => {
                             if (e?.evt.shiftKey) {
-                                dispatch(toggleSelectElement(el.id)); 
+                                dispatch(toggleSelectElement(el.id));
                             } else {
                                 dispatch(selectElement(el.id));
                             }
                         }}
-
+                        // onChange={(updates) => {
+                        //     if (isAnyElementSelected) {
+                        //         const selectedIds = elements
+                        //             .filter((e) => e.selected)
+                        //             .map((e) => e.id);
+                        //         dispatch(updateMultipleElements({ ids: selectedIds, updates }));
+                        //     } else {
+                        //         dispatch(updateElement({ id: el.id, updates }));
+                        //     }
+                        // }}
                         onChange={(updates) => dispatch(updateElement({ id: el.id, updates }))}
-                        // ref={el.selected ? selectedNodeRef : null}
+                        ref={el.selected ? selectedNodeRef : null}
                         stageWidth={stageWidth}
                         stageHeight={stageHeight}
                         stageRef={stageRef} // ✅ ضيف دي
                         setGuides={setGuides} // Pass setGuides to update guidelines
-                        draggable = {el.selected}
-                       
+                        draggable={el.selected}
                     />
                 ))}
                 {isAnyElementSelected && <Transformer ref={transformerRef} />}
@@ -283,11 +268,11 @@ export function Canvas({ stageRef }: CanvasProps) {
 
             {/* <Layer>
                 {selectedElements.length > 1 ? (
-                    <   
+                    <Group
                         id="selection-group"
                         draggable
-                        onClick={(e) => {
-                            e.cancelBubble = true; // عشان مايلغيش السليكشن لو ضغطت جوا الجروب
+                        onClick={(e: any) => {
+                            e.cancelBubble = true; // Prevent deselection when clicking inside the group
                         }}
                     >
                         {elements.map((el) =>
@@ -304,7 +289,7 @@ export function Canvas({ stageRef }: CanvasProps) {
                                     onChange={(updates) =>
                                         dispatch(updateElement({ id: el.id, updates }))
                                     }
-                                    draggable={el.selected} // العناصر المختارة مش هتتحرك منفردة
+                                    draggable={el.selected}
                                 />
                             ) : (
                                 <ElementRenderer
@@ -323,7 +308,7 @@ export function Canvas({ stageRef }: CanvasProps) {
                                 />
                             )
                         )}
-                    </>
+                    </Group>
                 ) : (
                     elements.map((el) => (
                         <ElementRenderer
@@ -340,7 +325,6 @@ export function Canvas({ stageRef }: CanvasProps) {
                         />
                     ))
                 )}
-
                 {isAnyElementSelected && (
                     <Transformer
                         ref={transformerRef}
@@ -357,9 +341,8 @@ export function Canvas({ stageRef }: CanvasProps) {
 
             <Layer ref={guidesLayerRef} listening={false}>
                 {guides.map((guide, i) => (
-                    <>
+                    <Group key={`guide-group-${i}`}>
                         <Line
-                            key={`line-${i}`}
                             points={guide.points}
                             stroke="#fb6f92"
                             strokeWidth={1}
@@ -367,7 +350,6 @@ export function Canvas({ stageRef }: CanvasProps) {
                         />
                         {guide.text && guide.textPosition && (
                             <Text
-                                key={`text-${i}`}
                                 x={guide.textPosition.x}
                                 y={guide.textPosition.y}
                                 text={guide.text}
@@ -378,7 +360,7 @@ export function Canvas({ stageRef }: CanvasProps) {
                                 verticalAlign="middle"
                             />
                         )}
-                    </>
+                    </Group>
                 ))}
             </Layer>
 
@@ -389,7 +371,8 @@ export function Canvas({ stageRef }: CanvasProps) {
                         y={Math.min(selectionRect.y1, selectionRect.y2)}
                         width={Math.abs(selectionRect.x2 - selectionRect.x1)}
                         height={Math.abs(selectionRect.y2 - selectionRect.y1)}
-                        fill="rgba(0,0,200,0.7)"
+                        fill="rgba(180,230,255,0.7)"
+                        stroke={"rgba(120, 250, 255)"}
                     />
                 )}
             </Layer>

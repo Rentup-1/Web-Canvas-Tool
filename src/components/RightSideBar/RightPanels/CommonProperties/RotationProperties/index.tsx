@@ -11,7 +11,7 @@ export default function RotationProperties({
 }) {
   const dispatch = useAppDispatch();
   const update = <T extends CanvasElement>(updates: Partial<T>) => {
-    dispatch(updateElement({ id: element.id, updates }));
+    dispatch(updateElement({ id: element.id, updates}));
   };
   return (
     <>
