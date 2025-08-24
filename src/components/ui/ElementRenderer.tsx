@@ -691,6 +691,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                                             updates: {
                                                 x: node.x(),
                                                 y: node.y(),
+                                                rotation: node.rotation(), 
                                                 width_percent: toPercent(bgSize.width, stageWidth),
                                                 height_percent: toPercent(
                                                     bgSize.height,
@@ -713,50 +714,45 @@ export const ElementRenderer = forwardRef<any, Props>(
                                     const text = refText.current;
                                     if (!group || !text) return;
 
+                                    // Calculate new width based on scaling
                                     const newWidth = Math.max(30, text.width() * group.scaleX());
                                     text.width(newWidth);
+
+                                    // Reset scaling so further transforms behave correctly
                                     group.scaleX(1);
                                     group.scaleY(1);
+
+                                    // Recalculate text data
                                     text._setTextData();
+
+                                    // Update local background size
                                     const box = text.getClientRect({ skipTransform: true });
                                     setBgSize({ width: newWidth, height: box.height });
-                                }}
-                                onTransformEndEnd={() => {
-                                    const group = refGroup.current;
-                                    const text = refText.current;
-                                    if (!group || !text) return;
 
-                                    // Guard against updates after deletion
+                                    // If element exists, dispatch update to store
                                     if (!exists) return;
-
-                                    const newWidth = text.width();
-                                    text._setTextData();
-                                    const box = text.getClientRect({ skipTransform: true });
-
                                     dispatch(
-                                        updateElement({
-                                            id: textElement.id,
-                                            updates: {
-                                                x: group.x(),
-                                                y: group.y(),
-                                                width: newWidth,
-                                                height: box.height,
-                                                align: textAlign,
-                                                width_percent: toPercent(newWidth, stageWidth),
-                                                height_percent: toPercent(box.height, stageHeight),
-                                                x_percent: toPercent(group.x(), stageWidth),
-                                                y_percent: toPercent(group.y(), stageHeight),
-                                                fontSize_percent: toPercentFontSize(
-                                                    Number(textElement.fontSize),
-                                                    stageWidth,
-                                                    stageHeight
-                                                ),
-                                            },
-                                        })
+                                    updateElement({
+                                        id: textElement.id,
+                                        updates: {
+                                        x: group.x(),
+                                        y: group.y(),
+                                        rotation: group.rotation(), 
+                                        width: newWidth,
+                                        height: box.height,
+                                        align: textAlign,
+                                        width_percent: toPercent(newWidth, stageWidth),
+                                        height_percent: toPercent(box.height, stageHeight),
+                                        x_percent: toPercent(group.x(), stageWidth),
+                                        y_percent: toPercent(group.y(), stageHeight),
+                                        fontSize_percent: toPercentFontSize(
+                                            Number(textElement.fontSize),
+                                            stageWidth,
+                                            stageHeight
+                                        ),
+                                        },
+                                    })
                                     );
-
-                                    group.scaleX(1);
-                                    group.scaleY(1);
                                 }}
                             >
                                 {textElement.background && (

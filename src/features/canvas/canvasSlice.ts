@@ -356,7 +356,7 @@ const canvasSlice = createSlice({
         toggleSelectElement: (state, action: PayloadAction<string>) => {
             const id = action.payload;
             const element = state.elements.find((el) => el.id === id);
-            // if the element is already selected, deselect it , otherwise select it
+            // if the element is already selected, d2eselect it , otherwise select it
             if (element) {
                 element.selected = !element.selected;
             }

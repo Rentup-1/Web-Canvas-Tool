@@ -25,7 +25,7 @@ export default function IconScaleProperties({
         <TextInput
           label={<FaW />}
           type="number"
-          value={(element.scaleX ?? 1).toFixed(0)}
+          value={(element.scaleX ?? 1).toFixed(1)}
           onChange={(val) =>
             update({
               scaleX: Number(val),
@@ -36,7 +36,7 @@ export default function IconScaleProperties({
         <TextInput
           label={<FaH />}
           type="number"
-          value={(element.scaleY ?? 1).toFixed(0)}
+          value={(element.scaleY ?? 1).toFixed(1)}
           onChange={(val) =>
             update({
               scaleY: Number(val),
