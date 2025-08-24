@@ -2,13 +2,12 @@ import Konva from "konva";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { Group, Layer, Line, Rect, Stage, Text, Transformer } from "react-konva";
 import {
+    deleteSelectedElements,
     deselectAllElements,
     selectElement,
-    updateElement,
-    toggleSelectElement,
     selectMultipleElements,
-    deleteSelectedElements,
-    updateMultipleElements,
+    toggleSelectElement,
+    updateElement,
 } from "../../features/canvas/canvasSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 import { ElementRenderer } from "../ui/ElementRenderer";
@@ -16,13 +15,12 @@ interface CanvasProps {
     stageRef: RefObject<Konva.Stage>;
 }
 export function Canvas({ stageRef }: CanvasProps) {
-    const [cursor, setCursor] = useState("default");
     const elements = useAppSelector((state) => state.canvas.elements);
     const { stageWidth, stageHeight } = useAppSelector((state) => state.canvas);
     const dispatch = useAppDispatch();
-    const selectedElements = elements.filter((el) => el.selected);
-    const selectedNodeRef = useRef<any>(null);
-    const transformerRef = useRef<any>(null);
+
+    const selectedNodeRef = useRef<Konva.Node>(null);
+    const transformerRef = useRef<Konva.Transformer>(null);
     const guidesLayerRef = useRef<Konva.Layer>(null);
     const [guides, setGuides] = useState<
         {
@@ -41,6 +39,9 @@ export function Canvas({ stageRef }: CanvasProps) {
         y2: 0,
     });
 
+    // change cursor on drag
+    const [cursor, setCursor] = useState<"default" | "grab" | "grabbing">("default");
+
     // Check if any element is selected
     const isAnyElementSelected = elements.some((el) => el.selected);
 
@@ -50,14 +51,13 @@ export function Canvas({ stageRef }: CanvasProps) {
         if (!stage || !transformerRef.current) return;
 
         const selectedNodes = elements
-
             .filter((el) => el.selected)
             .map((el) => stage.findOne(`#${el.id}`))
             .filter(Boolean) as Konva.Node[];
         // Set Transformer nodes to selected elements
         transformerRef.current.nodes(selectedNodes);
         transformerRef.current.getLayer()?.batchDraw();
-    }, [elements, stageRef]);
+    }, [elements]);
     // Delete selected element
     useEffect(() => {
         const handleKeyDown = (e: any) => {
@@ -70,39 +70,12 @@ export function Canvas({ stageRef }: CanvasProps) {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [dispatch]);
 
-    // Handle selection rect for multiple selection
-    useEffect(() => {
-        const stage = stageRef.current;
-        if (!stage) return;
-
-        const container = stage.container();
-
-        const onMove = (e: MouseEvent) => {
-            if (!selectionRect.visible) return;
-            const pos = stage.getPointerPosition();
-            if (pos) {
-                setSelectionRect((prev) => ({ ...prev, x2: pos.x, y2: pos.y }));
-            }
-        };
-
-        const onUp = () => {
-            if (!selectionRect.visible) return;
-            setSelectionRect((prev) => ({ ...prev, visible: false }));
-        };
-
-        container.addEventListener("mousemove", onMove);
-        container.addEventListener("mouseup", onUp);
-        return () => {
-            container.removeEventListener("mousemove", onMove);
-            container.removeEventListener("mouseup", onUp);
-        };
-    }, [selectionRect.visible, stageRef]);
 
     // get pointer position on stage
     const pointerPos = (e: any) => e.target.getStage().getPointerPosition();
 
     // start selection rect on stage & set selectionRect visible  = true
-    const handleMouseDown = (e: any) => {
+    const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
         if (e.target === e.target.getStage()) {
             const p = pointerPos(e);
             setSelectionRect({ visible: true, x1: p.x, y1: p.y, x2: p.x, y2: p.y });
@@ -111,14 +84,14 @@ export function Canvas({ stageRef }: CanvasProps) {
     };
 
     // Update selection rect as mouse moves on stage
-    const handleMouseMove = (e: any) => {
+    const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
         if (!selectionRect.visible) return;
         const p = pointerPos(e);
         setSelectionRect((prev) => ({ ...prev, x2: p.x, y2: p.y }));
     };
 
     // End selection rect and select elements
-    const handleMouseUp = (e: any) => {
+    const handleMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
         if (!selectionRect.visible) return;
         //
         const stage = e.target.getStage();
@@ -131,7 +104,7 @@ export function Canvas({ stageRef }: CanvasProps) {
 
         const ids: string[] = [];
         elements.forEach((el) => {
-            const node = stage.findOne(`#${el.id}`);
+            const node = stage?.findOne(`#${el.id}`);
             if (node && Konva.Util.haveIntersection(box, node.getClientRect())) {
                 ids.push(el.id);
             }
@@ -147,7 +120,7 @@ export function Canvas({ stageRef }: CanvasProps) {
     };
 
     /* handle zooming */
-    const handleWheel = (e: any) => {
+    const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
         e.evt.preventDefault();
 
         const stage = stageRef.current;
@@ -234,7 +207,8 @@ export function Canvas({ stageRef }: CanvasProps) {
                 {elements.map((el) => (
                     <ElementRenderer
                         key={el.id}
-                        element={el}
+                        element={el}     
+                        ChildEl={elements}
                         isSelected={el.selected as boolean}
                         // handel click on element to select it and move it if shift key is pressed
                         onSelect={(e) => {
@@ -244,16 +218,6 @@ export function Canvas({ stageRef }: CanvasProps) {
                                 dispatch(selectElement(el.id));
                             }
                         }}
-                        // onChange={(updates) => {
-                        //     if (isAnyElementSelected) {
-                        //         const selectedIds = elements
-                        //             .filter((e) => e.selected)
-                        //             .map((e) => e.id);
-                        //         dispatch(updateMultipleElements({ ids: selectedIds, updates }));
-                        //     } else {
-                        //         dispatch(updateElement({ id: el.id, updates }));
-                        //     }
-                        // }}
                         onChange={(updates) => dispatch(updateElement({ id: el.id, updates }))}
                         ref={el.selected ? selectedNodeRef : null}
                         stageWidth={stageWidth}
@@ -266,82 +230,9 @@ export function Canvas({ stageRef }: CanvasProps) {
                 {isAnyElementSelected && <Transformer ref={transformerRef} />}
             </Layer>
 
-            {/* <Layer>
-                {selectedElements.length > 1 ? (
-                    <Group
-                        id="selection-group"
-                        draggable
-                        onClick={(e: any) => {
-                            e.cancelBubble = true; // Prevent deselection when clicking inside the group
-                        }}
-                    >
-                        {elements.map((el) =>
-                            el.selected ? (
-                                <ElementRenderer
-                                    key={el.id}
-                                    element={el}
-                                    stageWidth={stageWidth}
-                                    stageHeight={stageHeight}
-                                    stageRef={stageRef}
-                                    setGuides={setGuides}
-                                    isSelected={true}
-                                    onSelect={() => {}}
-                                    onChange={(updates) =>
-                                        dispatch(updateElement({ id: el.id, updates }))
-                                    }
-                                    draggable={el.selected}
-                                />
-                            ) : (
-                                <ElementRenderer
-                                    key={el.id}
-                                    element={el}
-                                    stageWidth={stageWidth}
-                                    stageHeight={stageHeight}
-                                    stageRef={stageRef}
-                                    setGuides={setGuides}
-                                    isSelected={false}
-                                    onSelect={() => dispatch(selectElement(el.id))}
-                                    onChange={(updates) =>
-                                        dispatch(updateElement({ id: el.id, updates }))
-                                    }
-                                    draggable={el.selected}
-                                />
-                            )
-                        )}
-                    </Group>
-                ) : (
-                    elements.map((el) => (
-                        <ElementRenderer
-                            key={el.id}
-                            element={el}
-                            stageWidth={stageWidth}
-                            stageHeight={stageHeight}
-                            stageRef={stageRef}
-                            setGuides={setGuides}
-                            isSelected={el.selected as boolean}
-                            onSelect={() => dispatch(selectElement(el.id))}
-                            onChange={(updates) => dispatch(updateElement({ id: el.id, updates }))}
-                            draggable={el.selected}
-                        />
-                    ))
-                )}
-                {isAnyElementSelected && (
-                    <Transformer
-                        ref={transformerRef}
-                        nodes={
-                            selectedElements.length > 1
-                                ? stageRef.current
-                                    ? [stageRef.current.findOne("#selection-group")].filter(Boolean)
-                                    : []
-                                : [selectedNodeRef.current].filter(Boolean)
-                        }
-                    />
-                )}
-            </Layer> */}
-
             <Layer ref={guidesLayerRef} listening={false}>
                 {guides.map((guide, i) => (
-                    <Group key={`guide-group-${i}`}>
+                    <Group key={`guide-group-${i}`} listening={false}>
                         <Line
                             points={guide.points}
                             stroke="#fb6f92"

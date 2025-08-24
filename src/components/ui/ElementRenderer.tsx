@@ -26,6 +26,7 @@ import type {
     BrandingType,
     CanvasElement,
     CanvasElementUnion,
+    CanvasGroupElement,
     CanvasTextElement,
     CircleShape,
     EllipseShape,
@@ -36,6 +37,7 @@ import type {
     TriangleShape,
     WedgeShape,
 } from "../../features/canvas/types";
+import { KonvaEventObject } from "konva/lib/Node";
 
 type GuideLineType = {
     points: number[];
@@ -43,12 +45,13 @@ type GuideLineType = {
 
 interface Props {
     element: CanvasElementUnion;
-    isSelected: boolean;
+    isSelected?: boolean;
     onSelect?: (e?: Konva.KonvaEventObject<MouseEvent>, id?: string) => void;
     onChange: (updates: Partial<CanvasElementUnion>) => void;
     stageWidth: number;
     stageHeight: number;
     draggable?: boolean;
+    ChildEl?: CanvasElement[];
     setGuides: (guides: GuideLineType[]) => void;
     stageRef: React.RefObject<Konva.Stage>; // ✅ ضيف دي
 }
@@ -229,7 +232,7 @@ const loadGoogleFont = (fontFamily: string) => {
 // Update the ElementRenderer to apply stroke and strokeWidth to all shapes
 export const ElementRenderer = forwardRef<any, Props>(
     (
-        { element, onSelect, onChange, stageWidth, stageHeight, setGuides, stageRef, draggable },
+        { element, onSelect, onChange, stageWidth, stageHeight, setGuides, stageRef, draggable, ChildEl },
         ref
     ) => {
         const elements = useSelector((store: any) => store.canvas.elements);
@@ -691,7 +694,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                                             updates: {
                                                 x: node.x(),
                                                 y: node.y(),
-                                                rotation: node.rotation(), 
+                                                rotation: node.rotation(),
                                                 width_percent: toPercent(bgSize.width, stageWidth),
                                                 height_percent: toPercent(
                                                     bgSize.height,
@@ -732,26 +735,26 @@ export const ElementRenderer = forwardRef<any, Props>(
                                     // If element exists, dispatch update to store
                                     if (!exists) return;
                                     dispatch(
-                                    updateElement({
-                                        id: textElement.id,
-                                        updates: {
-                                        x: group.x(),
-                                        y: group.y(),
-                                        rotation: group.rotation(), 
-                                        width: newWidth,
-                                        height: box.height,
-                                        align: textAlign,
-                                        width_percent: toPercent(newWidth, stageWidth),
-                                        height_percent: toPercent(box.height, stageHeight),
-                                        x_percent: toPercent(group.x(), stageWidth),
-                                        y_percent: toPercent(group.y(), stageHeight),
-                                        fontSize_percent: toPercentFontSize(
-                                            Number(textElement.fontSize),
-                                            stageWidth,
-                                            stageHeight
-                                        ),
-                                        },
-                                    })
+                                        updateElement({
+                                            id: textElement.id,
+                                            updates: {
+                                                x: group.x(),
+                                                y: group.y(),
+                                                rotation: group.rotation(),
+                                                width: newWidth,
+                                                height: box.height,
+                                                align: textAlign,
+                                                width_percent: toPercent(newWidth, stageWidth),
+                                                height_percent: toPercent(box.height, stageHeight),
+                                                x_percent: toPercent(group.x(), stageWidth),
+                                                y_percent: toPercent(group.y(), stageHeight),
+                                                fontSize_percent: toPercentFontSize(
+                                                    Number(textElement.fontSize),
+                                                    stageWidth,
+                                                    stageHeight
+                                                ),
+                                            },
+                                        })
                                     );
                                 }}
                             >
@@ -2233,6 +2236,89 @@ export const ElementRenderer = forwardRef<any, Props>(
                         )}
                     </>
                 );
+            case "group": {
+                const groupEl = element as CanvasGroupElement;
+                const children = elements.filter((el: CanvasElement) =>
+                    groupEl.children.includes(el.id)
+                );
+
+                const handleGroupDragEnd = (node: Konva.Group) => {
+                    const { newX, newY } = calculateSnappingPosition(
+                        node,
+                        elements,
+                        element,
+                        snapThreshold,
+                        groupEl.width / 2,
+                        groupEl.height / 2
+                    );
+
+                    onChange({
+                        x: newX,
+                        y: newY,
+                        width_percent: toPercent(groupEl.width, stageWidth),
+                        height_percent: toPercent(groupEl.height, stageHeight),
+                        x_percent: toPercent(newX, stageWidth),
+                        y_percent: toPercent(newY, stageHeight),
+                    });
+
+                    setGuides([]);
+                };
+
+                const handleGroupTransformEnd = (node: Konva.Group) => {
+                    const scaleX = node.scaleX();
+                    const scaleY = node.scaleY();
+
+                    const newWidth = groupEl.width * scaleX;
+                    const newHeight = groupEl.height * scaleY;
+
+                    onChange({
+                        x: node.x(),
+                        y: node.y(),
+                        width: newWidth,
+                        height: newHeight,
+                        x_percent: toPercent(node.x(), stageWidth),
+                        y_percent: toPercent(node.y(), stageHeight),
+                        width_percent: toPercent(newWidth, stageWidth),
+                        height_percent: toPercent(newHeight, stageHeight),
+                        rotation: node.rotation(),
+                    });
+
+                    node.scaleX(1);
+                    node.scaleY(1);
+                };
+
+                return (
+                    (element.visible ?? true) && (
+                        <Group
+                            key={groupEl.id}
+                            id={groupEl.id}
+                            x={groupEl.x}
+                            y={groupEl.y}
+                            rotation={groupEl.rotation ?? 0}
+                            draggable={draggable}
+                            onClick={onSelect}
+                            onDragMove={(e: KonvaEventObject<DragEvent>) => drawGuidelines(e.target)}
+                            onDragEnd={(e: KonvaEventObject<DragEvent>) => handleGroupDragEnd(e.target as Konva.Group)}
+                            onTransformEnd={(e: KonvaEventObject<Event>) => handleGroupTransformEnd(e.target as Konva.Group)}
+                        >
+                            {children.map((child: CanvasElementUnion) => (
+                                <ElementRenderer
+                                    key={child.id}
+                                    element={child}
+                                    ChildEl={elements}
+                                    stageWidth={stageWidth}
+                                    stageHeight={stageHeight}
+                                    onSelect={onSelect}
+                                    onChange={onChange}
+                                    setGuides={setGuides}
+                                    draggable={false}
+                                    stageRef={stageRef}
+                                />
+                            ))}
+                        </Group>
+                    )
+                );
+            }
 
             default:
                 return null;

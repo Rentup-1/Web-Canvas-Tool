@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { nanoid } from "nanoid";
-import type { AspectRatio, CanvasElementUnion, ElementType } from "./types";
+import type { AspectRatio, CanvasElementUnion, CanvasGroupElement, ElementType } from "./types";
 import type {
     CanvasElement,
     CanvasTextElement,
@@ -18,12 +18,6 @@ import type {
     ArrowShape,
 } from "./types";
 import { WritableDraft } from "immer";
-
-// Define UpdateManyPayload type
-type UpdateManyPayload = {
-    ids: string[];
-    updates: Partial<CanvasElementUnion>;
-};
 
 interface CanvasState {
     elements: CanvasElement[];
@@ -45,23 +39,10 @@ const initialState: CanvasState = {
 
 let shapeIdCounter = 1;
 
-// const createBaseElement = (id: string): Omit<CanvasElement, "type"> => ({
-//   id,
-//   x: 100,
-//   y: 100,
-//   width: 150,
-//   height: 100,
-//   x_percent: 0.1,
-//   y_percent: 0.1,
-//   width_percent: 0.15,
-//   height_percent: 0.16,
-//   rotation: 0,
-//   selected: false,
-//   fill: "#00A8E8",
-//   opacity: 1,
-//   fillBrandingType: "fixed",
-//   strokeBrandingType: "fixed",
-// });
+const snapshot = (state: WritableDraft<CanvasState>) => {
+    state.past.push(JSON.parse(JSON.stringify(state.elements))); // deep clone
+    state.future = [];
+};
 
 const createBaseElement = (id: string): Omit<CanvasElement, "type"> => {
     const width = 150;
@@ -326,8 +307,7 @@ const canvasSlice = createSlice({
                     throw new Error(`Unsupported element type: ${action.payload.type}`);
             }
 
-            state.past.push(state.elements.map((el) => ({ ...el })));
-            state.future = [];
+            snapshot(state);
             state.elements.push(newElement);
         },
         addImageElement: (
@@ -349,6 +329,7 @@ const canvasSlice = createSlice({
                 originalWidth: width,
                 originalHeight: height,
                 fill: "",
+                visible: true,
             });
         },
 
@@ -375,17 +356,6 @@ const canvasSlice = createSlice({
                 selected: action.payload.includes(el.id),
             }));
         },
-
-        // update all multiple elements at once
-        // updateMultipleElements: (state, action: PayloadAction<UpdateManyPayload>) => {
-        //     const ids = new Set(action.payload.ids);
-        //     state.elements.forEach((el) => {
-        //         if (ids.has(el.id)) {
-        //             Object.assign(el, action.payload.updates);
-        //         }
-        //     });
-        // },
-
         deselectAllElements: (state) => {
             state.elements = state.elements.map((el) => ({
                 ...el,
@@ -402,16 +372,14 @@ const canvasSlice = createSlice({
             const { id, updates } = action.payload;
             const index = state.elements.findIndex((el) => el.id === id);
             if (index !== -1) {
-                state.past.push(state.elements.map((el) => ({ ...el })));
-                state.future = [];
+                snapshot(state);
                 state.elements[index] = { ...state.elements[index], ...updates };
             }
         },
 
         // delete all selected elements at once
         deleteSelectedElements: (state) => {
-            state.past.push(state.elements.map((el) => ({ ...el })));
-            state.future = [];
+            snapshot(state);
             state.elements = state.elements.filter((el) => !el.selected);
         },
 
@@ -436,8 +404,7 @@ const canvasSlice = createSlice({
         moveElementUp: (state, action: PayloadAction<string>) => {
             const index = state.elements.findIndex((el) => el.id === action.payload);
             if (index < state.elements.length - 1) {
-                state.past.push(state.elements.map((el) => ({ ...el })));
-                state.future = [];
+                snapshot(state);
                 [state.elements[index], state.elements[index + 1]] = [
                     state.elements[index + 1],
                     state.elements[index],
@@ -447,8 +414,7 @@ const canvasSlice = createSlice({
         moveElementDown: (state, action: PayloadAction<string>) => {
             const index = state.elements.findIndex((el) => el.id === action.payload);
             if (index > 0) {
-                state.past.push(state.elements.map((el) => ({ ...el })));
-                state.future = [];
+                snapshot(state);
                 [state.elements[index], state.elements[index - 1]] = [
                     state.elements[index - 1],
                     state.elements[index],
@@ -469,62 +435,59 @@ const canvasSlice = createSlice({
             state.aspectRatio = action.payload;
         },
         setElements: (state, action: PayloadAction<CanvasElement[]>) => {
-            state.past.push(state.elements.map((el) => ({ ...el })));
-            state.future = [];
+            snapshot(state);
             state.elements = action.payload;
         },
         clearCanvas: (state) => {
-            state.past.push(state.elements.map((el) => ({ ...el })));
-            state.future = [];
+            snapshot(state);
             state.elements = [];
         },
 
+        // handel element grouping
+        groupSelectedElements: (state) => {
+            const selected = state.elements.filter((el) => el.selected);
 
+            if (selected.length <= 1) return;
 
+            const groupId = `group-${Date.now()}`;
 
+            // calc the group bounding box of the selected elements
+            const minX = Math.min(...selected.map((el) => el.x));
+            const minY = Math.min(...selected.map((el) => el.y));
+            const maxX = Math.max(...selected.map((el) => el.x + el.width));
+            const maxY = Math.max(...selected.map((el) => el.y + el.height));
 
-        updateElementsBulk: (
-            state,
-            action: PayloadAction<{
-                changes: { id: string; updates: Partial<CanvasElementUnion> }[];
-            }>
-        ) => {
-            snapshot(state);
-            const map = new Map(action.payload.changes.map((c) => [c.id, c.updates]));
-            state.elements = state.elements.map((el) =>
-                map.has(el.id) ? { ...el, ...(map.get(el.id) as any) } : el
-            );
+            const groupElement: CanvasGroupElement = {
+                id: groupId,
+                type: "group",
+                x: minX,
+                y: minY,
+                width: maxX - minX,
+                height: maxY - minY,
+                fill: "transparent",
+                children: selected.map((el) => el.id),
+            };
+
+            // add the group element to the elements array and remove old selected elements
+            state.elements = [...state.elements.filter((el) => !el.selected), groupElement];
         },
 
-        // ✅ تحريك جماعي بالـ delta (batch واحد) — لحل سحب السليكشن
-        translateSelectedBy: (state, action: PayloadAction<{ dx: number; dy: number }>) => {
-            const { dx, dy } = action.payload;
-            snapshot(state);
-            state.elements = state.elements.map((el) =>
-                el.selected ? { ...el, x: el.x + dx, y: el.y + dy } : el
-            );
-        },
+        // handel clear group and return old elements
+        unGroupElement: (state, action: PayloadAction<string>) => {
+            const group = state.elements.find(
+                (el) => el.id === action.payload && el.type === "group"
+            ) as CanvasGroupElement | undefined;
 
-        // ✅ تعديل جماعي بنفس القيم لكل المختارين (مثلاً تغيير لون من panel)
-        updateSelectedElements: (state, action: PayloadAction<Partial<CanvasElementUnion>>) => {
-            const updates = action.payload;
-            snapshot(state);
-            state.elements = state.elements.map((el) => (el.selected ? { ...el, ...updates } : el));
-        },
+            if (!group) return;
 
-        // ✏️ (اختياري لكن مُستحسَن) خلّي updateMultipleElements يسجّل history مرّة واحدة
-        updateMultipleElements: (
-            state,
-            action: PayloadAction<{
-                ids: string[];
-                updates: Partial<CanvasElementUnion>;
-            }>
-        ) => {
-            snapshot(state);
-            const ids = new Set(action.payload.ids);
-            state.elements.forEach((el) => {
-                if (ids.has(el.id)) Object.assign(el, action.payload.updates);
-            });
+            // get the old children of the group
+            const children = group.children
+                .map(
+                    (id) => state.elements.find((el) => el.id === id) // لو محتفظين بنسخة قديمة أو بتجيبها من history
+                )
+                .filter(Boolean) as CanvasElementUnion[];
+
+            state.elements = [...state.elements.filter((el) => el.id !== group.id), ...children];
         },
     },
 });
@@ -546,16 +509,11 @@ export const {
     clearCanvas,
     deselectAllElements,
     toggleElementVisibility,
-    // updateMultipleElements,
     deleteSelectedElements,
-
-    updateElementsBulk,
-    translateSelectedBy,
-    updateSelectedElements,
-    updateMultipleElements,
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;
-function snapshot(state: WritableDraft<CanvasState>) {
-    throw new Error("Function not implemented.");
-}
+
+// function snapshot(state: WritableDraft<CanvasState>) {
+//     throw new Error("Function not implemented.");
+// }
