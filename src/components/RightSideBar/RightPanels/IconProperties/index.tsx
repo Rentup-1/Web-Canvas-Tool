@@ -16,7 +16,6 @@ import { BsBorderWidth } from "react-icons/bs";
 
 export function IconProperties({ element }: { element: CanvasElement }) {
   const dispatch = useAppDispatch();
-  const [individualCorners, setIndividualCorners] = useState(false);
   // get colors from store
   const brandingColors = useAppSelector((state) => state.branding.colors);
 
