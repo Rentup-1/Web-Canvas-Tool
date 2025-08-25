@@ -95,7 +95,7 @@ export function IconProperties({ element }: { element: CanvasElement }) {
           label={<BsBorderWidth />}
           type="number"
           min={0}
-          value={element.strokeWidth?.toString() ?? "0"}
+          value={element.strokeWidth?.toString() ?? "2"}
           onChange={(val) => update({ strokeWidth: Number.parseFloat(val) })}
         />
       </div>
