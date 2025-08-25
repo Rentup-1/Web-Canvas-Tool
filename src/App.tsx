@@ -16,20 +16,60 @@ import {
   setStageSize,
 } from "./features/canvas/canvasSlice";
 import { addColor, addFont } from "./features/branding/brandingSlice";
+import "@fontsource/roboto";
+import "@fontsource/open-sans";
+import "@fontsource/lato";
+import "@fontsource/montserrat";
+import "@fontsource/poppins";
+import "@fontsource/raleway";
+import "@fontsource/oswald";
+import "@fontsource/merriweather";
+import "@fontsource/playfair-display";
+import "@fontsource/nunito";
+import "@fontsource/ubuntu";
+import "@fontsource/pt-sans";
+import "@fontsource/inter";
+import "@fontsource/quicksand";
+import "@fontsource/source-sans-pro";
+import "@fontsource/cabin";
+import "@fontsource/rubik";
+import "@fontsource/fira-sans";
+import "@fontsource/inconsolata";
+import "@fontsource/manrope";
 
-type AppProps = {
-  templateJson?: string;
-};
+import "./index.css";
 
-const App: React.FC<AppProps> = ({ templateJson }) => {
+function App() {
+  const stageRef = useRef<Konva.Stage | null>(null);
+
   return (
     <Provider store={store}>
-      <InnerApp templateJson={templateJson} />
+      <CanvasProvider stageRef={stageRef as RefObject<Konva.Stage>}>
+        <KeyboardShortcutsHandler />
+        <div className="h-screen flex flex-col">
+          {/* Header */}
+          <Navbar />
+
+          {/* Main Layout */}
+          <div className="flex flex-1 overflow-hidden">
+            <LeftSideBar />
+
+            {/* Canvas Area */}
+            <main className="flex-1 p-4 overflow-auto flex justify-center items-center">
+              <div className="bg-white shadow-lg">
+                <Canvas stageRef={stageRef as RefObject<Konva.Stage>} />
+              </div>
+            </main>
+            <RightSideBar />
+          </div>
+        </div>
+        <Toaster position="top-right" closeButton={true} />
+      </CanvasProvider>
     </Provider>
   );
 };
 
-const InnerApp: React.FC<AppProps> = ({ templateJson }) => {
+const InnerApp: React.FC = () => {
   const stageRef = useRef<Konva.Stage | null>(null);
   const dispatch = useDispatch();
   const [json , setJson] = useState(null);

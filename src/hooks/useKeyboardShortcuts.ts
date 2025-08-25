@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./useRedux";
 import {
-  deleteSelectedElement,
+  deleteSelectedElements,
   undo,
   redo,
   selectElement,
@@ -39,7 +39,7 @@ export function useKeyboardShortcuts() {
         case "backspace":
           if (selectedElement) {
             e.preventDefault();
-            dispatch(deleteSelectedElement());
+            dispatch(deleteSelectedElements());
           }
           break;
 

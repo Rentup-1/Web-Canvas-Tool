@@ -128,7 +128,6 @@ export default function TextProperties({
         example: item.example,
       }))
     : [];
-  console.log(labelOptions);
   // get label option by label
   const getLabelOption = (label: string) => {
     return labelOptions.find((opt) => opt.label === label);

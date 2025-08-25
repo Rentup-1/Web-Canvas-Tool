@@ -1,3 +1,4 @@
+import { group } from "console";
 export type ElementType =
   | "text"
   | "frame"
@@ -14,7 +15,8 @@ export type ElementType =
   | "wedge"
   | "ring"
   | "arrow"
-  | "icon";
+  | "icon"
+  | "group";
 
 export type FitMode = "fill" | "fit" | "stretch";
 
@@ -53,6 +55,7 @@ export interface CanvasElement {
   iconName?: string;
   color?: string;
   text?: string;
+  path?: string;
   // for percentage
   newWidth?: number;
   newHeight?: number;
@@ -64,11 +67,26 @@ export interface CanvasElement {
   fontSize_percent?: number;
   visible?: boolean;
   borderRadiusSpecial?: number;
+  // line
+  points?: number[];
+  // star
+  innerRadius?: number;
+  outerRadius?: number;
+  // ellipse
+  radiusX?: number;
+  radiusY?: number;
+
+  // wedge
+  angle?: number;
 
   fontWeight?: string;
   fontStyle?: string;
   white_space?: string;
-  objectFit?: 'cover' | 'contain' | 'fill';
+  objectFit?: "cover" | "contain" | "fill";
+  groupId?: string;
+  childEl?: CanvasElement[];
+  grouped?: boolean;
+  parentGroupId?: string;
 }
 export interface CanvasFrameElement extends CanvasElement {
   type: "frame";
@@ -118,6 +136,12 @@ export interface CircleShape extends CanvasElement {
   radius: number;
 }
 
+export interface IconShape extends CanvasElement {
+  type: "icon";
+  iconName: string;
+  color: string;
+}
+
 export interface RectangleShape extends CanvasElement {
   type: "rectangle";
   width: number;
@@ -144,7 +168,7 @@ export interface LineShape extends CanvasElement {
 
 export interface TriangleShape extends CanvasElement {
   type: "triangle";
-  points: number[];
+  radius: number;
 }
 
 export interface StarShape extends CanvasElement {
@@ -191,6 +215,11 @@ export interface ArrowShape extends CanvasElement {
   pointerWidth?: number;
 }
 
+export interface CanvasGroupElement extends CanvasElement {
+  type: "group";
+  children: CanvasElement[];
+}
+
 export type CanvasElementUnion =
   | CanvasElement
   | CanvasTextElement
@@ -207,6 +236,8 @@ export type CanvasElementUnion =
   | WedgeShape
   | RingShape
   | ArrowShape
-  | CanvasFrameElement;
+  | IconShape
+  | CanvasFrameElement
+  | CanvasGroupElement;
 
 export type AspectRatio = "1:1" | "9:16";

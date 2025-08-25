@@ -1,6 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { nanoid } from "nanoid";
-import type { AspectRatio, CanvasElementUnion, ElementType } from "./types";
+import type {
+  AspectRatio,
+  CanvasElementUnion,
+  CanvasGroupElement,
+  ElementType,
+} from "./types";
 import type {
   CanvasElement,
   CanvasTextElement,
@@ -17,6 +22,7 @@ import type {
   RingShape,
   ArrowShape,
 } from "./types";
+import { WritableDraft } from "immer";
 
 interface CanvasState {
   elements: CanvasElement[];
@@ -38,23 +44,10 @@ const initialState: CanvasState = {
 
 let shapeIdCounter = 1;
 
-// const createBaseElement = (id: string): Omit<CanvasElement, "type"> => ({
-//   id,
-//   x: 100,
-//   y: 100,
-//   width: 150,
-//   height: 100,
-//   x_percent: 0.1,
-//   y_percent: 0.1,
-//   width_percent: 0.15,
-//   height_percent: 0.16,
-//   rotation: 0,
-//   selected: false,
-//   fill: "#00A8E8",
-//   opacity: 1,
-//   fillBrandingType: "fixed",
-//   strokeBrandingType: "fixed",
-// });
+const snapshot = (state: WritableDraft<CanvasState>) => {
+  state.past.push(JSON.parse(JSON.stringify(state.elements))); // deep clone
+  state.future = [];
+};
 
 const createBaseElement = (id: string): Omit<CanvasElement, "type"> => {
   const width = 150;
@@ -64,12 +57,12 @@ const createBaseElement = (id: string): Omit<CanvasElement, "type"> => {
   };
   return {
     id,
-    x: 100,
-    y: 100,
+    x: 150,
+    y: 150,
     width,
     height,
-    x_percent: toPercent(100, 1080),
-    y_percent: toPercent(100, 1080),
+    x_percent: toPercent(150, 1080),
+    y_percent: toPercent(150, 1080),
     width_percent: toPercent(width, 1080),
     height_percent: toPercent(height, 1080),
     rotation: 0,
@@ -88,7 +81,7 @@ const canvasSlice = createSlice({
     addElement: (
       state,
       action: PayloadAction<
-        | { type: "icon"; iconName: string }
+        | { type: "icon"; iconName: string; path: string }
         | {
             type: "text";
             text: string;
@@ -159,10 +152,11 @@ const canvasSlice = createSlice({
             ...base,
             type: "icon",
             iconName: action.payload.iconName,
-            width: 50,
-            height: 50,
+            scaleX: 1,
+            scaleY: 1,
             color: "#000000",
             visible: true,
+            path: action.payload.path,
           } as CanvasElement;
           break;
 
@@ -221,14 +215,7 @@ const canvasSlice = createSlice({
           newElement = {
             ...base,
             type: "triangle",
-            points: [
-              0,
-              base.height,
-              base.width / 2,
-              0,
-              base.width,
-              base.height,
-            ],
+            radius: Math.max(base.width, base.height) / 2,
             stroke: "#000000",
             strokeWidth: 2,
             visible: true,
@@ -325,8 +312,7 @@ const canvasSlice = createSlice({
           throw new Error(`Unsupported element type: ${action.payload.type}`);
       }
 
-      state.past.push(state.elements.map((el) => ({ ...el })));
-      state.future = [];
+      snapshot(state);
       state.elements.push(newElement);
     },
     addImageElement: (
@@ -348,12 +334,32 @@ const canvasSlice = createSlice({
         originalWidth: width,
         originalHeight: height,
         fill: "",
+        visible: true,
       });
     },
+
+    // select an element by id to make it selected
     selectElement: (state, action: PayloadAction<string | null>) => {
       state.elements.forEach((el) => {
         el.selected = el.id === action.payload;
       });
+    },
+
+    // toggle the selected state of an element
+    toggleSelectElement: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+      const element = state.elements.find((el) => el.id === id);
+      // if the element is already selected, d2eselect it , otherwise select it
+      if (element) {
+        element.selected = !element.selected;
+      }
+    },
+
+    selectMultipleElements: (state, action: PayloadAction<string[]>) => {
+      state.elements = state.elements.map((el) => ({
+        ...el,
+        selected: action.payload.includes(el.id),
+      }));
     },
     deselectAllElements: (state) => {
       state.elements = state.elements.map((el) => ({
@@ -371,19 +377,17 @@ const canvasSlice = createSlice({
       const { id, updates } = action.payload;
       const index = state.elements.findIndex((el) => el.id === id);
       if (index !== -1) {
-        state.past.push(state.elements.map((el) => ({ ...el })));
-        state.future = [];
+        snapshot(state);
         state.elements[index] = { ...state.elements[index], ...updates };
       }
     },
-    deleteSelectedElement: (state) => {
-      const selectedIndex = state.elements.findIndex((el) => el.selected);
-      if (selectedIndex !== -1) {
-        state.past.push(state.elements.map((el) => ({ ...el })));
-        state.future = [];
-        state.elements.splice(selectedIndex, 1);
-      }
+
+    // delete all selected elements at once
+    deleteSelectedElements: (state) => {
+      snapshot(state);
+      state.elements = state.elements.filter((el) => !el.selected);
     },
+
     undo: (state) => {
       if (state.past.length > 0) {
         const previous = state.past.pop();
@@ -405,8 +409,7 @@ const canvasSlice = createSlice({
     moveElementUp: (state, action: PayloadAction<string>) => {
       const index = state.elements.findIndex((el) => el.id === action.payload);
       if (index < state.elements.length - 1) {
-        state.past.push(state.elements.map((el) => ({ ...el })));
-        state.future = [];
+        snapshot(state);
         [state.elements[index], state.elements[index + 1]] = [
           state.elements[index + 1],
           state.elements[index],
@@ -416,8 +419,7 @@ const canvasSlice = createSlice({
     moveElementDown: (state, action: PayloadAction<string>) => {
       const index = state.elements.findIndex((el) => el.id === action.payload);
       if (index > 0) {
-        state.past.push(state.elements.map((el) => ({ ...el })));
-        state.future = [];
+        snapshot(state);
         [state.elements[index], state.elements[index - 1]] = [
           state.elements[index - 1],
           state.elements[index],
@@ -441,14 +443,81 @@ const canvasSlice = createSlice({
       state.aspectRatio = action.payload;
     },
     setElements: (state, action: PayloadAction<CanvasElement[]>) => {
-      state.past.push(state.elements.map((el) => ({ ...el })));
-      state.future = [];
+      snapshot(state);
       state.elements = action.payload;
     },
     clearCanvas: (state) => {
-      state.past.push(state.elements.map((el) => ({ ...el })));
-      state.future = [];
+      snapshot(state);
       state.elements = [];
+    },
+
+    // handel element grouping
+    groupSelectedElements: (state) => {
+      const selected = state.elements.filter((el) => el.selected);
+      if (selected.length <= 1) return;
+
+      // bbox
+      const xs = selected.map((el) => el.x ?? 0);
+      const ys = selected.map((el) => el.y ?? 0);
+      const x2s = selected.map(
+        (el) => (el.x ?? 0) + (el.width ?? (el.radius ?? 0) * 2)
+      );
+      const y2s = selected.map(
+        (el) => (el.y ?? 0) + (el.height ?? (el.radius ?? 0) * 2)
+      );
+      const minX = Math.min(...xs);
+      const minY = Math.min(...ys);
+      const maxX = Math.max(...x2s);
+      const maxY = Math.max(...y2s);
+
+      const groupId = `group-${Date.now()}`;
+
+      // move children INSIDE the group with RELATIVE x/y
+      const selectedIds = new Set(selected.map((e) => e.id));
+      const children = selected.map((el) => ({
+        ...el,
+        x: (el.x ?? 0) - minX,
+        y: (el.y ?? 0) - minY,
+        selected: false,
+      }));
+
+      // remove originals from root
+      state.elements = state.elements.filter((el) => !selectedIds.has(el.id));
+
+      // push group
+      state.elements.push({
+        id: groupId,
+        type: "group",
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
+        rotation: 0,
+        selected: true,
+        visible: true,
+        fill: "transparent",
+        // IMPORTANT: children are full element objects now (not just IDs)
+        children,
+      } as any);
+    },
+
+    ungroupElement: (state, action: PayloadAction<{ id: string }>) => {
+      const idx = state.elements.findIndex((e) => e.id === action.payload.id);
+      if (idx === -1) return;
+      const grp: any = state.elements[idx];
+      if (grp.type !== "group") return;
+
+      // convert children back to absolute coordinates and put them at root
+      const restored = (grp.children ?? []).map((c: any) => ({
+        ...c,
+        x: (grp.x ?? 0) + (c.x ?? 0),
+        y: (grp.y ?? 0) + (c.y ?? 0),
+        selected: true,
+      }));
+
+      // remove group, add children to root
+      state.elements.splice(idx, 1);
+      state.elements.push(...restored);
     },
   },
 });
@@ -457,8 +526,9 @@ export const {
   addElement,
   addImageElement,
   selectElement,
+  toggleSelectElement,
+  selectMultipleElements,
   updateElement,
-  deleteSelectedElement,
   moveElementDown,
   moveElementUp,
   undo,
@@ -469,6 +539,13 @@ export const {
   clearCanvas,
   deselectAllElements,
   toggleElementVisibility,
+  deleteSelectedElements,
+  groupSelectedElements,
+  ungroupElement,
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;
+
+// function snapshot(state: WritableDraft<CanvasState>) {
+//     throw new Error("Function not implemented.");
+// }

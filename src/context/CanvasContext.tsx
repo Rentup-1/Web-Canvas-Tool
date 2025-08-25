@@ -222,7 +222,7 @@ export const CanvasProvider: FC<{
           frame_position_in_template?: number;
         };
         console.log(el);
-        
+
         frames.push({
           assetType: frameEl.assetType || null,
           fitMode: frameEl.fitMode || null,
