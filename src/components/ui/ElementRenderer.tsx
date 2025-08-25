@@ -1087,7 +1087,7 @@ export const ElementRenderer = forwardRef<any, Props>(
       }
 
       case "image": {
-        const [image] = useImage(element.src || "");
+        const [image] = useImage(element.src || "", "anonymous");
         const frame = elements.find(
           (f: CanvasElement) => f.id === element.frameId
         );

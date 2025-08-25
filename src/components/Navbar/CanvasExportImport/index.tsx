@@ -28,6 +28,8 @@ const CanvasExportImport: FC = () => {
     handleExportSVG,
     handleExportSummary,
     stageRef,
+    projectIdMixer,
+    setImageSrc,
   } = useCanvas();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileViaBackEndInputRef = useRef<HTMLInputElement>(null);
@@ -497,22 +499,43 @@ const CanvasExportImport: FC = () => {
     }
   };
 
-  const handleExportPNGToParent = () => {
+  const handleExportPNGToParent = async () => {
     try {
       const stage = stageRef.current;
       if (!stage) return;
 
       const dataURL = stage.toDataURL({ pixelRatio: 1, quality: 1 });
-      console.log(dataURL);
+      const response = await fetch(dataURL);
+      const blob = await response.blob();
 
-      // تبعت الـ Base64 للـ parent window
-      window.parent.postMessage(
+      const formData = new FormData();
+      formData.append("image", blob, "canvas.png");
+      formData.append("name", "myCanvasImage");
+      formData.append("type", "mixer_image");
+      formData.append("public", "true");
+      formData.append("project", projectIdMixer);
+
+      const uploadRes = await fetch(
+        "https://api.markomlabs.com/creatives/assets/",
         {
-          type: "RECEIVE_PNG",
-          payload: { data: dataURL },
-        },
-        "*" // أو حدد origin لو تعرفه
+          method: "POST",
+          body: formData,
+        }
       );
+
+      const result = await uploadRes.json();
+
+      if (result?.image) {
+        console.log("✅ Uploaded image URL:", result.image);
+
+        window.parent.postMessage(
+          {
+            type: "IMAGE_SELECTED",
+            payload: { url: result.image },
+          },
+          "*" // أو خليها TOOL_ORIGIN لو عايز تأمّنها
+        );
+      }
     } catch (error) {
       console.error("Export PNG failed:", error);
     }
@@ -524,7 +547,7 @@ const CanvasExportImport: FC = () => {
         <div className="flex flex-row items-center justify-center gap-2">
           <Button variant="secondary" onClick={handleExportPNGToParent}>
             <FaImage className="mr-1" />
-            Save as PNG
+            Save as PNG {projectIdMixer}
           </Button>
 
           <Button
