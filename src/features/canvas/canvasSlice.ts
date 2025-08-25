@@ -547,6 +547,8 @@ export const {
     deselectAllElements,
     toggleElementVisibility,
     deleteSelectedElements,
+    groupSelectedElements,
+    unGroupElement,
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;
