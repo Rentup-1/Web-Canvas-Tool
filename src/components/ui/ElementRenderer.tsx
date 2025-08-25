@@ -2299,26 +2299,113 @@ export const ElementRenderer = forwardRef<any, Props>(
           </>
         );
       case "group": {
-        const groupEl = element as CanvasGroupElement;
-        const children = elements.filter((el: CanvasElement) =>
-          groupEl.children.includes(el.id)
-        );
+        const groupEl = element as any; // CanvasGroupElement with object children
+        const children = (groupEl.children ?? []) as CanvasElementUnion[];
+
+        // scale helper for children (relative inside group)
+        const scaleChild = (
+          c: CanvasElementUnion,
+          sx: number,
+          sy: number
+        ): CanvasElementUnion => {
+          const common = { ...c, x: (c.x ?? 0) * sx, y: (c.y ?? 0) * sy };
+
+          switch (c.type) {
+            case "rectangle":
+            case "frame":
+            case "image":
+            case "custom":
+              return {
+                ...common,
+                width: (c.width ?? 0) * sx,
+                height: (c.height ?? 0) * sy,
+              };
+
+            case "icon":
+              return {
+                ...common,
+                scaleX: (c.scaleX ?? 1) * sx,
+                scaleY: (c.scaleY ?? 1) * sy,
+              };
+
+            case "circle": {
+              const r = (c.radius ?? 0) * Math.max(sx, sy);
+              return { ...common, radius: r };
+            }
+
+            case "ellipse":
+              return {
+                ...common,
+                ...("radiusX" in c && "radiusY" in c
+                  ? {
+                      radiusX: (c.radiusX ?? 0) * sx,
+                      radiusY: (c.radiusY ?? 0) * sy,
+                    }
+                  : {}),
+              };
+
+            case "triangle": {
+              const r0 = c.radius ?? Math.max(c.width ?? 0, c.height ?? 0) / 2;
+              const r = r0 * Math.max(sx, sy);
+              return { ...common, radius: r };
+            }
+
+            case "star": {
+              const k = Math.max(sx, sy);
+              return {
+                ...common,
+                innerRadius: (c.innerRadius ?? 0) * k,
+                outerRadius: (c.outerRadius ?? 0) * k,
+              };
+            }
+
+            case "ring":
+            case "arc":
+            case "wedge": {
+              const k = Math.max(sx, sy);
+              const updates: any = { ...common };
+              if ("innerRadius" in c)
+                updates.innerRadius = (c.innerRadius ?? 0) * k;
+              if ("outerRadius" in c)
+                updates.outerRadius = (c.outerRadius ?? 0) * k;
+              if ("radius" in c) updates.radius = (c.radius ?? 0) * k;
+              return updates;
+            }
+
+            case "line":
+              if (Array.isArray(c.points)) {
+                const pts = [...c.points];
+                for (let i = 0; i < pts.length; i += 2) {
+                  pts[i] = pts[i] * sx;
+                  pts[i + 1] = pts[i + 1] * sy;
+                }
+                return { ...common, points: pts };
+              }
+              return {
+                ...common,
+                width: (c.width ?? 0) * sx,
+                height: (c.height ?? 0) * sy,
+              };
+
+            case "icon":
+              return {
+                ...common,
+                scaleX: (c.scaleX ?? 1) * sx,
+                scaleY: (c.scaleY ?? 1) * sy,
+              };
+
+            default:
+              return common;
+          }
+        };
 
         const handleGroupDragEnd = (node: Konva.Group) => {
-          const { newX, newY } = calculateSnappingPosition(
-            node,
-            elements,
-            element,
-            snapThreshold,
-            groupEl.width / 2,
-            groupEl.height / 2
-          );
+          const newX = node.x();
+          const newY = node.y();
 
           onChange({
             x: newX,
             y: newY,
-            width_percent: toPercent(groupEl.width, stageWidth),
-            height_percent: toPercent(groupEl.height, stageHeight),
             x_percent: toPercent(newX, stageWidth),
             y_percent: toPercent(newY, stageHeight),
           });
@@ -2327,24 +2414,29 @@ export const ElementRenderer = forwardRef<any, Props>(
         };
 
         const handleGroupTransformEnd = (node: Konva.Group) => {
-          const scaleX = node.scaleX();
-          const scaleY = node.scaleY();
+          const sx = node.scaleX();
+          const sy = node.scaleY();
 
-          const newWidth = groupEl.width * scaleX;
-          const newHeight = groupEl.height * scaleY;
+          const newW = (groupEl.width ?? 0) * sx;
+          const newH = (groupEl.height ?? 0) * sy;
 
+          const newChildren = children.map((c) => scaleChild(c, sx, sy));
+
+          // update group + replace its children (single update)
           onChange({
             x: node.x(),
             y: node.y(),
-            width: newWidth,
-            height: newHeight,
+            width: newW,
+            height: newH,
             x_percent: toPercent(node.x(), stageWidth),
             y_percent: toPercent(node.y(), stageHeight),
-            width_percent: toPercent(newWidth, stageWidth),
-            height_percent: toPercent(newHeight, stageHeight),
+            width_percent: toPercent(newW, stageWidth),
+            height_percent: toPercent(newH, stageHeight),
             rotation: node.rotation(),
+            children: newChildren,
           });
 
+          // reset node scale to avoid accumulation
           node.scaleX(1);
           node.scaleY(1);
         };
@@ -2359,27 +2451,30 @@ export const ElementRenderer = forwardRef<any, Props>(
               rotation={groupEl.rotation ?? 0}
               draggable={draggable}
               onClick={onSelect}
-              onDragMove={(e: KonvaEventObject<DragEvent>) =>
-                drawGuidelines(e.target)
-              }
-              onDragEnd={(e: KonvaEventObject<DragEvent>) =>
-                handleGroupDragEnd(e.target as Konva.Group)
-              }
-              onTransformEnd={(e: KonvaEventObject<Event>) =>
+              onDragMove={(e) => drawGuidelines(e.target)}
+              onDragEnd={(e) => handleGroupDragEnd(e.target as Konva.Group)}
+              onTransformEnd={(e) =>
                 handleGroupTransformEnd(e.target as Konva.Group)
               }
             >
-              {children.map((child: CanvasElementUnion) => (
+              {children.map((child, i) => (
                 <ElementRenderer
-                  key={child.id}
+                  key={child.id ?? i}
+                  // child is already RELATIVE to the group now
                   element={child}
                   ChildEl={elements}
                   stageWidth={stageWidth}
                   stageHeight={stageHeight}
                   onSelect={onSelect}
-                  onChange={onChange}
+                  onChange={(updates) => {
+                    // update a single child inside the group (edit within group)
+                    const newChildren = children.map((c) =>
+                      c.id === child.id ? { ...c, ...updates } : c
+                    );
+                    onChange({ children: newChildren });
+                  }}
                   setGuides={setGuides}
-                  draggable={false}
+                  draggable={false} // children aren't draggable; the group is
                   stageRef={stageRef}
                 />
               ))}

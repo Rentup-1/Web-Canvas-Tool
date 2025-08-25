@@ -451,104 +451,97 @@ const canvasSlice = createSlice({
       state.elements = [];
     },
 
-        // handel element grouping
-        groupSelectedElements: (state) => {
-            console.log("groupSelectedElements");
-            const selected = state.elements.filter((el) => el.selected);
-
+    // handel element grouping
+    groupSelectedElements: (state) => {
+      const selected = state.elements.filter((el) => el.selected);
       if (selected.length <= 1) return;
+
+      // bbox
+      const xs = selected.map((el) => el.x ?? 0);
+      const ys = selected.map((el) => el.y ?? 0);
+      const x2s = selected.map(
+        (el) => (el.x ?? 0) + (el.width ?? (el.radius ?? 0) * 2)
+      );
+      const y2s = selected.map(
+        (el) => (el.y ?? 0) + (el.height ?? (el.radius ?? 0) * 2)
+      );
+      const minX = Math.min(...xs);
+      const minY = Math.min(...ys);
+      const maxX = Math.max(...x2s);
+      const maxY = Math.max(...y2s);
 
       const groupId = `group-${Date.now()}`;
 
-      // calc the group bounding box of the selected elements
-      const minX = Math.min(...selected.map((el) => el.x));
-      const minY = Math.min(...selected.map((el) => el.y));
-      const maxX = Math.max(...selected.map((el) => el.x + el.width));
-      const maxY = Math.max(...selected.map((el) => el.y + el.height));
+      // move children INSIDE the group with RELATIVE x/y
+      const selectedIds = new Set(selected.map((e) => e.id));
+      const children = selected.map((el) => ({
+        ...el,
+        x: (el.x ?? 0) - minX,
+        y: (el.y ?? 0) - minY,
+        selected: false,
+      }));
 
-            const groupElement: CanvasGroupElement = {
-                id: groupId,
-                type: "group",
-                x: minX,
-                y: minY,
-                width: maxX - minX,
-                height: maxY - minY,
-                fill: "transparent",
-                children: selected.map((el) => el.id),
-                rotation: 0,
-                selected: true,
-                visible: true,
-            };
+      // remove originals from root
+      state.elements = state.elements.filter((el) => !selectedIds.has(el.id));
 
-            // add the group element to the elements array and remove old selected elements
-            // state.elements = [...state.elements.filter((el) => !el.selected), groupElement]
-
-            // ✅ بدل ما تشيل العناصر، خليها موجودة بس mark إنها grouped
-            state.elements.forEach((el) => {
-                if (selected.some((selectedEl) => selectedEl.id === el.id)) {
-                    el.selected = false;
-                    el.grouped = true; // ✅ ضيف property للـ grouped elements
-                    el.parentGroupId = groupId; // ✅ reference للـ parent group
-                }
-            });
-
-            // add elements to your group
-            state.elements.push(groupElement);
-        },
-
-        // handel clear group and return old elements
-        unGroupElement: (state, action: PayloadAction<string>) => {
-            const groupId = action.payload;
-            const group = state.elements.find((el) => el.id === groupId && el.type === "group") as
-                | CanvasGroupElement
-                | undefined;
-
-      if (!group) return;
-
-            // get the old children of the group
-            const children = group.children
-                .map(
-                    (id) => state.elements.find((el) => el.id === id) // لو محتفظين بنسخة قديمة أو بتجيبها من history
-                )
-                .filter(Boolean) as CanvasElementUnion[];
-
-            // state.elements = [...state.elements.filter((el) => el.id !== group.id), ...children];
-
-            // ✅ ungroup الـ children
-            state.elements.forEach((el) => {
-                if (group.children.includes(el.id)) {
-                    el.grouped = false;
-                    el.parentGroupId = undefined;
-                    el.selected = true; // ✅ select العناصر بعد الـ ungroup
-                }
-            });
-
-            // ✅ شيل الـ group
-            state.elements = state.elements.filter((el) => el.id !== groupId);
-        },
+      // push group
+      state.elements.push({
+        id: groupId,
+        type: "group",
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
+        rotation: 0,
+        selected: true,
+        visible: true,
+        fill: "transparent",
+        // IMPORTANT: children are full element objects now (not just IDs)
+        children,
+      } as any);
     },
+
+    ungroupElement: (state, action: PayloadAction<{ id: string }>) => {
+      const idx = state.elements.findIndex((e) => e.id === action.payload.id);
+      if (idx === -1) return;
+      const grp: any = state.elements[idx];
+      if (grp.type !== "group") return;
+
+      // convert children back to absolute coordinates and put them at root
+      const restored = (grp.children ?? []).map((c: any) => ({
+        ...c,
+        x: (grp.x ?? 0) + (c.x ?? 0),
+        y: (grp.y ?? 0) + (c.y ?? 0),
+        selected: true,
+      }));
+
+      // remove group, add children to root
+      state.elements.splice(idx, 1);
+      state.elements.push(...restored);
+    },
+  },
 });
 
 export const {
-    addElement,
-    addImageElement,
-    selectElement,
-    toggleSelectElement,
-    selectMultipleElements,
-    updateElement,
-    moveElementDown,
-    moveElementUp,
-    undo,
-    redo,
-    setStageSize,
-    setAspectRatio,
-    setElements,
-    clearCanvas,
-    deselectAllElements,
-    toggleElementVisibility,
-    deleteSelectedElements,
-    groupSelectedElements,
-    unGroupElement,
+  addElement,
+  addImageElement,
+  selectElement,
+  toggleSelectElement,
+  selectMultipleElements,
+  updateElement,
+  moveElementDown,
+  moveElementUp,
+  undo,
+  redo,
+  setStageSize,
+  setAspectRatio,
+  setElements,
+  clearCanvas,
+  deselectAllElements,
+  toggleElementVisibility,
+  deleteSelectedElements,
+  groupSelectedElements,
+  ungroupElement,
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;

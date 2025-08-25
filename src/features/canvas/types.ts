@@ -67,15 +67,26 @@ export interface CanvasElement {
   fontSize_percent?: number;
   visible?: boolean;
   borderRadiusSpecial?: number;
+  // line
+  points?: number[];
+  // star
+  innerRadius?: number;
+  outerRadius?: number;
+  // ellipse
+  radiusX?: number;
+  radiusY?: number;
 
-    fontWeight?: string;
-    fontStyle?: string;
-    white_space?: string;
-    objectFit?: "cover" | "contain" | "fill";
-    groupId?: string;
-    childEl?: CanvasElement[];
-    grouped?: boolean;
-    parentGroupId?: string;
+  // wedge
+  angle?: number;
+
+  fontWeight?: string;
+  fontStyle?: string;
+  white_space?: string;
+  objectFit?: "cover" | "contain" | "fill";
+  groupId?: string;
+  childEl?: CanvasElement[];
+  grouped?: boolean;
+  parentGroupId?: string;
 }
 export interface CanvasFrameElement extends CanvasElement {
   type: "frame";
@@ -206,7 +217,7 @@ export interface ArrowShape extends CanvasElement {
 
 export interface CanvasGroupElement extends CanvasElement {
   type: "group";
-  children: CanvasElement["id"][];
+  children: CanvasElement[];
 }
 
 export type CanvasElementUnion =
@@ -225,6 +236,7 @@ export type CanvasElementUnion =
   | WedgeShape
   | RingShape
   | ArrowShape
+  | IconShape
   | CanvasFrameElement
   | CanvasGroupElement;
 
