@@ -7,29 +7,30 @@ import CanvasExportImport from "./CanvasExportImport";
 import ToggleTheme from "./ToggleTheme";
 import { ShortcutsHelp } from "../ui/ShortcutsHelp";
 import { SaveToDataBase } from "./SaveToDataBase";
+import { Button } from "../ui/Button";
+import ElementGrouping from "./ElementGrouping/ElementGrouping";
 
 const Navbar: FC = () => {
-  const { theme } = useTheme();
-  return (
-    <div className="flex items-center justify-between px-4 py-2 border-b">
-      <div className="flex items-center space-x-10">
-        <h1 className="text-xl font-bold">
-          <img
-            src={theme === "dark" ? LogoWhite : logoBlue}
-            alt="Logo"
-            width={120}
-          />
-        </h1>
-        <HistoryControls />
-      </div>
-      <div className="flex items-center space-x-4">
-        <CanvasExportImport />
-        <SaveToDataBase />
-        <ShortcutsHelp />
-        <ToggleTheme />
-      </div>
-    </div>
-  );
+    const { theme } = useTheme();
+    return (
+        <div className="flex items-center justify-between px-4 py-2 border-b">
+            <div className="flex items-center space-x-10">
+                <h1 className="text-xl font-bold">
+                    <img src={theme === "dark" ? LogoWhite : logoBlue} alt="Logo" width={120} />
+                </h1>
+                <HistoryControls />
+            </div>
+            <div>
+                <ElementGrouping />
+            </div>
+            <div className="flex items-center space-x-4">
+                <CanvasExportImport />
+                <SaveToDataBase />
+                <ShortcutsHelp />
+                <ToggleTheme />
+            </div>
+        </div>
+    );
 };
 
 export default Navbar;

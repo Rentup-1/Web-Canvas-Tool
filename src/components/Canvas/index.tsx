@@ -30,7 +30,7 @@ export function Canvas({ stageRef }: CanvasProps) {
         }[]
     >([]);
 
-    // Rec for highlight
+    // Rec for highlight selection element
     const [selectionRect, setSelectionRect] = useState({
         visible: false,
         x1: 0,
@@ -44,7 +44,7 @@ export function Canvas({ stageRef }: CanvasProps) {
 
     // Check if any element is selected
     const isAnyElementSelected = elements.some((el) => el.selected);
-
+    
     // Update Transformer nodes for selected element
     useEffect(() => {
         const stage = stageRef.current;
@@ -73,7 +73,7 @@ export function Canvas({ stageRef }: CanvasProps) {
 
     // get pointer position on stage
     const pointerPos = (e: any) => e.target.getStage().getPointerPosition();
-
+    
     // start selection rect on stage & set selectionRect visible  = true
     const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
         if (e.target === e.target.getStage()) {

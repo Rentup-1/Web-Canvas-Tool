@@ -1,4 +1,4 @@
-import { group } from 'console';
+import { group } from "console";
 export type ElementType =
     | "text"
     | "frame"
@@ -73,8 +73,9 @@ export interface CanvasElement {
     white_space?: string;
     objectFit?: "cover" | "contain" | "fill";
     groupId?: string;
-    childEl?: CanvasElement[]
-
+    childEl?: CanvasElement[];
+    grouped?: boolean;
+    parentGroupId?: string;
 }
 export interface CanvasFrameElement extends CanvasElement {
     type: "frame";

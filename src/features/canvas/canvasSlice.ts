@@ -445,6 +445,7 @@ const canvasSlice = createSlice({
 
         // handel element grouping
         groupSelectedElements: (state) => {
+            console.log("groupSelectedElements");
             const selected = state.elements.filter((el) => el.selected);
 
             if (selected.length <= 1) return;
@@ -466,28 +467,56 @@ const canvasSlice = createSlice({
                 height: maxY - minY,
                 fill: "transparent",
                 children: selected.map((el) => el.id),
+                rotation: 0,
+                selected: true,
+                visible: true,
             };
 
             // add the group element to the elements array and remove old selected elements
-            state.elements = [...state.elements.filter((el) => !el.selected), groupElement];
+            // state.elements = [...state.elements.filter((el) => !el.selected), groupElement]
+
+            // ✅ بدل ما تشيل العناصر، خليها موجودة بس mark إنها grouped
+            state.elements.forEach((el) => {
+                if (selected.some((selectedEl) => selectedEl.id === el.id)) {
+                    el.selected = false;
+                    el.grouped = true; // ✅ ضيف property للـ grouped elements
+                    el.parentGroupId = groupId; // ✅ reference للـ parent group
+                }
+            });
+
+            // add elements to your group
+            state.elements.push(groupElement);
         },
 
         // handel clear group and return old elements
         unGroupElement: (state, action: PayloadAction<string>) => {
-            const group = state.elements.find(
-                (el) => el.id === action.payload && el.type === "group"
-            ) as CanvasGroupElement | undefined;
+            const groupId = action.payload;
+            const group = state.elements.find((el) => el.id === groupId && el.type === "group") as
+                | CanvasGroupElement
+                | undefined;
 
             if (!group) return;
 
             // get the old children of the group
-            const children = group.children
-                .map(
-                    (id) => state.elements.find((el) => el.id === id) // لو محتفظين بنسخة قديمة أو بتجيبها من history
-                )
-                .filter(Boolean) as CanvasElementUnion[];
+            // const children = group.children
+            //     .map(
+            //         (id) => state.elements.find((el) => el.id === id) // لو محتفظين بنسخة قديمة أو بتجيبها من history
+            //     )
+            //     .filter(Boolean) as CanvasElementUnion[];
 
-            state.elements = [...state.elements.filter((el) => el.id !== group.id), ...children];
+            // state.elements = [...state.elements.filter((el) => el.id !== group.id), ...children];
+
+            // ✅ ungroup الـ children
+            state.elements.forEach((el) => {
+                if (group.children.includes(el.id)) {
+                    el.grouped = false;
+                    el.parentGroupId = undefined;
+                    el.selected = true; // ✅ select العناصر بعد الـ ungroup
+                }
+            });
+
+            // ✅ شيل الـ group
+            state.elements = state.elements.filter((el) => el.id !== groupId);
         },
     },
 });
@@ -510,6 +539,8 @@ export const {
     deselectAllElements,
     toggleElementVisibility,
     deleteSelectedElements,
+    groupSelectedElements,
+    unGroupElement,
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;
