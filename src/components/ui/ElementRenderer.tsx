@@ -738,10 +738,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 onDragEnd={(e) => {
                   const node = e.target as Konva.Group;
                   // Guard: don't dispatch if element was deleted mid-drag
-                  if (!exists) {
-                    setGuides([]);
-                    return;
-                  }
+
                   dispatch(
                     updateElement({
                       id: textElement.id,
@@ -1203,7 +1200,10 @@ export const ElementRenderer = forwardRef<any, Props>(
                   }}
                   onDragMove={(e) => {
                     if (!isDraggingImageRef.current || !isMovable) return;
-
+                    const imageNode = e.target;
+                    drawGuidelines(imageNode);
+                  }}
+                  onDragEnd={(e) => {
                     const imageNode = e.target;
                     let newX = imageNode.x();
                     let newY = imageNode.y();
@@ -1243,10 +1243,6 @@ export const ElementRenderer = forwardRef<any, Props>(
                       x_percent: toPercent(newFrameX + newX, stageWidth),
                       y_percent: toPercent(newFrameY + newY, stageHeight),
                     });
-                    drawGuidelines(imageNode);
-                  }}
-                  onDragEnd={() => {
-                    isDraggingImageRef.current = false;
                     setGuides([]);
                   }}
                   onTransformEnd={(e) => {

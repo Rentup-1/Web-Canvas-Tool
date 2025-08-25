@@ -4,20 +4,18 @@ import {
   ungroupElement,
 } from "@/features/canvas/canvasSlice";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
+import {
+  selectSelectedElements,
+  selectSelectedGroup,
+} from "@/features/canvas/canvasSelectors";
 
 export default function ElementGrouping() {
   const dispatch = useAppDispatch();
-  const selectedElements = useAppSelector((state) =>
-    state.canvas.elements.filter((el) => el.selected)
-  );
-  const selectedGroup =
-    selectedElements.length === 1 && selectedElements[0].type === "group"
-      ? selectedElements[0]
-      : null;
+  const selectedElements = useAppSelector(selectSelectedElements);
+  const selectedGroup = useAppSelector(selectSelectedGroup);
 
   return (
     <div className="flex gap-2">
-      {/* Group button (you probably already have this) */}
       {selectedElements.length > 1 && (
         <Button
           variant="outline"
@@ -27,13 +25,10 @@ export default function ElementGrouping() {
         </Button>
       )}
 
-      {/* Ungroup button */}
       {selectedGroup && (
         <Button
           variant="outline"
-          onClick={() =>
-            selectedGroup && dispatch(ungroupElement({ id: selectedGroup.id }))
-          }
+          onClick={() => dispatch(ungroupElement({ id: selectedGroup.id }))}
         >
           Ungroup
         </Button>
