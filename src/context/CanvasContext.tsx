@@ -1,4 +1,10 @@
-import { createContext, useContext, type FC, type RefObject } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  type FC,
+  type RefObject,
+} from "react";
 import Konva from "konva";
 import { useAppSelector } from "@/hooks/useRedux";
 import transformElementsKeys from "@/utils/transformElementKeys";
@@ -17,6 +23,10 @@ interface CanvasContextType {
   handleExportSVG: () => void;
   handleExportSummary: () => void;
   handleImport: (jsonData: string) => void;
+  projectIdMixer: number;
+  setProjectIdMixer: (val: number) => void;
+  imageSrc: string;
+  setImageSrc: (val: string) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -32,6 +42,8 @@ export const CanvasProvider: FC<{
   const aspectRatio = useAppSelector((state) => state.canvas.aspectRatio);
   const brandingColors = useAppSelector((state) => state.branding.colors);
   const brandingFonts = useAppSelector((state) => state.branding.fontFamilies);
+  const [projectIdMixer, setProjectIdMixer] = useState(0);
+  const [imageSrc, setImageSrc] = useState("");
 
   const handleExportJSON = () => {
     const keyMappingsByType = {
@@ -271,6 +283,10 @@ export const CanvasProvider: FC<{
     handleExportPNG,
     handleExportSVG,
     handleImport,
+    projectIdMixer,
+    setProjectIdMixer,
+    imageSrc,
+    setImageSrc,
   };
 
   return (
