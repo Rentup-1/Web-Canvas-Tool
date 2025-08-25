@@ -727,7 +727,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 x={textElement.x}
                 y={textElement.y}
                 rotation={textElement.rotation}
-                draggable
+                draggable ={draggable}
                 onClick={(e) => onSelect?.(e, textElement.id as string)}
                 onDblClick={() => setIsEditing(true)}
                 onDragMove={(e) => {
@@ -1102,7 +1102,7 @@ export const ElementRenderer = forwardRef<any, Props>(
             <Group
               x={frame.x}
               y={frame.y}
-              draggable
+              draggable ={draggable}
               onDragMove={(e) => {
                 const node = e.target;
                 drawGuidelines(node);
