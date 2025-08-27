@@ -727,7 +727,7 @@ export const ElementRenderer = forwardRef<any, Props>(
                 x={textElement.x}
                 y={textElement.y}
                 rotation={textElement.rotation}
-                draggable ={draggable}
+                draggable={draggable}
                 onClick={(e) => onSelect?.(e, textElement.id as string)}
                 onDblClick={() => setIsEditing(true)}
                 onDragMove={(e) => {
@@ -1102,7 +1102,7 @@ export const ElementRenderer = forwardRef<any, Props>(
             <Group
               x={frame.x}
               y={frame.y}
-              draggable ={draggable}
+              draggable={draggable}
               onDragMove={(e) => {
                 const node = e.target;
                 drawGuidelines(node);
@@ -2317,12 +2317,12 @@ export const ElementRenderer = forwardRef<any, Props>(
                 height: (c.height ?? 0) * sy,
               };
 
-            case "icon":
-              return {
-                ...common,
-                scaleX: (c.scaleX ?? 1) * sx,
-                scaleY: (c.scaleY ?? 1) * sy,
-              };
+            // case "icon":
+            //   return {
+            //     ...common,
+            //     scaleX: (c.scaleX ?? 1) * sx,
+            //     scaleY: (c.scaleY ?? 1) * sy,
+            //   };
 
             case "circle": {
               const r = (c.radius ?? 0) * Math.max(sx, sy);
