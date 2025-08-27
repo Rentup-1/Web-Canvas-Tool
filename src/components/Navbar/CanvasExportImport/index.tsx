@@ -513,7 +513,7 @@ const CanvasExportImport: FC = () => {
       formData.append("name", "myCanvasImage");
       formData.append("type", "mixer_image");
       formData.append("public", "true");
-      formData.append("project", projectIdMixer);
+      formData.append("project", projectIdMixer as any);
 
       const uploadRes = await fetch(
         "https://api.markomlabs.com/creatives/assets/",
