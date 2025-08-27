@@ -526,14 +526,12 @@ const CanvasExportImport: FC = () => {
       const result = await uploadRes.json();
 
       if (result?.image) {
-        console.log("✅ Uploaded image URL:", result.image);
-
         window.parent.postMessage(
           {
             type: "IMAGE_SELECTED",
             payload: { url: result.image },
           },
-          "*" // أو خليها TOOL_ORIGIN لو عايز تأمّنها
+          "*" 
         );
       }
     } catch (error) {
