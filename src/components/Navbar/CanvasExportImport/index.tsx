@@ -529,9 +529,9 @@ const CanvasExportImport: FC = () => {
         window.parent.postMessage(
           {
             type: "IMAGE_SELECTED",
-            payload: { url: result.image },
+            payload: { url: result.image, id: result.id },
           },
-          "*" 
+          "*"
         );
       }
     } catch (error) {
