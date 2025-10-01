@@ -35,6 +35,7 @@ const CanvasExportImport: FC = () => {
   const fileViaBackEndInputRef = useRef<HTMLInputElement>(null);
   const fileViaMixer = useRef<HTMLInputElement>(null);
   const [jsonInput, setJsonInput] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handle import from file (original format)
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -501,6 +502,8 @@ const CanvasExportImport: FC = () => {
 
   const handleExportPNGToParent = async () => {
     try {
+      setIsLoading(true);
+
       const stage = stageRef.current;
       if (!stage) return;
 
@@ -536,6 +539,8 @@ const CanvasExportImport: FC = () => {
       }
     } catch (error) {
       console.error("Export PNG failed:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -543,9 +548,41 @@ const CanvasExportImport: FC = () => {
     <>
       <div className="flex flex-col items-center justify-center gap-4">
         <div className="flex flex-row items-center justify-center gap-2">
-          <Button variant="secondary" onClick={handleExportPNGToParent}>
-            <FaImage className="mr-1" />
-            Save as PNG {projectIdMixer}
+          <Button
+            variant="secondary"
+            onClick={handleExportPNGToParent}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <svg
+                  className="animate-spin h-4 w-4 mr-2 text-gray-600"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+                Saving...
+              </>
+            ) : (
+              <>
+                <FaImage className="mr-1" />
+                Save as PNG {projectIdMixer}
+              </>
+            )}
           </Button>
 
           <Button
