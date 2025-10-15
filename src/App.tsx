@@ -129,6 +129,28 @@ const InnerApp: React.FC<AppProps> = () => {
           setProjectIdMixer(data.payload.projectId);
           break;
 
+        case "EDIT_IMAGE":
+          console.log("🖼️ Received image URL from parent:", data.payload.url);
+          // setJson(
+          //   JSON.stringify({
+          //     elements: [
+          //       {
+          //         id: "image-1",
+          //         type: "image",
+          //         src: data.payload.url,
+          //         x: 0,
+          //         y: 0,
+          //         width: 1080,
+          //         height: 1080,
+          //       },
+          //     ],
+          //     width: 1080,
+          //     height: 1080,
+          //     scale: 1,
+          //   })
+          // );
+          break;
+
         case "INIT":
           window.parent.postMessage({ type: "TOOL_READY" }, event.origin);
           break;
