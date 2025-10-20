@@ -121,34 +121,36 @@ const InnerApp: React.FC<AppProps> = () => {
 
       switch (data.type) {
         case "SEND_JSON":
-          console.log("Received number from parent:", data.payload.json);
           setJson(data.payload.json);
           break;
         case "PROJECT_SELECTED":
-          console.log("PROJECT_SELECTED", data.payload.projectId);
           setProjectIdMixer(data.payload.projectId);
           break;
 
         case "EDIT_IMAGE":
-          console.log("🖼️ Received image URL from parent:", data.payload.url);
-          // setJson(
-          //   JSON.stringify({
-          //     elements: [
-          //       {
-          //         id: "image-1",
-          //         type: "image",
-          //         src: data.payload.url,
-          //         x: 0,
-          //         y: 0,
-          //         width: 1080,
-          //         height: 1080,
-          //       },
-          //     ],
-          //     width: 1080,
-          //     height: 1080,
-          //     scale: 1,
-          //   })
-          // );
+          console.log("🖼️ Received image URL from parent:", data.payload);
+
+          const imageUrl = data.payload.url;
+
+          const newJson = JSON.stringify({
+            elements: [
+              {
+                id: "image-1",
+                type: "image",
+                src: imageUrl,
+                x: 0,
+                y: 0,
+                width: 1080,
+                height: 1080,
+                zIndex: 1,
+              },
+            ],
+            width: 1080,
+            height: 1080,
+            scale: 1,
+          });
+
+          setJson(newJson as any);
           break;
 
         case "INIT":
