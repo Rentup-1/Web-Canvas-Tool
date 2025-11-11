@@ -6,12 +6,10 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
-      /*       const csrfToken =
-        "Lk2uGM6UeXEJCdCBhzUyMdxlOdYcoX3Cy3dpW6qrfD0I3hF3mtAPW9ZmezIjiM7O";
-      if (csrfToken) {
-        headers.set("X-CSRFTOKEN", csrfToken);
-      } */
-      headers.set("Authorization", "Basic YToxMjM0");
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers.set("Authorization", `Token ${token}`);
+      }
       return headers;
     },
   }),
