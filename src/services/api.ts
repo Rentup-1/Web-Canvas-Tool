@@ -25,6 +25,6 @@ export const api = createApi({
     "TemplateTextBoxes",
     "Assets",
     "Projects",
-  ], // ممكن تزود عليها بعدين: Labels, Users, etc.
+  ],
   endpoints: () => ({}),
 });
