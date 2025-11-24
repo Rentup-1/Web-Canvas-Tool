@@ -125,6 +125,7 @@ const InnerApp: React.FC<AppProps> = () => {
           break;
         case "PROJECT_SELECTED":
           setProjectIdMixer(data.payload.projectId);
+          localStorage.setItem("accessToken", data.payload.token);
           break;
 
         case "EDIT_IMAGE":
