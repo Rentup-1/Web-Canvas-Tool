@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import Konva from "konva";
 import { Provider } from "react-redux";
 import { Canvas } from "./components/Canvas";
@@ -16,10 +16,13 @@ type AppProps = {
   templateJson?: string;
 };
 
-const InnerApp = () => {
+type InnerAppProps = {
+  stageRef: RefObject<Konva.Stage | null>;
+};
+
+const InnerApp = ({ stageRef }: InnerAppProps) => {
   const { json } = useWindowMessageListener();
   const { importTemplate } = useTemplateImporter();
-  const stageRef = useRef<Konva.Stage>(null);
 
   useEffect(() => {
     importTemplate(json);
@@ -46,10 +49,12 @@ const InnerApp = () => {
 };
 
 const App: React.FC<AppProps> = () => {
+  const stageRef = useRef<Konva.Stage>(null);
+
   return (
     <Provider store={store}>
-      <CanvasProvider>
-        <InnerApp />
+      <CanvasProvider stageRef={stageRef as RefObject<Konva.Stage>}>
+        <InnerApp stageRef={stageRef} />
       </CanvasProvider>
     </Provider>
   );
