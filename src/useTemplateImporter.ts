@@ -11,7 +11,7 @@ export const useTemplateImporter = () => {
   const dispatch = useDispatch();
 
   const importTemplate = useCallback(
-    (json: string | null) => {
+    async (json: string | null) => {
       if (!json) return;
 
       try {
@@ -19,6 +19,9 @@ export const useTemplateImporter = () => {
         if (!importedData || !Array.isArray(importedData.elements)) return;
 
         const elements = [...importedData.elements];
+
+        // Process frames and load images asynchronously
+        const imageLoadPromises: Promise<void>[] = [];
 
         importedData.frames?.forEach((frame: any) => {
           const frameIndex = elements.findIndex(
@@ -42,25 +45,111 @@ export const useTemplateImporter = () => {
                   : frame.objectFit === "cover"
                   ? "fill"
                   : "stretch";
-              const imageElement = {
-                id: `image-${frameElement.id}`,
-                type: "image",
-                frameId: frameElement.id,
-                x: frameElement.x,
-                y: frameElement.y,
-                width: frameElement.width,
-                height: frameElement.height,
-                src: `https://api.markomlabs.com${frame.assets[0].image_url}`,
-                originalWidth: frame.assets[0].width || frameElement.width,
-                originalHeight: frame.assets[0].height || frameElement.height,
-                fitMode,
-                opacity: frameElement.opacity ?? 1,
-                zIndex: 0,
-              };
-              elements.splice(frameIndex + 1, 0, imageElement);
+
+              const imageUrl = `https://api.markomlabs.com${frame.assets[0].image_url}`;
+
+              // Create a promise to load the image and get natural dimensions
+              const imageLoadPromise = new Promise<void>((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => {
+                  const imgW = img.naturalWidth;
+                  const imgH = img.naturalHeight;
+                  const frameAspect = frameElement.width / frameElement.height;
+                  const imgAspect = imgW / imgH;
+
+                  let newWidth, newHeight, offsetX, offsetY;
+
+                  // Calculate dimensions based on fitMode
+                  switch (fitMode) {
+                    case "fit":
+                      if (imgAspect > frameAspect) {
+                        newWidth = frameElement.width;
+                        newHeight = frameElement.width / imgAspect;
+                      } else {
+                        newHeight = frameElement.height;
+                        newWidth = frameElement.height * imgAspect;
+                      }
+                      break;
+
+                    case "fill":
+                      if (imgAspect < frameAspect) {
+                        newWidth = frameElement.width;
+                        newHeight = frameElement.width / imgAspect;
+                      } else {
+                        newHeight = frameElement.height;
+                        newWidth = frameElement.height * imgAspect;
+                      }
+                      break;
+
+                    case "stretch":
+                      newWidth = frameElement.width;
+                      newHeight = frameElement.height;
+                      break;
+
+                    default:
+                      if (imgAspect < frameAspect) {
+                        newWidth = frameElement.width;
+                        newHeight = frameElement.width / imgAspect;
+                      } else {
+                        newHeight = frameElement.height;
+                        newWidth = frameElement.height * imgAspect;
+                      }
+                      break;
+                  }
+
+                  offsetX = (frameElement.width - newWidth) / 2;
+                  offsetY = (frameElement.height - newHeight) / 2;
+
+                  const imageElement = {
+                    id: `image-${frameElement.id}`,
+                    type: "image",
+                    frameId: frameElement.id,
+                    x: frameElement.x + offsetX,
+                    y: frameElement.y + offsetY,
+                    width: newWidth,
+                    height: newHeight,
+                    src: imageUrl,
+                    originalWidth: imgW,
+                    originalHeight: imgH,
+                    fitMode,
+                    opacity: frameElement.opacity ?? 1,
+                    zIndex: 0,
+                  };
+                  elements.splice(frameIndex + 1, 0, imageElement);
+                  resolve();
+                };
+                img.onerror = () => {
+                  // Fallback to frame dimensions if image fails to load
+                  const imageElement = {
+                    id: `image-${frameElement.id}`,
+                    type: "image",
+                    frameId: frameElement.id,
+                    x: frameElement.x,
+                    y: frameElement.y,
+                    width: frameElement.width,
+                    height: frameElement.height,
+                    src: imageUrl,
+                    originalWidth: frame.assets[0].width || frameElement.width,
+                    originalHeight:
+                      frame.assets[0].height || frameElement.height,
+                    fitMode,
+                    opacity: frameElement.opacity ?? 1,
+                    zIndex: 0,
+                  };
+                  elements.splice(frameIndex + 1, 0, imageElement);
+                  resolve();
+                };
+                img.src = imageUrl;
+              });
+
+              imageLoadPromises.push(imageLoadPromise);
             }
           }
         });
+
+        // Wait for all images to load
+        await Promise.all(imageLoadPromises);
 
         elements.sort((a: any, b: any) => (a.zIndex || 0) - (b.zIndex || 0));
 
