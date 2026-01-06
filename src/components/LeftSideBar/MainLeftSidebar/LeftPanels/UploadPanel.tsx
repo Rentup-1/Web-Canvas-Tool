@@ -89,8 +89,8 @@ export function UploadPanel() {
         dispatch(
           addImageElement({
             src: img.src,
-            width: img.width,
-            height: img.height,
+            width: img.naturalWidth,
+            height: img.naturalHeight,
           })
         );
         toast.success("Image added to canvas");
