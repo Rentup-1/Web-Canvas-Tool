@@ -91,7 +91,7 @@ export function UploadPanel() {
             src: img.src,
             width: img.naturalWidth,
             height: img.naturalHeight,
-          })
+          }),
         );
         toast.success("Image added to canvas");
       };
@@ -115,14 +115,26 @@ export function UploadPanel() {
 
   // Handle clicking a remote image to add to canvas
   const handleRemoteClick = (asset: ImageDataWithId) => {
-    dispatch(
-      addImageElement({
-        src: `${BASE_API_URL}${asset.image}`,
-        width: 300,
-        height: 300,
-      })
-    );
-    toast.success(`${asset.name} added to canvas`);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    const imageUrl = `${BASE_API_URL}${asset.image}`;
+
+    img.onload = () => {
+      dispatch(
+        addImageElement({
+          src: imageUrl,
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+        }),
+      );
+      toast.success(`${asset.name} added to canvas`);
+    };
+
+    img.onerror = () => {
+      toast.error(`Failed to load ${asset.name}`);
+    };
+
+    img.src = imageUrl;
   };
 
   return (
