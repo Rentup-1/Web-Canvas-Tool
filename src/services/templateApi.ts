@@ -47,14 +47,14 @@ const extendedApi = api.injectEndpoints({
       { id: number; data: FormData }
     >({
       query: ({ id }) => ({
-        url: `creatives/templates/${id}`,
+        url: `creatives/templates/${id}/`,
         method: "PUT",
       }),
       invalidatesTags: ["Templates", "Template"],
     }),
     deleteTemplate: builder.mutation<void, number>({
       query: (id) => ({
-        url: `creatives/templates/${id}`,
+        url: `creatives/templates/${id}/`,
         method: "DELETE",
       }),
       invalidatesTags: ["Templates"],
