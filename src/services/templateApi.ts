@@ -31,7 +31,7 @@ const extendedApi = api.injectEndpoints({
       providesTags: ["Templates"],
     }),
     getTemplate: builder.query<TemplateData, number>({
-      query: (id) => `creatives/templates/${id}`,
+      query: (id) => `creatives/templates/${id}/`,
       providesTags: ["Template"],
     }),
     createTemplate: builder.mutation<TemplateCreateResponse, FormData>({
