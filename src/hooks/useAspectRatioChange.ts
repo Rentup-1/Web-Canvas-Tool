@@ -17,6 +17,7 @@ export function useAspectRatioChange() {
     const aspectRatios: Record<AspectRatio, number> = {
       "1:1": 1,
       "9:16": 9 / 16,
+      "16:9": 16 / 9,
     };
 
     const newWidth = 1080;

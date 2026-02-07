@@ -240,4 +240,4 @@ export type CanvasElementUnion =
   | CanvasFrameElement
   | CanvasGroupElement;
 
-export type AspectRatio = "1:1" | "9:16";
+export type AspectRatio = "1:1" | "9:16" | "16:9";
