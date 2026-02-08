@@ -54,7 +54,10 @@ export function useKeyboardShortcuts() {
           if (isCtrl && selectedElement) {
             e.preventDefault();
             // Store in localStorage for simple copy functionality
-            localStorage.setItem("copiedElement", JSON.stringify(selectedElement));
+            localStorage.setItem(
+              "copiedElement",
+              JSON.stringify(selectedElement),
+            );
           }
           break;
 
@@ -74,7 +77,7 @@ export function useKeyboardShortcuts() {
                     ...(element.type === "icon" && {
                       iconName: element.iconName,
                     }),
-                  })
+                  }),
                 );
               } catch (error) {
                 console.error("Failed to paste element:", error);
@@ -169,7 +172,7 @@ export function useKeyboardShortcuts() {
               updateElement({
                 id: selectedElement.id,
                 updates: { y: selectedElement.y - step },
-              })
+              }),
             );
           }
           break;
@@ -182,7 +185,7 @@ export function useKeyboardShortcuts() {
               updateElement({
                 id: selectedElement.id,
                 updates: { y: selectedElement.y + step },
-              })
+              }),
             );
           }
           break;
@@ -195,7 +198,7 @@ export function useKeyboardShortcuts() {
               updateElement({
                 id: selectedElement.id,
                 updates: { x: selectedElement.x - step },
-              })
+              }),
             );
           }
           break;
@@ -208,7 +211,7 @@ export function useKeyboardShortcuts() {
               updateElement({
                 id: selectedElement.id,
                 updates: { x: selectedElement.x + step },
-              })
+              }),
             );
           }
           break;
