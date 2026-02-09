@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -10,7 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -18,24 +19,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Loader2, X } from "lucide-react";
+import { useCanvas } from "@/context/CanvasContext";
+import { addTemplateId } from "@/features/form/saveFormSlice";
 import { useAppSelector } from "@/hooks/useRedux";
+import { useGetAllTagQuery } from "@/services/TagsApi";
 import {
   useCreateTemplateMutation,
   useGetTemplateQuery,
   useUpdateTemplateMutation,
 } from "@/services/templateApi";
-import { useGetAllTagQuery } from "@/services/TagsApi";
 import transformElementsKeys from "@/utils/transformElementKeys";
-import { useCanvas } from "@/context/CanvasContext";
-import { Button } from "@/components/ui/Button";
-import { addTemplateId } from "@/features/form/saveFormSlice";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useCallback, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
-import { useEffect, useCallback } from "react";
+import { z } from "zod";
 import FramesForm from "../FramesForm";
 
 // Define the form schema with stricter validation
@@ -56,7 +55,7 @@ const formSchema = z.object({
     "special_events",
   ]),
   tags: z.array(z.number()),
-  aspect_ratio: z.enum(["9:16", "1:1","Square","SQUARE"]),
+  aspect_ratio: z.enum(["9:16", "1:1", "SQUARE", "Vertical"]),
   raw_input: z.string().refine(
     (value) => {
       try {
@@ -66,7 +65,7 @@ const formSchema = z.object({
         return false;
       }
     },
-    { message: "Raw input must be valid JSON" }
+    { message: "Raw input must be valid JSON" },
   ),
   is_public: z.boolean(),
   default_primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex color"),
@@ -86,7 +85,7 @@ export default function GeneralForm() {
     error: templateError,
   } = useGetTemplateQuery(templateId!, { skip: !templateId });
   const { stageRef } = useCanvas();
-  const { data: frameTags, isLoading: isTagsLoading } = useGetAllTagQuery();
+  // const { data: frameTags, isLoading: isTagsLoading } = useGetAllTagQuery();
   const [createTemplate, { isLoading: isCreating }] =
     useCreateTemplateMutation();
   const [updateTemplate, { isLoading: isUpdating }] =
@@ -113,42 +112,42 @@ export default function GeneralForm() {
         strokeWidth: "borderWidth",
         stroke: "borderColor",
       },
-  };
+    };
 
-  const fallbackMapping = {
-    stroke: "borderColor",
-    strokeWidth: "borderWidth",
-    backgroundStroke: "borderColor",
-    backgroundStrokeWidth: "borderWidth",
-    dashed: "borderStyle",
-  };
+    const fallbackMapping = {
+      stroke: "borderColor",
+      strokeWidth: "borderWidth",
+      backgroundStroke: "borderColor",
+      backgroundStrokeWidth: "borderWidth",
+      dashed: "borderStyle",
+    };
 
-  const exportData = {
-    elements: transformElementsKeys(
-      elements,
-      keyMappingsByType,
-      fallbackMapping
-    ),
-    stage: {
-      height: stageHeight,
-      width: stageWidth,
-      aspectRatio: aspectRatio,
-    },
-    branding: {
-      colors: brandingColors,
-      fonts: brandingFonts,
-    },
-  };
+    const exportData = {
+      elements: transformElementsKeys(
+        elements,
+        keyMappingsByType,
+        fallbackMapping,
+      ),
+      stage: {
+        height: stageHeight,
+        width: stageWidth,
+        aspectRatio: aspectRatio,
+      },
+      branding: {
+        colors: brandingColors,
+        fonts: brandingFonts,
+      },
+    };
 
-  return JSON.stringify(exportData, null, 2);
-}, [
-  elements,
-  stageHeight,
-  stageWidth,
-  aspectRatio,
-  brandingColors,
-  brandingFonts,
-]);
+    return JSON.stringify(exportData, null, 2);
+  }, [
+    elements,
+    stageHeight,
+    stageWidth,
+    aspectRatio,
+    brandingColors,
+    brandingFonts,
+  ]);
 
   // Convert RGBA to Hex
   const rgbaToHex = useCallback((color: string): string => {
@@ -193,25 +192,25 @@ export default function GeneralForm() {
       type: "default",
       category: "commercial_ads",
       tags: [],
-      aspect_ratio: aspectRatio || "9:16",
+      aspect_ratio: "SQUARE",
       raw_input: handleJSON(),
       is_public: true,
       default_primary: rgbaToHex(brandingColors?.primary || "#000000"),
       default_secondary_color: rgbaToHex(
-        brandingColors?.secondary || "#ffffff"
+        brandingColors?.secondary || "#ffffff",
       ),
       icon: undefined,
     },
   });
 
-  // Reset form when template data changes
+  // Reset form ONLY when a different template is loaded (not on every canvas change)
   useEffect(() => {
     if (specificTemplateData) {
       form.reset({
         name: specificTemplateData.name || "",
         group: specificTemplateData.group || "",
         type: ["default", "customized", "branded"].includes(
-          specificTemplateData.type
+          specificTemplateData.type,
         )
           ? (specificTemplateData.type as "default" | "customized" | "branded")
           : "default",
@@ -232,42 +231,41 @@ export default function GeneralForm() {
         tags: specificTemplateData.tags || [],
         is_public: specificTemplateData.is_public ?? true,
         raw_input: handleJSON(),
-        aspect_ratio: aspectRatio || "9:16",
+        aspect_ratio: "SQUARE",
         default_primary: rgbaToHex(brandingColors?.primary || "#000000"),
         default_secondary_color: rgbaToHex(
-          brandingColors?.secondary || "#ffffff"
+          brandingColors?.secondary || "#ffffff",
         ),
         icon: undefined,
       });
     }
-  }, [
-    specificTemplateData,
-    form,
-    handleJSON,
-    aspectRatio,
-    brandingColors,
-    rgbaToHex,
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [specificTemplateData]); // Only reset when template data changes, NOT on canvas changes
 
-  // Handle tag toggling
-  const toggleTag = useCallback(
-    (tagId: number) => {
-      const currentTags = form.getValues("tags");
-      form.setValue(
-        "tags",
-        currentTags.includes(tagId)
-          ? currentTags.filter((id) => id !== tagId)
-          : [...currentTags, tagId]
-      );
-    },
-    [form]
-  );
+  // Update raw_input separately when canvas elements change (without resetting other fields)
+  useEffect(() => {
+    form.setValue("raw_input", handleJSON(), { shouldDirty: false });
+  }, [handleJSON, form]);
 
-  // Get tag by ID
-  const getTagById = useCallback(
-    (id: number) => frameTags?.find((tag) => tag.id === id),
-    [frameTags]
-  );
+  // // Handle tag toggling
+  // const toggleTag = useCallback(
+  //   (tagId: number) => {
+  //     const currentTags = form.getValues("tags");
+  //     form.setValue(
+  //       "tags",
+  //       currentTags.includes(tagId)
+  //         ? currentTags.filter((id) => id !== tagId)
+  //         : [...currentTags, tagId],
+  //     );
+  //   },
+  //   [form],
+  // );
+
+  // // Get tag by ID
+  // const getTagById = useCallback(
+  //   (id: number) => frameTags?.find((tag) => tag.id === id),
+  //   [frameTags],
+  // );
 
   // Form submission handler
   const onSubmit = useCallback(
@@ -285,7 +283,7 @@ export default function GeneralForm() {
         formData.append("default_primary", values.default_primary);
         formData.append(
           "default_secondary_color",
-          values.default_secondary_color
+          values.default_secondary_color,
         );
 
         const iconFile = await captureStageAsPNG();
@@ -311,7 +309,7 @@ export default function GeneralForm() {
         console.error("Failed to submit template:", error);
       }
     },
-    [captureStageAsPNG, createTemplate, updateTemplate, dispatch, templateId]
+    [captureStageAsPNG, createTemplate, updateTemplate, dispatch, templateId],
   );
 
   // Handle preview capture (for debugging)
@@ -330,7 +328,7 @@ export default function GeneralForm() {
   }, [captureStageAsPNG]);
 
   // Loading state
-  if (isTemplateLoading || isTagsLoading) {
+  if (isTemplateLoading) {
     return (
       <div className="flex items-center justify-center p-4">
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -370,98 +368,128 @@ export default function GeneralForm() {
             const actionType =
               (submitEvent.submitter as HTMLButtonElement)?.name || "addNew";
             form.handleSubmit((values) =>
-              onSubmit(values, actionType as "addNew" | "update")
+              onSubmit(values, actionType as "addNew" | "update"),
             )(e);
           }}
           className="space-y-8"
         >
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Template Name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="group"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Group</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter group name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
+          <div className="flex gap-4 w-full">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Name <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
+                    <Input placeholder="Template Name" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="default">Default</SelectItem>
-                    <SelectItem value="customized">Custom</SelectItem>
-                    <SelectItem value="branded">Branded</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
+            <FormField
+              control={form.control}
+              name="group"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Group <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
+                    <Input placeholder="Enter group name" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="commercial_ads">
-                      Commercial Ads
-                    </SelectItem>
-                    <SelectItem value="commercial_ads_for_developers">
-                      Commercial Ads for Developers
-                    </SelectItem>
-                    <SelectItem value="commercial_ads_for_project">
-                      Commercial Ads for Project
-                    </SelectItem>
-                    <SelectItem value="seasonal_posts">
-                      Seasonal Posts
-                    </SelectItem>
-                    <SelectItem value="special_events">
-                      Special Events
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-          <FormField
+          <div className="flex gap-4 w-full">
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="default">Default</SelectItem>
+                      <SelectItem value="customized">Custom</SelectItem>
+                      <SelectItem value="branded">Branded</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="commercial_ads">
+                        Commercial Ads
+                      </SelectItem>
+                      <SelectItem value="commercial_ads_for_developers">
+                        Commercial Ads for Developers
+                      </SelectItem>
+                      <SelectItem value="commercial_ads_for_project">
+                        Commercial Ads for Project
+                      </SelectItem>
+                      <SelectItem value="seasonal_posts">
+                        Seasonal Posts
+                      </SelectItem>
+                      <SelectItem value="special_events">
+                        Special Events
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="aspect_ratio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Aspect Ratio</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select aspect ratio" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="9:16">9:16</SelectItem>
+                      <SelectItem value="1:1">1:1</SelectItem>
+                      <SelectItem value="SQUARE">Square</SelectItem>
+                      <SelectItem value="Vertical">vertical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          {/* <FormField
             control={form.control}
             name="tags"
             render={() => (
@@ -498,37 +526,13 @@ export default function GeneralForm() {
                         >
                           {tag.tag}
                         </Badge>
-                      )
+                      ),
                   )}
                 </div>
                 <FormMessage />
               </FormItem>
             )}
-          />
-
-          <FormField
-            // control={form.control}
-            name="aspect_ratio"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Aspect Ratio</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select aspect ratio" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="9:16">9:16</SelectItem>
-                    <SelectItem value="1:1">1:1</SelectItem>
-                    <SelectItem value="SQUARE">Square</SelectItem>
-                    <SelectItem value="Vertical">vertical</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          /> */}
 
           <FormField
             control={form.control}
@@ -539,7 +543,7 @@ export default function GeneralForm() {
                 <FormControl>
                   <textarea
                     placeholder="Enter raw input data..."
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     {...field}
                   />
                 </FormControl>
@@ -618,8 +622,8 @@ export default function GeneralForm() {
               {isCreating
                 ? "Submitting..."
                 : templateId
-                ? "Add As New"
-                : "Submit Template"}
+                  ? "Add As New"
+                  : "Submit Template"}
             </Button>
             {templateId && (
               <Button

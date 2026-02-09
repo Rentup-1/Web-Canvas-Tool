@@ -1,11 +1,11 @@
-import { useForm, FormProvider } from "react-hook-form"; // Import React Hook Form
+import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/badge";
-import { FormLabel, FormItem, FormControl } from "@/components/ui/form"; // Adjust imports as needed
+import { FormControl, FormItem, FormLabel } from "@/components/ui/form"; // Adjust imports as needed
 import { Input } from "@/components/ui/input";
 import { useAppSelector } from "@/hooks/useRedux";
 import { useGetAllTagQuery } from "@/services/TagsApi";
 import { useCreateTemplateFrameMutation } from "@/services/templateFramesApi";
-import { Button } from "@/components/ui/Button";
+import { FormProvider, useForm } from "react-hook-form"; // Import React Hook Form
 
 // Define interfaces for type safety
 interface Tag {
@@ -40,7 +40,7 @@ export default function FramesForm() {
   const [createFrame, { isLoading: isCreatingFrame }] =
     useCreateTemplateFrameMutation();
   const elements = useAppSelector(
-    (state) => state.canvas.elements
+    (state) => state.canvas.elements,
   ) as CanvasElement[];
   const templateId = useAppSelector((state) => state.saveForm.templateId);
 
@@ -58,7 +58,6 @@ export default function FramesForm() {
   };
 
   console.log(elements);
-  
 
   // Generate frames array
   const frames = (): Frame[] => {
@@ -81,13 +80,13 @@ export default function FramesForm() {
 
     return result;
   };
-  
+
   // Handle form submission
   const handleSubmit = async () => {
     console.log(frames);
     if (!templateId) {
       console.error(
-        "Template ID is missing. Please submit the general form first."
+        "Template ID is missing. Please submit the general form first.",
       );
       return;
     }
@@ -111,7 +110,6 @@ export default function FramesForm() {
 
       console.log(frame);
 
-
       try {
         const res = await createFrame(payload).unwrap();
         console.log("Frame sent successfully:", res);
@@ -119,7 +117,7 @@ export default function FramesForm() {
         console.error("Error sending frame:", error);
       }
     }
-  };  
+  };
 
   if (isTagsLoading) {
     return <p>Loading tags...</p>;
@@ -135,7 +133,7 @@ export default function FramesForm() {
 
   return (
     <FormProvider {...methods}>
-      <div className="space-y-4">
+      <div className="space-y-4 mt-2">
         {frames().map((frame, index) => (
           <div
             key={index}
@@ -216,7 +214,7 @@ export default function FramesForm() {
           </div>
         ))}
         {/* discription if need update on it update on template first */}
-        <p className="text-red-500">
+        <p className="text-center text-sm font-medium text-amber-400 ">
           If you want to update the frames, please update the template first
         </p>
         <Button
