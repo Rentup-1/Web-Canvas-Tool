@@ -122,9 +122,12 @@ export default function GeneralForm() {
       dashed: "borderStyle",
     };
 
+    // Filter out image elements, keep only frames and other elements
+    const filteredElements = elements.filter((el) => el.type !== "image");
+
     const exportData = {
       elements: transformElementsKeys(
-        elements,
+        filteredElements,
         keyMappingsByType,
         fallbackMapping,
       ),
@@ -239,7 +242,7 @@ export default function GeneralForm() {
         icon: undefined,
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [specificTemplateData]); // Only reset when template data changes, NOT on canvas changes
 
   // Update raw_input separately when canvas elements change (without resetting other fields)
