@@ -44,8 +44,9 @@ export function LayerPanel() {
             isSelected ? "bg-primary" : "bg-secondary"
           }`}
           onClick={() => {
-            // If this is a frame with an image child, select the image instead
-            if (el.type === "frame") {
+            // If frame is collapsed and has an image child, select the image
+            // If frame is expanded, allow selecting the frame itself
+            if (el.type === "frame" && !isExpanded) {
               const imageChild = children.find(
                 (child) => child.type === "image",
               );
