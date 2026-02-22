@@ -7,13 +7,17 @@ import { useState } from "react";
 export function TextPanel() {
   const dispatch = useAppDispatch();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "ar">("en");
   const { data: allLabels, isLoading, error } = useGetAllTextLabelsQuery();
 
-  const filteredLabels = allLabels?.filter(
-    (item) =>
-      (item.example?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+  const filteredLabels = allLabels?.filter((item) => {
+    const example =
+      selectedLanguage === "en" ? item.example_en : item.example_ar;
+    return (
+      (example?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
       (item.label?.toLowerCase() || "").includes(searchTerm.toLowerCase())
-  );
+    );
+  });
 
   return (
     <div>
@@ -33,33 +37,53 @@ export function TextPanel() {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
 
+      {/* Language Tabs */}
+      <div className="flex gap-2 mt-4">
+        <Button
+          variant={selectedLanguage === "en" ? "default" : "outline"}
+          onClick={() => setSelectedLanguage("en")}
+          className="flex-1"
+        >
+          EN
+        </Button>
+        <Button
+          variant={selectedLanguage === "ar" ? "default" : "outline"}
+          onClick={() => setSelectedLanguage("ar")}
+          className="flex-1"
+        >
+          AR
+        </Button>
+      </div>
+
       <div className="mt-4">
         {isLoading && <p>Loading...</p>}
         {error && <p>Error loading labels</p>}
 
         {filteredLabels && filteredLabels.length > 0 ? (
-          filteredLabels.map((item) =>
-            item.example ? (
+          filteredLabels.map((item) => {
+            const example =
+              selectedLanguage === "en" ? item.example_en : item.example_ar;
+            return example ? (
               <div
                 key={item.id}
-                className="mb-2 p-2 cursor-pointer border rounded"
+                className="mb-2 p-2 cursor-pointer border rounded hover:bg-gray-100 hover:text-black "
               >
                 <p
                   onClick={() =>
                     dispatch(
                       addElement({
                         type: "text",
-                        text: item.example,
+                        text: example,
                         toi_labels: item.label,
-                      })
+                      }),
                     )
                   }
                 >
-                  {item.example}
+                  {example}
                 </p>
               </div>
-            ) : null
-          )
+            ) : null;
+          })
         ) : (
           <p>No result found</p>
         )}

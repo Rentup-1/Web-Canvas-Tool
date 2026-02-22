@@ -4,8 +4,15 @@ import { FormControl, FormItem, FormLabel } from "@/components/ui/form"; // Adju
 import { Input } from "@/components/ui/input";
 import { useAppSelector } from "@/hooks/useRedux";
 import { useGetAllTagQuery } from "@/services/TagsApi";
-import { useCreateTemplateFrameMutation } from "@/services/templateFramesApi";
+import {
+  useCreateTemplateFrameMutation,
+  useDeleteTemplateFrameMutation,
+  useGetTemplateFramesByTemplateQuery,
+} from "@/services/templateFramesApi";
 import { FormProvider, useForm } from "react-hook-form"; // Import React Hook Form
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 // Define interfaces for type safety
 interface Tag {
@@ -39,10 +46,21 @@ export default function FramesForm() {
   const { data: tags, isLoading: isTagsLoading } = useGetAllTagQuery();
   const [createFrame, { isLoading: isCreatingFrame }] =
     useCreateTemplateFrameMutation();
+  const [deleteFrame] = useDeleteTemplateFrameMutation();
   const elements = useAppSelector(
     (state) => state.canvas.elements,
   ) as CanvasElement[];
   const templateId = useAppSelector((state) => state.saveForm.templateId);
+
+  const {
+    data: existingFrames,
+    isLoading: isLoadingFrames,
+    refetch,
+  } = useGetTemplateFramesByTemplateQuery(templateId!, {
+    skip: !templateId,
+  });
+
+  const [isSaving, setIsSaving] = useState(false);
 
   // Initialize React Hook Form
   const methods = useForm<FormData>({
@@ -81,11 +99,10 @@ export default function FramesForm() {
     return result;
   };
 
-  // Handle form submission
+  // Handle form submission - delete existing and create new
   const handleSubmit = async () => {
-    console.log(frames);
     if (!templateId) {
-      console.error(
+      toast.error(
         "Template ID is missing. Please submit the general form first.",
       );
       return;
@@ -94,33 +111,67 @@ export default function FramesForm() {
     const allFrames = frames();
 
     if (allFrames.length === 0) {
-      console.error("No frames to submit. Please add frames to the canvas.");
+      toast.error("No frames to submit. Please add frames to the canvas.");
       return;
     }
 
-    for (const frame of allFrames) {
-      const payload = {
-        frame_position_in_template: frame.frame_position_in_template ?? 0,
-        template: templateId,
-        type: frame.assetType || "image",
-        fitMode: frame.fitMode,
-        objectFit: frame.objectFit,
-        tags: frame.tags,
-      };
+    setIsSaving(true);
 
-      console.log(frame);
-
-      try {
-        const res = await createFrame(payload).unwrap();
-        console.log("Frame sent successfully:", res);
-      } catch (error) {
-        console.error("Error sending frame:", error);
+    try {
+      // Delete all existing frames for this template first
+      // SAFETY CHECK: Only delete frames that belong to this template
+      if (existingFrames && existingFrames.length > 0) {
+        console.log(
+          `Deleting ${existingFrames.length} frames for template ID: ${templateId}`,
+        );
+        for (const existingFrame of existingFrames) {
+          // Double-check the frame belongs to this template before deleting
+          if (existingFrame.id && existingFrame.template === templateId) {
+            await deleteFrame(existingFrame.id).unwrap();
+          }
+        }
       }
+
+      // Create all frames from current canvas state
+      for (let i = 0; i < allFrames.length; i++) {
+        const frame = allFrames[i];
+        const framePosition = frame.frame_position_in_template ?? i;
+
+        // Make sure we don't send "frame" as the type
+        const validType =
+          frame.assetType && frame.assetType !== "frame"
+            ? frame.assetType
+            : "image";
+
+        const payload = {
+          frame_position_in_template: framePosition,
+          template: templateId,
+          type: validType,
+          fitMode: frame.fitMode,
+          objectFit: frame.objectFit,
+          tags: frame.tags,
+        };
+
+        await createFrame(payload).unwrap();
+      }
+
+      toast.success("Frames saved successfully!");
+      refetch();
+    } catch (error) {
+      console.error("Error saving frames:", error);
+      toast.error("Failed to save frames. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  if (isTagsLoading) {
-    return <p>Loading tags...</p>;
+  if (isTagsLoading || isLoadingFrames) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   if (!elements || elements.length === 0) {
@@ -213,16 +264,19 @@ export default function FramesForm() {
             </FormItem>
           </div>
         ))}
-        {/* discription if need update on it update on template first */}
-        <p className="text-center text-sm font-medium text-amber-400 ">
-          If you want to update the frames, please update the template first
-        </p>
         <Button
           onClick={() => handleSubmit()}
           className="w-full"
-          disabled={isCreatingFrame}
+          disabled={isSaving}
         >
-          {isCreatingFrame ? "Saving..." : "Save Frames"}
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save Frames"
+          )}
         </Button>
       </div>
     </FormProvider>

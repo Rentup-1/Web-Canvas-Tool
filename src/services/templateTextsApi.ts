@@ -3,6 +3,7 @@ import { api } from "./api";
 
 // Data types matching the form schema
 export type TemplateTextData = {
+  id?: number;
   template: number;
   initial_value: string;
   tags: number[];
@@ -17,6 +18,13 @@ const extendedApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getTemplateTextBoxes: builder.query<TemplatesTextsResponse, void>({
       query: () => "creatives/textboxes",
+      providesTags: ["TemplateTextBoxes"],
+    }),
+    getTemplateTextBoxesByTemplate: builder.query<
+      TemplatesTextsResponse,
+      number
+    >({
+      query: (templateId) => `creatives/textboxes?template=${templateId}`,
       providesTags: ["TemplateTextBoxes"],
     }),
     getTemplateTextBox: builder.query<TemplateTextData, number>({
@@ -58,6 +66,7 @@ const extendedApi = api.injectEndpoints({
 
 export const {
   useGetTemplateTextBoxesQuery,
+  useGetTemplateTextBoxesByTemplateQuery,
   useGetTemplateTextBoxQuery,
   useCreateTemplateTextBoxMutation,
   useUpdateTemplateTextBoxMutation,

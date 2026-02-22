@@ -43,7 +43,7 @@ const loadGoogleFont = (fontFamily: string) => {
   const link = document.createElement("link");
   link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(
     /\s+/g,
-    "+"
+    "+",
   )}:wght@400;700&display=swap`;
   link.rel = "stylesheet";
   document.head.appendChild(link);
@@ -78,16 +78,16 @@ export default function TextProperties({
   const errorMessage = errorTags
     ? "Failed to load tags. Please try again."
     : postTagError
-    ? (postTagError as any).data?.tag?.[0] ||
-      "Failed to create tag. Please try again."
-    : null;
+      ? (postTagError as any).data?.tag?.[0] ||
+        "Failed to create tag. Please try again."
+      : null;
   const handleTagsChange = async (val: string | string[]) => {
     const values = Array.isArray(val) ? val : val ? [val] : [];
     const currentTags = tagOptions.map((opt) => opt.tag);
 
     // Identify new tags (not in tagOptions)
     const newTags = values.filter(
-      (tag) => tag && !currentTags.includes(tag) && tag.trim().length > 0
+      (tag) => tag && !currentTags.includes(tag) && tag.trim().length > 0,
     );
     // Post new tags to the API
     for (const newTag of newTags) {
@@ -125,7 +125,8 @@ export default function TextProperties({
     ? labelsData.map((item) => ({
         id: String(item.id),
         label: item.label,
-        example: item.example,
+        example_en: item.example_en,
+        example_ar: item.example_ar,
       }))
     : [];
   // get label option by label
@@ -173,7 +174,7 @@ export default function TextProperties({
 
   // Get fonts from store
   const brandingFamilies = useAppSelector(
-    (state) => state.branding.fontFamilies
+    (state) => state.branding.fontFamilies,
   );
   const [brandingFamily, setBrandingFamily] = useState<string[]>([]);
 
@@ -303,7 +304,7 @@ export default function TextProperties({
                 fontSize_percent: toPercentFontSize(
                   Number(Number.parseInt(val)),
                   stageWidth,
-                  stageHeight
+                  stageHeight,
                 ),
               } as Partial<CanvasTextElement>)
             }
@@ -317,7 +318,7 @@ export default function TextProperties({
             label="Font Family"
             value={
               element.fontBrandingType === "fixed"
-                ? element.fontFamily ?? "Arial"
+                ? (element.fontFamily ?? "Arial")
                 : "Arial"
             }
             onChange={(val) => {
@@ -335,10 +336,10 @@ export default function TextProperties({
             }}
             options={
               element.fontBrandingType === "fixed"
-                ? fontsData?.items.map((font) => ({
+                ? (fontsData?.items.map((font) => ({
                     label: font.family,
                     value: font.family,
-                  })) ?? []
+                  })) ?? [])
                 : brandingFamily.map((key) => ({
                     label: key,
                     value: key,

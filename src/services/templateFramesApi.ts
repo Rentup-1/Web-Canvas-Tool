@@ -3,9 +3,12 @@ import { api } from "./api";
 
 // Data types matching the form schema
 export type TemplateFrameData = {
+  id?: number;
   frame_position_in_template: number;
   template: number;
   type: string;
+  fitMode?: string | null;
+  objectFit?: string | null;
   tags: number[];
 };
 
@@ -19,6 +22,13 @@ const extendedApi = api.injectEndpoints({
       query: () => "creatives/template-frames",
       providesTags: ["TemplateFrames"],
     }),
+    getTemplateFramesByTemplate: builder.query<TemplatesFramesResponse, number>(
+      {
+        query: (templateId) =>
+          `creatives/template-frames?template=${templateId}`,
+        providesTags: ["TemplateFrames"],
+      },
+    ),
     getTemplateFrame: builder.query<TemplateFrameData, number>({
       query: (id) => `creatives/template-frames/${id}`,
       providesTags: ["TemplateFrames"],
@@ -58,6 +68,7 @@ const extendedApi = api.injectEndpoints({
 
 export const {
   useGetTemplateFramesQuery,
+  useGetTemplateFramesByTemplateQuery,
   useGetTemplateFrameQuery,
   useCreateTemplateFrameMutation,
   useUpdateTemplateFrameMutation,

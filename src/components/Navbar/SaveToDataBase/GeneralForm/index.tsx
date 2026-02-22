@@ -36,6 +36,7 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { z } from "zod";
 import FramesForm from "../FramesForm";
+import { toast } from "sonner";
 
 // Define the form schema with stricter validation
 const formSchema = z.object({
@@ -298,11 +299,15 @@ export default function GeneralForm() {
         if (actionType === "addNew") {
           response = await createTemplate(formData).unwrap();
           dispatch(addTemplateId(response.id));
+          toast.success("Template created successfully!");
         } else if (templateId || actionType === "update") {
           response = await updateTemplate({
             id: templateId as number,
             data: formData,
           }).unwrap();
+          toast.success(
+            "Template updated successfully! Now you can update frames and texts.",
+          );
         } else {
           throw new Error("Template ID is missing for update action");
         }
@@ -310,6 +315,7 @@ export default function GeneralForm() {
         dispatch(addTemplateId(response.id));
       } catch (error) {
         console.error("Failed to submit template:", error);
+        toast.error("Failed to save template. Please try again.");
       }
     },
     [captureStageAsPNG, createTemplate, updateTemplate, dispatch, templateId],

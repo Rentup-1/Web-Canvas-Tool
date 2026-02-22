@@ -46,9 +46,10 @@ const extendedApi = api.injectEndpoints({
       TemplateCreateResponse,
       { id: number; data: FormData }
     >({
-      query: ({ id }) => ({
+      query: ({ id, data }) => ({
         url: `creatives/templates/${id}/`,
         method: "PUT",
+        body: data,
       }),
       invalidatesTags: ["Templates", "Template"],
     }),

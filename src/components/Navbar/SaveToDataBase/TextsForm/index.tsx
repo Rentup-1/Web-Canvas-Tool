@@ -13,7 +13,15 @@ import {
   useGetAllTextLabelsQuery,
   type LabelResponse,
 } from "@/services/textLabelsApi"; // Assuming you have this API
-import { useCreateTemplateTextBoxMutation } from "@/services/templateTextsApi";
+import {
+  useCreateTemplateTextBoxMutation,
+  useDeleteTemplateTextBoxMutation,
+  useGetTemplateTextBoxesByTemplateQuery,
+} from "@/services/templateTextsApi";
+import { useGetTemplateFramesByTemplateQuery } from "@/services/templateFramesApi";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 type TextSummaryElement = {
   toi_labels: number;
@@ -35,11 +43,27 @@ export default function TextsForm() {
     useGetAllTextLabelsQuery();
   const [createText, { isLoading: isCreatingText }] =
     useCreateTemplateTextBoxMutation();
+  const [deleteText] = useDeleteTemplateTextBoxMutation();
 
   const elements = useAppSelector(
-    (state) => state.canvas.elements
+    (state) => state.canvas.elements,
   ) as CanvasElementUnion[];
   const templateId = useAppSelector((state) => state.saveForm.templateId);
+
+  const {
+    data: existingTexts,
+    isLoading: isLoadingTexts,
+    refetch,
+  } = useGetTemplateTextBoxesByTemplateQuery(templateId!, {
+    skip: !templateId,
+  });
+
+  const { data: existingFrames, isLoading: isLoadingFrames } =
+    useGetTemplateFramesByTemplateQuery(templateId!, {
+      skip: !templateId,
+    });
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const getIdByTag = (tag: string): number | null => {
     const item = tags?.find((obj: TagResponse) => obj.tag === tag);
@@ -58,43 +82,81 @@ export default function TextsForm() {
         el.tags
           ?.map((tag) => getIdByTag(tag))
           .filter((id): id is number => id !== null) || [],
-      toi_labels: el.toi_labels ? getIdByLabel(el.toi_labels) ?? 0 : 0,
+      toi_labels: el.toi_labels ? (getIdByLabel(el.toi_labels) ?? 0) : 0,
       text: el.text || "",
     }));
   };
 
-  // Handle form submission
+  // Handle form submission - delete existing and create new
   const handleSubmit = async () => {
     if (!templateId) {
-      console.error(
-        "Template ID is missing. Please submit the general form first."
+      toast.error(
+        "Template ID is missing. Please submit the general form first.",
       );
+      return;
+    }
+
+    // Check if frames exist first
+    if (!existingFrames || existingFrames.length === 0) {
+      toast.error("Please save frames first before saving text boxes.");
       return;
     }
 
     const allTextBoxes = textBoxes();
 
     if (allTextBoxes.length === 0) {
-      console.error(
-        "No text boxes to submit. Please add text elements to the canvas."
+      toast.error(
+        "No text boxes to submit. Please add text elements to the canvas.",
       );
       return;
     }
 
-    for (const textBox of allTextBoxes) {
-      const payload = {
-        template: templateId,
-        initial_value: textBox.text,
-        toi_label: textBox.toi_labels,
-        tags: textBox.tags,
-      };
+    setIsSaving(true);
 
-      try {
-        const res = await createText(payload).unwrap();
-        console.log("Text sent successfully:", res);
-      } catch (error) {
-        console.error("Error sending text:", error);
+    try {
+      // Delete all existing text boxes for this template first
+      // SAFETY CHECK: Only delete text boxes that belong to this template
+      if (existingTexts && existingTexts.length > 0) {
+        console.log(
+          `Deleting ${existingTexts.length} text boxes for template ID: ${templateId}`,
+        );
+        for (const existingText of existingTexts) {
+          // Double-check the text box belongs to this template before deleting
+          if (existingText.id && existingText.template === templateId) {
+            await deleteText(existingText.id).unwrap();
+            console.log(
+              `Deleted text box ID: ${existingText.id} from template: ${existingText.template}`,
+            );
+          } else {
+            console.warn(
+              `Skipping text box ID: ${existingText.id} - does not belong to template: ${templateId}`,
+            );
+          }
+        }
       }
+
+      // Create all text boxes from current canvas state
+      for (let i = 0; i < allTextBoxes.length; i++) {
+        const textBox = allTextBoxes[i];
+
+        const payload = {
+          template: templateId,
+          initial_value: textBox.text,
+          toi_label: textBox.toi_labels,
+          tags: textBox.tags,
+        };
+
+        await createText(payload).unwrap();
+        console.log("Created text box at index:", i);
+      }
+
+      toast.success("Text boxes saved successfully!");
+      refetch();
+    } catch (error) {
+      console.error("Error saving text boxes:", error);
+      toast.error("Failed to save text boxes. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -104,8 +166,13 @@ export default function TextsForm() {
     },
   });
 
-  if (isTagsLoading || isLabelsLoading) {
-    return <p>Loading tags and labels...</p>;
+  if (isTagsLoading || isLabelsLoading || isLoadingTexts || isLoadingFrames) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   if (!elements || elements.length === 0) {
@@ -114,6 +181,10 @@ export default function TextsForm() {
 
   if (!templateId) {
     return <p>Please submit the general form first</p>;
+  }
+
+  if (!existingFrames || existingFrames.length === 0) {
+    return <p>Please save frames first before saving text boxes</p>;
   }
 
   return (
@@ -152,7 +223,7 @@ export default function TextsForm() {
                 <Input
                   value={
                     labels?.find(
-                      (l: LabelResponse) => l.id === textBox.toi_labels
+                      (l: LabelResponse) => l.id === textBox.toi_labels,
                     )?.label || "No label assigned"
                   }
                   placeholder="TOI Label"
@@ -187,17 +258,15 @@ export default function TextsForm() {
           </div>
         ))}
 
-        <p className="text-red-500 text-sm">
-          If you want to update the text boxes, please update the template
-          first.
-        </p>
-
-        <Button
-          onClick={handleSubmit}
-          className="w-full"
-          disabled={isCreatingText}
-        >
-          {isCreatingText ? "Saving..." : "Save Text Boxes"}
+        <Button onClick={handleSubmit} className="w-full" disabled={isSaving}>
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save Text Boxes"
+          )}
         </Button>
       </div>
     </FormProvider>

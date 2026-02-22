@@ -88,7 +88,7 @@ const canvasSlice = createSlice({
             toi_labels?: string;
           }
         | { type: Exclude<ElementType, "icon" | "text"> }
-      >
+      >,
     ) => {
       const currentId = shapeIdCounter++;
       const base = createBaseElement(String(currentId));
@@ -138,7 +138,7 @@ const canvasSlice = createSlice({
             strokeWidth: 1,
             fill: "transparent",
             dash: [5, 5],
-            assetType: "frame",
+            assetType: "image", // Default to "image" instead of "frame"
             tags: [],
             visible: true,
             fitMode: "fill",
@@ -317,7 +317,7 @@ const canvasSlice = createSlice({
     },
     addImageElement: (
       state,
-      action: PayloadAction<{ src: string; width: number; height: number }>
+      action: PayloadAction<{ src: string; width: number; height: number }>,
     ) => {
       const { src, width, height } = action.payload;
 
@@ -372,7 +372,7 @@ const canvasSlice = createSlice({
       action: PayloadAction<{
         id: string | number | undefined;
         updates: Partial<CanvasElementUnion>;
-      }>
+      }>,
     ) => {
       const { id, updates } = action.payload;
       const index = state.elements.findIndex((el) => el.id === id);
@@ -434,7 +434,7 @@ const canvasSlice = createSlice({
     },
     setStageSize: (
       state,
-      action: PayloadAction<{ width: number; height: number }>
+      action: PayloadAction<{ width: number; height: number }>,
     ) => {
       state.stageWidth = action.payload.width;
       state.stageHeight = action.payload.height;
@@ -460,10 +460,10 @@ const canvasSlice = createSlice({
       const xs = selected.map((el) => el.x ?? 0);
       const ys = selected.map((el) => el.y ?? 0);
       const x2s = selected.map(
-        (el) => (el.x ?? 0) + (el.width ?? (el.radius ?? 0) * 2)
+        (el) => (el.x ?? 0) + (el.width ?? (el.radius ?? 0) * 2),
       );
       const y2s = selected.map(
-        (el) => (el.y ?? 0) + (el.height ?? (el.radius ?? 0) * 2)
+        (el) => (el.y ?? 0) + (el.height ?? (el.radius ?? 0) * 2),
       );
       const minX = Math.min(...xs);
       const minY = Math.min(...ys);

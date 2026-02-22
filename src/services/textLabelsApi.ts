@@ -4,9 +4,9 @@ import { api } from "./api";
 export type Label = {
   id: number;
   label: string;
-  example: string;
+  example_en: string | null;
+  example_ar: string | null;
 };
-
 
 // أنواع البيانات
 export type LabelsData = {
@@ -16,7 +16,8 @@ export type LabelsData = {
   results: {
     id: number;
     label: string;
-    example: string;
+    example_en: string | null;
+    example_ar: string | null;
   }[];
 };
 
@@ -29,29 +30,28 @@ export type LabelResponse = {
 const extendedApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getAllTextLabels: builder.query<Label[], void>({
-    async queryFn(_arg, _queryApi, _extraOptions, baseQuery) {
-      let allLabels: Label[] = [];
-      let nextUrl: string | null = "api/toilabels/";
+      async queryFn(_arg, _queryApi, _extraOptions, baseQuery) {
+        let allLabels: Label[] = [];
+        let nextUrl: string | null = "api/toilabels/";
 
-      while (nextUrl) {
-        const result = await baseQuery({ url: nextUrl });
-        if (result.error) return { error: result.error };
+        while (nextUrl) {
+          const result = await baseQuery({ url: nextUrl });
+          if (result.error) return { error: result.error };
 
-        const data = result.data as LabelsData;
-        allLabels = [...allLabels, ...data.results];
-        nextUrl = data.next;
-      }
+          const data = result.data as LabelsData;
+          allLabels = [...allLabels, ...data.results];
+          nextUrl = data.next;
+        }
 
-      return { data: allLabels };
-    },
-    providesTags: ["TextLables"],
-  }),
-
+        return { data: allLabels };
+      },
+      providesTags: ["TextLables"],
+    }),
 
     getTextLabel: builder.query<LabelsData, string | void>({
-    query: (url) => url ?? "api/toilabels/",
-    providesTags: ["TextLables"],
-  }),
+      query: (url) => url ?? "api/toilabels/",
+      providesTags: ["TextLables"],
+    }),
     postTextLabel: builder.mutation<LabelResponse, { label: string }>({
       query: (newLabel) => ({
         url: "api/toilabels/",
