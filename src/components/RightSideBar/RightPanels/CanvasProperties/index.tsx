@@ -56,7 +56,7 @@ export default function CanvasProperties() {
 
 
 
-  const ASPICT_RATIO = ["1:1", "9:16", "16:9"] as const;
+  const ASPICT_RATIO = ["1:1 (Square)" , "9:16 (Story)", "16:9 (Horizontal)"] as const;
   return (
     <div>
       <div className="grid grid-cols-2 gap-2">

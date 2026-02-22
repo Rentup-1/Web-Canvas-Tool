@@ -9,12 +9,13 @@ export type TemplateData = {
   type: string;
   category: string;
   tags: number[];
-  aspect_ratio: "9:16" | "1:1";
+  aspect_ratio: "SQUARE" | "VERTICAL" | "HORIZONTAL";
   raw_input: string;
   is_public: boolean;
   default_primary: string;
   default_secondary_color: string;
   icon?: string;
+  language?: string;
   created_at?: string;
   updated_at?: string;
 };
