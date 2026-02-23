@@ -51,8 +51,43 @@ export function Canvas({ stageRef }: CanvasProps) {
   // change cursor on drag
   const [cursor, setCursor] = useState<"default">("default");
 
-  // Track current zoom level for the view (not the stage internal zoom)
-  const [viewZoom, setViewZoom] = useState(1);
+  // ─────────────────────────────────────────────────────────────────
+  // Zoom state: viewZoom = baseZoom (auto-fit) × zoomMultiplier (user)
+  // ─────────────────────────────────────────────────────────────────
+  const [baseZoom, setBaseZoom] = useState(1); // calculated by ResizeObserver
+  const [zoomMultiplier, setZoomMultiplier] = useState(1); // controlled by the user buttons
+  const viewZoom = baseZoom * zoomMultiplier;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-fit: recalculate baseZoom when stage dimensions or container size changes.
+  // Does NOT touch zoomMultiplier – user's manual adjustments are preserved.
+  // When aspect ratio changes (stageWidth/stageHeight change), zoomMultiplier resets to 1.
+  const isFirstRunRef = useRef(true);
+  useEffect(() => {
+    const calcBase = () => {
+      const mainEl = containerRef.current?.closest("main");
+      if (!mainEl) return;
+      const availW = mainEl.clientWidth - 32;
+      const availH = mainEl.clientHeight - 32;
+      if (availW <= 0 || availH <= 0) return;
+      const scale = Math.min(availW / stageWidth, availH / stageHeight);
+      setBaseZoom(Math.min(Math.max(scale, 0.03), 1));
+    };
+
+    // On aspect-ratio change (not initial mount) → reset user multiplier to fit-to-screen
+    if (!isFirstRunRef.current) {
+      setZoomMultiplier(1);
+    }
+    isFirstRunRef.current = false;
+
+    calcBase();
+
+    const mainEl = containerRef.current?.closest("main");
+    if (!mainEl) return;
+    const ro = new ResizeObserver(calcBase);
+    ro.observe(mainEl);
+    return () => ro.disconnect();
+  }, [stageWidth, stageHeight]);
 
   // Check if any element is selected
   const isAnyElementSelected = elements.some((el) => el.selected);
@@ -132,25 +167,32 @@ export function Canvas({ stageRef }: CanvasProps) {
 
   /* View zoom control functions - for zooming the entire canvas view */
   const handleZoomIn = () => {
-    setViewZoom((prev) => Math.min(prev * 1.2, 3));
+    setZoomMultiplier((prev) => Math.min(prev * 1.2, 3));
   };
 
   const handleZoomOut = () => {
-    setViewZoom((prev) => Math.max(prev / 1.2, 0.05));
+    setZoomMultiplier((prev) => Math.max(prev / 1.2, 0.05));
   };
 
+  // Reset → fit-to-screen (multiplier back to 1)
   const handleZoomReset = () => {
-    setViewZoom(1);
+    setZoomMultiplier(1);
   };
 
-  /* handle zooming */
+  /* Ctrl + Scroll → zoom (like Figma). Regular scroll still scrolls the page. */
   const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
+    if (!e.evt.ctrlKey) return; // let normal scroll pass through
     e.evt.preventDefault();
+    const direction = e.evt.deltaY < 0 ? 1 : -1; // scroll up = zoom in
+    setZoomMultiplier((prev) =>
+      Math.min(Math.max(prev * (1 + direction * 0.1), 0.05), 3),
+    );
   };
 
   return (
     <>
       <div
+        ref={containerRef}
         style={{
           width: Math.ceil(stageWidth * viewZoom),
           height: Math.ceil(stageHeight * viewZoom),
