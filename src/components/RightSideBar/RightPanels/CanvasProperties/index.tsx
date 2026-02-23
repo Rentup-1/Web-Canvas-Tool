@@ -25,38 +25,38 @@ export default function CanvasProperties() {
   //       })
   //     );
 
-      
   //   }
   // };
 
-
   const updateSize = (dimension: "width" | "height", value: string) => {
-  const numeric = parseInt(value);
-  if (!isNaN(numeric)) {
-    const oldWidth = stageWidth;
-    const oldHeight = stageHeight;
+    const numeric = parseInt(value);
+    if (!isNaN(numeric)) {
+      const oldWidth = stageWidth;
+      const oldHeight = stageHeight;
 
-    const newWidth = dimension === "width" ? numeric : stageWidth;
-    const newHeight = dimension === "height" ? numeric : stageHeight;
+      const newWidth = dimension === "width" ? numeric : stageWidth;
+      const newHeight = dimension === "height" ? numeric : stageHeight;
 
-    // أول حاجة نعمل scale للأشكال بناء على الفرق
-    const scaledElements = rescaleElementsForAspectRatio(
-      elements,
-      { width: oldWidth, height: oldHeight },
-      { width: newWidth, height: newHeight }
-    );
+      // أول حاجة نعمل scale للأشكال بناء على الفرق
+      const scaledElements = rescaleElementsForAspectRatio(
+        elements,
+        { width: oldWidth, height: oldHeight },
+        { width: newWidth, height: newHeight },
+      );
 
-    // بعدين نحدث العناصر
-    dispatch(setElements(scaledElements));
+      // بعدين نحدث العناصر
+      dispatch(setElements(scaledElements));
 
-    // وأخيرًا نحدث حجم الكانفس
-    dispatch(setStageSize({ width: newWidth, height: newHeight }));
-  }
-};
+      // وأخيرًا نحدث حجم الكانفس
+      dispatch(setStageSize({ width: newWidth, height: newHeight }));
+    }
+  };
 
-
-
-  const ASPICT_RATIO = ["1:1 (Square)" , "9:16 (Story)", "16:9 (Horizontal)"] as const;
+  const ASPECT_RATIO_OPTIONS = [
+    { value: "1:1", label: "1:1 (Square)" },
+    { value: "9:16", label: "9:16 (Story)" },
+    { value: "16:9", label: "16:9 (Horizontal)" },
+  ];
   return (
     <div>
       <div className="grid grid-cols-2 gap-2">
@@ -83,7 +83,7 @@ export default function CanvasProperties() {
             setAspectRatio(val as AspectRatio);
             changeAspectRatio(val as AspectRatio);
           }}
-          options={Array.from(ASPICT_RATIO)}
+          options={ASPECT_RATIO_OPTIONS}
         />
       </div>
     </div>
