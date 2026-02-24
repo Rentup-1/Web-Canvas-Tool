@@ -57,7 +57,7 @@ const formSchema = z.object({
   ]),
   tags: z.array(z.number()),
   aspect_ratio: z.enum(["SQUARE", "VERTICAL", "HORIZONTAL"]),
-  language: z.enum(["EN", "AR"]),
+  lang: z.enum(["en", "ar"]),
   raw_input: z.string().refine(
     (value) => {
       try {
@@ -200,7 +200,7 @@ export default function GeneralForm() {
       aspect_ratio: "SQUARE",
       raw_input: handleJSON(),
       is_public: true,
-      language: "EN",
+      lang: "en",
       default_primary: rgbaToHex(brandingColors?.primary || "#000000"),
       default_secondary_color: rgbaToHex(
         brandingColors?.secondary || "#ffffff",
@@ -238,9 +238,9 @@ export default function GeneralForm() {
         is_public: specificTemplateData.is_public ?? true,
         raw_input: handleJSON(),
         aspect_ratio: "SQUARE",
-        language: ["EN", "AR"].includes(specificTemplateData.language as string)
-          ? (specificTemplateData.language as "EN" | "AR")
-          : "EN",
+        lang: ["en", "ar"].includes(specificTemplateData.lang as string)
+          ? (specificTemplateData.lang as "en" | "ar")
+          : "en",
         default_primary: rgbaToHex(brandingColors?.primary || "#000000"),
         default_secondary_color: rgbaToHex(
           brandingColors?.secondary || "#ffffff",
@@ -287,7 +287,7 @@ export default function GeneralForm() {
         formData.append("category", values.category);
         values.tags.forEach((tag) => formData.append("tags", tag.toString()));
         formData.append("aspect_ratio", values.aspect_ratio);
-        formData.append("language", values.language);
+        formData.append("lang", values.lang);
         formData.append("raw_input", values.raw_input);
         formData.append("is_public", values.is_public.toString());
         formData.append("default_primary", values.default_primary);
@@ -446,21 +446,21 @@ export default function GeneralForm() {
             />
             <FormField
               control={form.control}
-              name="language"
+              name="lang"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Language <span className="text-red-500">*</span>
+                    lang <span className="text-red-500">*</span>
                   </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select language" />
+                        <SelectValue placeholder="Select lang" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="EN">English</SelectItem>
-                      <SelectItem value="AR">Arabic</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="ar">Arabic</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

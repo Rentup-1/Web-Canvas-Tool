@@ -15,7 +15,7 @@ export type TemplateData = {
   default_primary: string;
   default_secondary_color: string;
   icon?: string;
-  language?: string;
+  lang?: string;
   created_at?: string;
   updated_at?: string;
 };
