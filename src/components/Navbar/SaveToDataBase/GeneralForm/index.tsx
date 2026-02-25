@@ -667,6 +667,7 @@ export default function GeneralForm() {
             {templateId && (
               <Button
                 type="submit"
+                className="flex-1"
                 disabled={isCreating || isUpdating}
                 variant="secondary"
                 name="update"
@@ -677,7 +678,6 @@ export default function GeneralForm() {
           </div>
         </form>
       </Form>
-      <FramesForm />
     </div>
   );
 }
