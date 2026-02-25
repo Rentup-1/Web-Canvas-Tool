@@ -3,6 +3,7 @@ import { addElement } from "@/features/canvas/canvasSlice";
 import { useAppDispatch } from "@/hooks/useRedux";
 import { useGetAllTextLabelsQuery } from "@/services/textLabelsApi";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 export function TextPanel() {
   const dispatch = useAppDispatch();
@@ -66,19 +67,26 @@ export function TextPanel() {
             return example ? (
               <div
                 key={item.id}
-                className="mb-2 p-2 cursor-pointer border rounded hover:bg-gray-100 hover:text-black "
+                className="mb-3 p-3 cursor-pointer border border-border bg-card hover:bg-muted/80 hover:border-primary/70 hover:text-primary hover:shadow-md transition-all flex flex-col gap-2 group overflow-hidden rounded-lg shadow-sm"
+                onClick={() =>
+                  dispatch(
+                    addElement({
+                      type: "text",
+                      text: example,
+                      toi_labels: item.label,
+                    }),
+                  )
+                }
               >
-                <p
-                  onClick={() =>
-                    dispatch(
-                      addElement({
-                        type: "text",
-                        text: example,
-                        toi_labels: item.label,
-                      }),
-                    )
-                  }
-                >
+                <div className="flex justify-between items-center w-full">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground border-border bg-muted/30"
+                  >
+                    {item.label}
+                  </Badge>
+                </div>
+                <p className="text-sm font-medium text-card-foreground leading-relaxed break-words whitespace-pre-wrap w-full">
                   {example}
                 </p>
               </div>

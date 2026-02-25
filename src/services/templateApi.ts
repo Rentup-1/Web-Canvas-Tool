@@ -27,8 +27,14 @@ export type TemplateCreateResponse = TemplateData;
 // Inject endpoints for Templates
 const extendedApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getTemplates: builder.query<TemplatesResponse, void>({
-      query: () => "creatives/templates",
+    getTemplates: builder.query<TemplatesResponse, string | void>({
+      query: (lang) => {
+        let url = "creatives/templates";
+        if (lang) {
+          url += `?lang=${lang}`;
+        }
+        return url;
+      },
       providesTags: ["Templates"],
     }),
     getTemplate: builder.query<TemplateData, number>({
