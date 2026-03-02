@@ -35,8 +35,11 @@ const InnerApp = ({ stageRef }: InnerAppProps) => {
         <Navbar />
         <div className="flex flex-1 overflow-hidden">
           <LeftSideBar />
-          <main className="flex-1 p-4 overflow-auto flex justify-center items-start">
-            <div className="bg-white shadow-lg" style={{ lineHeight: 0 }}>
+          <main className="flex-1 overflow-auto flex bg-muted/30 p-8 min-h-0">
+            <div
+              className="bg-white shadow-lg flex-shrink-0 m-auto"
+              style={{ lineHeight: 0 }}
+            >
               <Canvas stageRef={stageRef as RefObject<Konva.Stage>} />
             </div>
           </main>

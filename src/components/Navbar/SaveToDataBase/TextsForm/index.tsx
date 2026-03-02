@@ -262,8 +262,12 @@ export default function TextsForm() {
           {isSaving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
+              {existingTexts && existingTexts.length > 0
+                ? "Updating..."
+                : "Saving..."}
             </>
+          ) : existingTexts && existingTexts.length > 0 ? (
+            "Update Text Boxes"
           ) : (
             "Save Text Boxes"
           )}
