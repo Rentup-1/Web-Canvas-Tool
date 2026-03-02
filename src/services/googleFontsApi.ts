@@ -6,6 +6,7 @@ const GOOGLE_FONTS_API_KEY = "AIzaSyBVzbz8cX6gKtf_oWIL-LcEIe0SDqqwoc4";
 type GoogleFont = {
   family: string;
   variants: string[];
+  subsets: string[];
   category: string;
   files: Record<string, string>;
 };

@@ -30,7 +30,14 @@ import { useEffect, useState } from "react";
 import { useBrandingResolver } from "@/hooks/useBrandingResolver"; // Added to resolve branded fonts
 import { useGetAllTagQuery, usePostFrameTagMutation } from "@/services/TagsApi";
 
-// Utility function to load Google Fonts dynamically
+// Utility function to detect if text contains Arabic characters
+const containsArabic = (text: string): boolean => {
+  const arabicPattern =
+    /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+  return arabicPattern.test(text);
+};
+
+// Utility function to load Google Fonts dynamically with Arabic support
 const loadGoogleFont = (fontFamily: string) => {
   // Check if font is already loaded to avoid duplicates
   if (
@@ -39,12 +46,12 @@ const loadGoogleFont = (fontFamily: string) => {
     return;
   }
 
-  // Create link element to load the font
+  // Create link element to load the font with Arabic subset
   const link = document.createElement("link");
   link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(
     /\s+/g,
     "+",
-  )}:wght@400;700&display=swap`;
+  )}:wght@400;700&subset=arabic,latin&display=swap`;
   link.rel = "stylesheet";
   document.head.appendChild(link);
 };
@@ -119,6 +126,9 @@ export default function TextProperties({
   const stageWidth = useAppSelector((s) => s.canvas.stageWidth);
   const stageHeight = useAppSelector((s) => s.canvas.stageHeight);
   const dispatch = useAppDispatch();
+
+  // Detect if current text contains Arabic
+  const isArabicText = containsArabic(element.text || "");
 
   // Normalize labelsData.results to options format
   const labelOptions = labelsData
@@ -336,10 +346,19 @@ export default function TextProperties({
             }}
             options={
               element.fontBrandingType === "fixed"
-                ? (fontsData?.items.map((font) => ({
-                    label: font.family,
-                    value: font.family,
-                  })) ?? [])
+                ? (fontsData?.items
+                    .filter((font) => {
+                      // If text contains Arabic, show only fonts with Arabic subset
+                      // Otherwise, show all fonts (or optionally filter for latin)
+                      if (isArabicText) {
+                        return font.subsets?.includes("arabic");
+                      }
+                      return true; // Show all fonts for non-Arabic text
+                    })
+                    .map((font) => ({
+                      label: font.family,
+                      value: font.family,
+                    })) ?? [])
                 : brandingFamily.map((key) => ({
                     label: key,
                     value: key,
