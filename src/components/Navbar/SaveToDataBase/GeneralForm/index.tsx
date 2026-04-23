@@ -22,7 +22,10 @@ import {
 import { useCanvas } from "@/context/CanvasContext";
 import { addTemplateId } from "@/features/form/saveFormSlice";
 import { useAppSelector } from "@/hooks/useRedux";
-import { useGetAllTagQuery } from "@/services/TagsApi";
+import {
+  type ProjectData,
+  useLazyGetProjectsQuery,
+} from "@/services/projectsApi";
 import {
   useCreateTemplateMutation,
   useGetTemplateQuery,
@@ -31,12 +34,12 @@ import {
 import transformElementsKeys from "@/utils/transformElementKeys";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { z } from "zod";
-import FramesForm from "../FramesForm";
 import { toast } from "sonner";
+import ReactSelect from "react-select";
 
 // Define the form schema with stricter validation
 const formSchema = z.object({
@@ -56,6 +59,7 @@ const formSchema = z.object({
     "special_events",
   ]),
   tags: z.array(z.number()),
+  projects: z.array(z.number()),
   aspect_ratio: z.enum(["SQUARE", "VERTICAL", "HORIZONTAL"]),
   lang: z.enum(["en", "ar"]),
   raw_input: z.string().refine(
@@ -79,6 +83,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+type ProjectOption = {
+  value: number;
+  label: string;
+};
+
 export default function GeneralForm() {
   const templateId = useAppSelector((state) => state.saveForm.templateId);
   const {
@@ -87,12 +96,14 @@ export default function GeneralForm() {
     error: templateError,
   } = useGetTemplateQuery(templateId!, { skip: !templateId });
   const { stageRef } = useCanvas();
-  // const { data: frameTags, isLoading: isTagsLoading } = useGetAllTagQuery();
   const [createTemplate, { isLoading: isCreating }] =
     useCreateTemplateMutation();
   const [updateTemplate, { isLoading: isUpdating }] =
     useUpdateTemplateMutation();
+  const [loadProjects] = useLazyGetProjectsQuery();
   const dispatch = useDispatch();
+  const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
+  const [isProjectsLoading, setIsProjectsLoading] = useState(false);
 
   const elements = useAppSelector((state) => state.canvas.elements);
   const stageHeight = useAppSelector((state) => state.canvas.stageHeight);
@@ -101,6 +112,54 @@ export default function GeneralForm() {
   const brandingColors = useAppSelector((state) => state.branding.colors);
   const brandingFonts = useAppSelector((state) => state.branding.fontFamilies);
   // start frames handler
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadAllProjects = async () => {
+      setIsProjectsLoading(true);
+
+      try {
+        const collectedProjects: ProjectData[] = [];
+        let nextPage: { next?: string | null } | void = undefined;
+
+        while (true) {
+          const response = await loadProjects(nextPage).unwrap();
+          collectedProjects.push(...response.results);
+
+          if (!response.next) {
+            break;
+          }
+
+          nextPage = { next: response.next };
+        }
+
+        if (isActive) {
+          setProjectOptions(
+            collectedProjects.map((project) => ({
+              value: project.id,
+              label: project.name,
+            })),
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load projects:", error);
+        if (isActive) {
+          setProjectOptions([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsProjectsLoading(false);
+        }
+      }
+    };
+
+    loadAllProjects();
+
+    return () => {
+      isActive = false;
+    };
+  }, [loadProjects]);
 
   const handleJSON = useCallback(() => {
     const keyMappingsByType = {
@@ -197,6 +256,7 @@ export default function GeneralForm() {
       type: "default",
       category: "commercial_ads",
       tags: [],
+      projects: [],
       aspect_ratio: "SQUARE",
       raw_input: handleJSON(),
       is_public: true,
@@ -235,6 +295,7 @@ export default function GeneralForm() {
               | "special_events")
           : "commercial_ads",
         tags: specificTemplateData.tags || [],
+        projects: specificTemplateData.projects || [],
         is_public: specificTemplateData.is_public ?? true,
         raw_input: handleJSON(),
         aspect_ratio: "SQUARE",
@@ -295,6 +356,9 @@ export default function GeneralForm() {
           "default_secondary_color",
           values.default_secondary_color,
         );
+        values.projects.forEach((projectId) => {
+          formData.append("projects", projectId.toString());
+        });
         const iconFile = await captureStageAsPNG();
         if (iconFile) {
           formData.append("icon", iconFile);
@@ -468,6 +532,40 @@ export default function GeneralForm() {
               )}
             />
           </div>
+          <FormField
+            control={form.control}
+            name="projects"
+            render={({ field }) => {
+              const selectedProjects = projectOptions.filter((project) =>
+                (field.value || []).includes(project.value),
+              );
+
+              return (
+                <FormItem>
+                  <FormLabel>Projects</FormLabel>
+                  <FormControl>
+                    <ReactSelect<ProjectOption, true>
+                      isMulti
+                      isClearable
+                      isLoading={isProjectsLoading}
+                      options={projectOptions}
+                      value={selectedProjects}
+                      onChange={(selected) =>
+                        field.onChange(selected.map((item) => item.value))
+                      }
+                      placeholder="Search and select projects"
+                      className="text-sm"
+                      classNamePrefix="react-select"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Search by project name and select one or more projects.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
           <div className="flex gap-4 w-full">
             <FormField
               control={form.control}

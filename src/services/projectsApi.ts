@@ -55,5 +55,6 @@ const projectsApi = api.injectEndpoints({
 // ----------------------------------
 
 export const { useGetProjectsQuery } = projectsApi;
+export const { useLazyGetProjectsQuery } = projectsApi;
 
 export { projectsApi };

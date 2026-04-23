@@ -9,6 +9,7 @@ export type TemplateData = {
   type: string;
   category: string;
   tags: number[];
+  projects?: number[];
   aspect_ratio: "SQUARE" | "VERTICAL" | "HORIZONTAL";
   raw_input: string;
   is_public: boolean;
