@@ -451,7 +451,9 @@ export default function GeneralForm() {
           "default_secondary_color",
           values.default_secondary_color,
         );
-        formData.set("projects", JSON.stringify(values.projects));
+        values.projects.forEach((projectId) => {
+          formData.append("projects", String(projectId));
+        });
         const iconFile = await captureStageAsPNG();
         if (iconFile) {
           formData.append("icon", iconFile);
