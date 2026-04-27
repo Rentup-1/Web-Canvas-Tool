@@ -35,7 +35,7 @@ type TemplateResult = {
 };
 
 export const buildTemplateFromJson = (
-  importedData: ImportedData
+  importedData: ImportedData,
 ): TemplateResult => {
   if (
     !importedData ||
@@ -45,7 +45,7 @@ export const buildTemplateFromJson = (
     !importedData.scale
   ) {
     throw new Error(
-      "Invalid JSON format. Required fields: elements (array), width, height, scale."
+      "Invalid JSON format. Required fields: elements (array), width, height, scale.",
     );
   }
 
@@ -69,7 +69,7 @@ export const buildTemplateFromJson = (
     const frameIndex = elements.findIndex(
       (el) =>
         Number(el.frame_position_in_template) ===
-        Number(frame.frame_position_in_template)
+        Number(frame.frame_position_in_template),
     );
 
     if (frameIndex !== -1) {
@@ -86,6 +86,8 @@ export const buildTemplateFromJson = (
       if (frame.assets?.[0]?.image_url) {
         const fitMode = mapFitMode(frame.objectFit || frame.fitMode || "fill");
 
+        const apiBaseUrl =
+          localStorage.getItem("apiBaseUrl") || "https://api.markomlabs.com/";
         const imageElement = {
           id: `image-${frameElement.id}`,
           type: "image",
@@ -94,7 +96,7 @@ export const buildTemplateFromJson = (
           y: frameElement.y,
           width: frameElement.width,
           height: frameElement.height,
-          src: `https://api.markomlabs.com${frame.assets[0].image_url}`,
+          src: `${apiBaseUrl}${frame.assets[0].image_url}`,
           originalWidth: frame.assets[0].width || frameElement.width,
           originalHeight: frame.assets[0].height || frameElement.height,
           fitMode,

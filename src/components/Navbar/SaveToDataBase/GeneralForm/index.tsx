@@ -40,6 +40,7 @@ import { useDispatch } from "react-redux";
 import { z } from "zod";
 import { toast } from "sonner";
 import ReactSelect from "react-select";
+import type { StylesConfig } from "react-select";
 
 // Define the form schema with stricter validation
 const formSchema = z.object({
@@ -88,7 +89,89 @@ type ProjectOption = {
   label: string;
 };
 
+const getProjectSelectStyles = (
+  isDarkMode: boolean,
+): StylesConfig<ProjectOption, true> => ({
+  control: (base, state) => ({
+    ...base,
+    minHeight: 40,
+    backgroundColor: isDarkMode ? "#111827" : "#ffffff",
+    borderColor: state.isFocused
+      ? isDarkMode
+        ? "#60a5fa"
+        : "#3b82f6"
+      : isDarkMode
+        ? "#374151"
+        : "#d1d5db",
+    boxShadow: "none",
+    ":hover": {
+      borderColor: state.isFocused
+        ? isDarkMode
+          ? "#60a5fa"
+          : "#3b82f6"
+        : isDarkMode
+          ? "#4b5563"
+          : "#9ca3af",
+    },
+  }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: isDarkMode ? "#111827" : "#ffffff",
+    border: `1px solid ${isDarkMode ? "#374151" : "#e5e7eb"}`,
+    zIndex: 50,
+  }),
+  singleValue: (base) => ({
+    ...base,
+    color: isDarkMode ? "#f3f4f6" : "#111827",
+  }),
+  input: (base) => ({
+    ...base,
+    color: isDarkMode ? "#f3f4f6" : "#111827",
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: isDarkMode ? "#9ca3af" : "#6b7280",
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isFocused
+      ? isDarkMode
+        ? "#1f2937"
+        : "#f3f4f6"
+      : isDarkMode
+        ? "#111827"
+        : "#ffffff",
+    color: isDarkMode ? "#f3f4f6" : "#111827",
+    cursor: "pointer",
+  }),
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: isDarkMode ? "#374151" : "#e5e7eb",
+  }),
+  multiValueLabel: (base) => ({
+    ...base,
+    color: isDarkMode ? "#f9fafb" : "#111827",
+  }),
+  multiValueRemove: (base) => ({
+    ...base,
+    color: isDarkMode ? "#d1d5db" : "#4b5563",
+    ":hover": {
+      backgroundColor: isDarkMode ? "#4b5563" : "#d1d5db",
+      color: isDarkMode ? "#ffffff" : "#111827",
+    },
+  }),
+  clearIndicator: (base) => ({
+    ...base,
+    color: isDarkMode ? "#9ca3af" : "#6b7280",
+  }),
+  dropdownIndicator: (base) => ({
+    ...base,
+    color: isDarkMode ? "#9ca3af" : "#6b7280",
+  }),
+});
+
 export default function GeneralForm() {
+  const isDarkMode = document.documentElement.classList.contains("dark");
   const templateId = useAppSelector((state) => state.saveForm.templateId);
   const {
     data: specificTemplateData,
@@ -104,6 +187,7 @@ export default function GeneralForm() {
   const dispatch = useDispatch();
   const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
+  const hasAuthContext = Boolean(localStorage.getItem("accessToken")?.trim());
 
   const elements = useAppSelector((state) => state.canvas.elements);
   const stageHeight = useAppSelector((state) => state.canvas.stageHeight);
@@ -117,6 +201,12 @@ export default function GeneralForm() {
     let isActive = true;
 
     const loadAllProjects = async () => {
+      if (!hasAuthContext) {
+        setProjectOptions([]);
+        setIsProjectsLoading(false);
+        return;
+      }
+
       setIsProjectsLoading(true);
 
       try {
@@ -159,7 +249,7 @@ export default function GeneralForm() {
     return () => {
       isActive = false;
     };
-  }, [loadProjects]);
+  }, [hasAuthContext, loadProjects]);
 
   const handleJSON = useCallback(() => {
     const keyMappingsByType = {
@@ -340,6 +430,11 @@ export default function GeneralForm() {
   // Form submission handler
   const onSubmit = useCallback(
     async (values: FormValues, actionType: "addNew" | "update") => {
+      if (!hasAuthContext) {
+        toast.error("Authentication is required before saving templates.");
+        return;
+      }
+
       try {
         const formData = new FormData();
         formData.append("name", values.name);
@@ -386,7 +481,14 @@ export default function GeneralForm() {
         toast.error("Failed to save template. Please try again.");
       }
     },
-    [captureStageAsPNG, createTemplate, updateTemplate, dispatch, templateId],
+    [
+      hasAuthContext,
+      captureStageAsPNG,
+      createTemplate,
+      updateTemplate,
+      dispatch,
+      templateId,
+    ],
   );
 
   // Handle preview capture (for debugging)
@@ -438,6 +540,13 @@ export default function GeneralForm() {
       </Button>
 
       <Form {...form}>
+        {!hasAuthContext && (
+          <div className="mb-4 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
+            You are not authenticated. Open this tool from the parent app so
+            your access token is passed, then try saving again.
+          </div>
+        )}
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -547,7 +656,9 @@ export default function GeneralForm() {
                     <ReactSelect<ProjectOption, true>
                       isMulti
                       isClearable
+                      isDisabled={!hasAuthContext}
                       isLoading={isProjectsLoading}
+                      styles={getProjectSelectStyles(isDarkMode)}
                       options={projectOptions}
                       value={selectedProjects}
                       onChange={(selected) =>
@@ -753,7 +864,7 @@ export default function GeneralForm() {
             <Button
               type="submit"
               className="flex-1"
-              disabled={isCreating || isUpdating}
+              disabled={isCreating || isUpdating || !hasAuthContext}
               name="addNew"
             >
               {isCreating
@@ -766,7 +877,7 @@ export default function GeneralForm() {
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isCreating || isUpdating}
+                disabled={isCreating || isUpdating || !hasAuthContext}
                 variant="secondary"
                 name="update"
               >

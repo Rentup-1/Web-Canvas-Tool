@@ -60,7 +60,7 @@ const CanvasExportImport: FC = () => {
             setStageSize({
               height: importedData.stage.height,
               width: importedData.stage.width,
-            })
+            }),
           );
           dispatch(setAspectRatio(importedData.stage.aspectRatio));
 
@@ -70,7 +70,7 @@ const CanvasExportImport: FC = () => {
               Object.entries(importedData.branding.colors).forEach(
                 ([key, value]) => {
                   dispatch(addColor({ key, value: String(value) }));
-                }
+                },
               );
             }
 
@@ -83,9 +83,9 @@ const CanvasExportImport: FC = () => {
                       value: fontData.value,
                       isFile: fontData.isFile,
                       variant: fontData.variant,
-                    })
+                    }),
                   );
-                }
+                },
               );
             }
           }
@@ -128,7 +128,7 @@ const CanvasExportImport: FC = () => {
         if (
           importedData &&
           Array.isArray(
-            importedData.results.templates[0].json_template.elements
+            importedData.results.templates[0].json_template.elements,
           ) &&
           importedData.results.templates[0].json_template.stage &&
           importedData.results.templates[0].json_template.stage.height &&
@@ -143,7 +143,7 @@ const CanvasExportImport: FC = () => {
             const frameIndex = elements.findIndex(
               (el: any) =>
                 el.frame_position_in_template ==
-                frame.frame_position_in_template
+                frame.frame_position_in_template,
             );
 
             if (frameIndex !== -1) {
@@ -157,7 +157,7 @@ const CanvasExportImport: FC = () => {
 
               if (frame.assets?.[0]?.image_url) {
                 const fitMode = mapFitMode(
-                  frame.objectFit || frame.fitMode || "fill"
+                  frame.objectFit || frame.fitMode || "fill",
                 );
 
                 const imageElement = {
@@ -190,12 +190,12 @@ const CanvasExportImport: FC = () => {
                 importedData.results.templates[0].json_template.stage.height,
               width:
                 importedData.results.templates[0].json_template.stage.width,
-            })
+            }),
           );
           dispatch(
             setAspectRatio(
-              importedData.results.templates[0].json_template.stage.aspectRatio
-            )
+              importedData.results.templates[0].json_template.stage.aspectRatio,
+            ),
           );
 
           // Import branding
@@ -218,9 +218,9 @@ const CanvasExportImport: FC = () => {
                       value: fontData.value,
                       isFile: fontData.isFile,
                       variant: fontData.variant,
-                    })
+                    }),
                   );
-                }
+                },
               );
             }
           }
@@ -274,7 +274,7 @@ const CanvasExportImport: FC = () => {
             const frameIndex = elements.findIndex(
               (el: any) =>
                 Number(el.frame_position_in_template) ===
-                Number(frame.frame_position_in_template)
+                Number(frame.frame_position_in_template),
             );
 
             if (frameIndex !== -1) {
@@ -288,9 +288,12 @@ const CanvasExportImport: FC = () => {
 
               if (frame.assets?.[0]?.image_url) {
                 const fitMode = mapFitMode(
-                  frame.objectFit || frame.fitMode || "fill"
+                  frame.objectFit || frame.fitMode || "fill",
                 );
 
+                const apiBaseUrl =
+                  localStorage.getItem("apiBaseUrl") ||
+                  "https://api.markomlabs.com/";
                 const imageElement = {
                   id: `image-${frameElement.id}`,
                   type: "image",
@@ -299,7 +302,7 @@ const CanvasExportImport: FC = () => {
                   y: frameElement.y,
                   width: frameElement.width,
                   height: frameElement.height,
-                  src: `https://api.markomlabs.com${frame.assets[0].image_url}`,
+                  src: `${apiBaseUrl}${frame.assets[0].image_url}`,
                   originalWidth: frame.assets[0].width || frameElement.width,
                   originalHeight: frame.assets[0].height || frameElement.height,
                   fitMode,
@@ -319,7 +322,7 @@ const CanvasExportImport: FC = () => {
             setStageSize({
               height: importedData.height,
               width: importedData.width,
-            })
+            }),
           );
           dispatch(setAspectRatio(importedData.scale));
 
@@ -342,9 +345,9 @@ const CanvasExportImport: FC = () => {
                       value: fontData.value,
                       isFile: fontData.isFile,
                       variant: fontData.variant,
-                    })
+                    }),
                   );
-                }
+                },
               );
             }
           }
@@ -392,7 +395,7 @@ const CanvasExportImport: FC = () => {
           const frameIndex = elements.findIndex(
             (el: any) =>
               Number(el.frame_position_in_template) ===
-              Number(frame.frame_position_in_template)
+              Number(frame.frame_position_in_template),
           );
 
           if (frameIndex !== -1) {
@@ -408,9 +411,12 @@ const CanvasExportImport: FC = () => {
             // Add image element if asset exists
             if (frame.assets?.[0]?.image_url) {
               const fitMode = mapFitMode(
-                frame.objectFit || frame.fitMode || "fill"
+                frame.objectFit || frame.fitMode || "fill",
               );
 
+              const apiBaseUrl =
+                localStorage.getItem("apiBaseUrl") ||
+                "https://api.markomlabs.com/";
               const imageElement = {
                 id: `image-${frameElement.id}`,
                 type: "image",
@@ -419,7 +425,7 @@ const CanvasExportImport: FC = () => {
                 y: frameElement.y,
                 width: frameElement.width,
                 height: frameElement.height,
-                src: `https://api.markomlabs.com${frame.assets[0].image_url}`,
+                src: `${apiBaseUrl}${frame.assets[0].image_url}`,
                 originalWidth: frame.assets[0].width || frameElement.width,
                 originalHeight: frame.assets[0].height || frameElement.height,
                 fitMode,
@@ -441,7 +447,7 @@ const CanvasExportImport: FC = () => {
           setStageSize({
             height: importedData.height,
             width: importedData.width,
-          })
+          }),
         );
         dispatch(setAspectRatio(importedData.scale));
 
@@ -464,15 +470,15 @@ const CanvasExportImport: FC = () => {
                     value: fontData.value,
                     isFile: fontData.isFile,
                     variant: fontData.variant,
-                  })
+                  }),
                 );
-              }
+              },
             );
           }
         }
       } else {
         throw new Error(
-          "Invalid JSON format. Required fields: elements (array), width, height, scale."
+          "Invalid JSON format. Required fields: elements (array), width, height, scale.",
         );
       }
     } catch (error) {
@@ -518,23 +524,32 @@ const CanvasExportImport: FC = () => {
       formData.append("public", "true");
       formData.append("project", projectIdMixer as any);
 
-      const uploadRes = await fetch(
-        "https://api.markomlabs.com/creatives/assets/",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      // Use dynamic API base URL from localStorage (set by parent app)
+      const rawBaseUrl =
+        localStorage.getItem("apiBaseUrl") || "https://api.markomlabs.com/";
+      const apiBaseUrl = rawBaseUrl
+        .trim()
+        .replace(/^['\"]+|['\"]+$/g, "")
+        .replace(/\/+$/, "");
+      const uploadRes = await fetch(`${apiBaseUrl}/creatives/assets/`, {
+        method: "POST",
+        body: formData,
+      });
 
       const result = await uploadRes.json();
 
       if (result?.image) {
+        // Send full URL using the same base URL
+        const normalizedImagePath = String(result.image).startsWith("/")
+          ? result.image
+          : `/${result.image}`;
+        const fullImageUrl = `${apiBaseUrl}${normalizedImagePath}`;
         window.parent.postMessage(
           {
             type: "IMAGE_SELECTED",
-            payload: { url: result.image, id: result.id },
+            payload: { url: fullImageUrl, id: result.id },
           },
-          "*"
+          "*",
         );
       }
     } catch (error) {
