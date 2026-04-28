@@ -95,38 +95,38 @@ const getProjectSelectStyles = (
   control: (base, state) => ({
     ...base,
     minHeight: 40,
-    backgroundColor: isDarkMode ? "#111827" : "#ffffff",
+    backgroundColor: isDarkMode ? "#151515" : "#ffffff",
     borderColor: state.isFocused
       ? isDarkMode
-        ? "#60a5fa"
-        : "#3b82f6"
+        ? "#383838"
+        : "#9ca3af"
       : isDarkMode
-        ? "#374151"
+        ? "#383838"
         : "#d1d5db",
     boxShadow: "none",
     ":hover": {
       borderColor: state.isFocused
         ? isDarkMode
-          ? "#60a5fa"
-          : "#3b82f6"
+          ? "#383838"
+          : "#9ca3af"
         : isDarkMode
-          ? "#4b5563"
+          ? "#383838"
           : "#9ca3af",
     },
   }),
   menu: (base) => ({
     ...base,
-    backgroundColor: isDarkMode ? "#111827" : "#ffffff",
-    border: `1px solid ${isDarkMode ? "#374151" : "#e5e7eb"}`,
+    backgroundColor: isDarkMode ? "#151515" : "#ffffff",
+    border: `1px solid ${isDarkMode ? "#383838" : "#e5e7eb"}`,
     zIndex: 50,
   }),
   singleValue: (base) => ({
     ...base,
-    color: isDarkMode ? "#f3f4f6" : "#111827",
+    color: isDarkMode ? "#f3f4f6" : "#151515",
   }),
   input: (base) => ({
     ...base,
-    color: isDarkMode ? "#f3f4f6" : "#111827",
+    color: isDarkMode ? "#f3f4f6" : "#151515",
   }),
   placeholder: (base) => ({
     ...base,
@@ -139,25 +139,25 @@ const getProjectSelectStyles = (
         ? "#1f2937"
         : "#f3f4f6"
       : isDarkMode
-        ? "#111827"
+        ? "#151515"
         : "#ffffff",
-    color: isDarkMode ? "#f3f4f6" : "#111827",
+    color: isDarkMode ? "#f3f4f6" : "#151515",
     cursor: "pointer",
   }),
   multiValue: (base) => ({
     ...base,
-    backgroundColor: isDarkMode ? "#374151" : "#e5e7eb",
+    backgroundColor: isDarkMode ? "#2f2f2f" : "#e5e7eb",
   }),
   multiValueLabel: (base) => ({
     ...base,
-    color: isDarkMode ? "#f9fafb" : "#111827",
+    color: isDarkMode ? "#f9fafb" : "#151515",
   }),
   multiValueRemove: (base) => ({
     ...base,
     color: isDarkMode ? "#d1d5db" : "#4b5563",
     ":hover": {
       backgroundColor: isDarkMode ? "#4b5563" : "#d1d5db",
-      color: isDarkMode ? "#ffffff" : "#111827",
+      color: isDarkMode ? "#ffffff" : "#151515",
     },
   }),
   clearIndicator: (base) => ({
