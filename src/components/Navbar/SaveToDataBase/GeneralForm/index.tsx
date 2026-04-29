@@ -435,22 +435,12 @@ export default function GeneralForm() {
         return;
       }
 
-      const latestUserId =
-        localStorage.getItem("userId")?.trim() ||
-        localStorage.getItem("user_id")?.trim() ||
-        "";
-
-      if (!latestUserId) {
-        toast.error(
-          "User ID is missing. Please reopen this tool from the parent app.",
-        );
-        return;
-      }
+      const userId = localStorage.getItem("userId")?.trim() || "";
+      console.log(userId);
 
       try {
         const formData = new FormData();
-        formData.append("user", latestUserId);
-        formData.append("user_id", latestUserId);
+        formData.append("user", userId);
         formData.append("name", values.name);
         formData.append("group", values.group);
         formData.append("type", values.type);
