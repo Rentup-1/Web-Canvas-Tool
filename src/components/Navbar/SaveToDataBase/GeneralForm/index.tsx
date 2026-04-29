@@ -188,7 +188,6 @@ export default function GeneralForm() {
   const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
   const hasAuthContext = Boolean(localStorage.getItem("accessToken")?.trim());
-  const userId = localStorage.getItem("userId")?.trim() || "";
 
   const elements = useAppSelector((state) => state.canvas.elements);
   const stageHeight = useAppSelector((state) => state.canvas.stageHeight);
@@ -436,7 +435,12 @@ export default function GeneralForm() {
         return;
       }
 
-      if (!userId) {
+      const latestUserId =
+        localStorage.getItem("userId")?.trim() ||
+        localStorage.getItem("user_id")?.trim() ||
+        "";
+
+      if (!latestUserId) {
         toast.error(
           "User ID is missing. Please reopen this tool from the parent app.",
         );
@@ -445,7 +449,8 @@ export default function GeneralForm() {
 
       try {
         const formData = new FormData();
-        formData.append("user", userId);
+        formData.append("user", latestUserId);
+        formData.append("user_id", latestUserId);
         formData.append("name", values.name);
         formData.append("group", values.group);
         formData.append("type", values.type);
@@ -492,7 +497,6 @@ export default function GeneralForm() {
     },
     [
       hasAuthContext,
-      userId,
       captureStageAsPNG,
       createTemplate,
       updateTemplate,
