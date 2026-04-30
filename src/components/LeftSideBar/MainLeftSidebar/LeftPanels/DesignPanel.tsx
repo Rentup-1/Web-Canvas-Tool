@@ -6,13 +6,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { BASE_API_URL } from "@/services/api";
 import {
-  useCreateTemplateMutation,
   useDeleteTemplateMutation,
   type TemplateData,
   useGetTemplatesQuery,
 } from "@/services/templateApi";
 import { MoreHorizontalIcon, Loader2 } from "lucide-react";
-import { addTemplateId } from "@/features/form/saveFormSlice";
+import { addTemplateId, removeTemplateId } from "@/features/form/saveFormSlice";
 import { useDispatch } from "react-redux";
 import { useCanvas } from "@/context/CanvasContext";
 import { useState } from "react";
@@ -53,8 +52,6 @@ export default function DesignPanel() {
     isFetching: isTemplatesFetching,
     refetch,
   } = useGetTemplatesQuery(lang);
-  const [createTemplate, { isLoading: isCloning }] =
-    useCreateTemplateMutation();
   const [deleteTemplate, { isLoading: isDeleting }] =
     useDeleteTemplateMutation();
 
@@ -68,45 +65,13 @@ export default function DesignPanel() {
     handleImport(jsonData);
   };
 
-  const handleClone = async (template: TemplateData) => {
-    const currentUserId = getCurrentUserId();
-
-    if (!currentUserId) {
-      toast.error("User context is missing. Please reopen from parent app.");
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append("user", String(currentUserId));
-      formData.append("name", `${template.name} (Copy)`);
-      formData.append("group", template.group);
-      formData.append("type", template.type);
-      formData.append("category", template.category);
-      template.tags.forEach((tag) => formData.append("tags", String(tag)));
-      template.projects?.forEach((projectId) => {
-        formData.append("projects", String(projectId));
-      });
-      formData.append("aspect_ratio", template.aspect_ratio);
-      formData.append("lang", template.lang || lang);
-      formData.append("raw_input", template.raw_input);
-      formData.append("is_public", String(template.is_public));
-      formData.append("default_primary", template.default_primary);
-      formData.append(
-        "default_secondary_color",
-        template.default_secondary_color,
-      );
-
-      await createTemplate(formData).unwrap();
-      toast.success("Template cloned successfully!");
-      refetch();
-    } catch (error) {
-      console.error("Failed to clone template:", error);
-      toast.error("Failed to clone template. Please try again.");
-    }
+  const handleClone = (template: TemplateData) => {
+    dispatch(removeTemplateId());
+    handleImport(template.raw_input);
+    toast.success("Template loaded to canvas. Save to create a new template.");
   };
 
-  if (isDeleting || isCloning) return <span>Processing...</span>;
+  if (isDeleting) return <span>Processing...</span>;
 
   return (
     <div className="p-4 space-y-4">
