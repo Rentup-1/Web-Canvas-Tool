@@ -407,6 +407,14 @@ export default function GeneralForm() {
     form.setValue("raw_input", handleJSON(), { shouldDirty: false });
   }, [handleJSON, form]);
 
+  // Ensure template projects are properly synced when both template data and project options are available
+  useEffect(() => {
+    if (specificTemplateData?.projects && projectOptions.length > 0) {
+      const templateProjectIds = specificTemplateData.projects;
+      form.setValue("projects", templateProjectIds, { shouldDirty: false });
+    }
+  }, [specificTemplateData?.projects, projectOptions, form]);
+
   // // Handle tag toggling
   // const toggleTag = useCallback(
   //   (tagId: number) => {
