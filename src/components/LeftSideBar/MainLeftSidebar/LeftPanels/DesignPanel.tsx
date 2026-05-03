@@ -116,12 +116,13 @@ export default function DesignPanel() {
                     <MoreHorizontalIcon className="w-5 h-5" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleDelete(template.id)}>
-                      Delete
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleClone(template)}>
-                      Clone
-                    </DropdownMenuItem>
+                    {canEdit && (
+                      <DropdownMenuItem
+                        onClick={() => handleDelete(template.id)}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    )}
                     {canEdit && (
                       <DropdownMenuItem
                         onClick={() =>
@@ -131,6 +132,9 @@ export default function DesignPanel() {
                         Edit
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuItem onClick={() => handleClone(template)}>
+                      Clone
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 

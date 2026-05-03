@@ -60,7 +60,7 @@ const formSchema = z.object({
     "special_events",
   ]),
   tags: z.array(z.number()),
-  projects: z.array(z.number()),
+  projects: z.array(z.number()).min(1, "At least one project must be selected"),
   aspect_ratio: z.enum(["SQUARE", "VERTICAL", "HORIZONTAL"]),
   lang: z.enum(["en", "ar"]),
   raw_input: z.string().refine(
