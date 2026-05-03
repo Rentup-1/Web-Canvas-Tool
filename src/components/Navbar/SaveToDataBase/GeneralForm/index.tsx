@@ -661,9 +661,35 @@ export default function GeneralForm() {
                 (field.value || []).includes(project.value),
               );
 
+              const allSelected =
+                projectOptions.length > 0 &&
+                (field.value || []).length === projectOptions.length;
+
+              const toggleSelectAll = () => {
+                form.setValue(
+                  "projects",
+                  allSelected ? [] : projectOptions.map((p) => p.value),
+                );
+              };
+
               return (
                 <FormItem>
-                  <FormLabel>Projects</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Projects</FormLabel>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="text-sm"
+                      disabled={
+                        !hasAuthContext ||
+                        isProjectsLoading ||
+                        projectOptions.length === 0
+                      }
+                      onClick={toggleSelectAll}
+                    >
+                      {allSelected ? "Clear All" : "Select All"}
+                    </Button>
+                  </div>
                   <FormControl>
                     <ReactSelect<ProjectOption, true>
                       isMulti
