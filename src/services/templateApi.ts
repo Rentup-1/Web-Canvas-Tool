@@ -38,6 +38,20 @@ const extendedApi = api.injectEndpoints({
       },
       providesTags: ["Templates"],
     }),
+    getTemplatesByUser: builder.query<
+      TemplatesResponse,
+      { userId: number; lang?: string }
+    >({
+      query: ({ userId, lang }) => {
+        let url = `creatives/templates-by-user/?user_id=${userId}`;
+        if (lang) {
+          url += `&lang=${lang}`;
+        }
+
+        return url;
+      },
+      providesTags: ["Templates"],
+    }),
     getTemplate: builder.query<TemplateData, number>({
       query: (id) => `creatives/templates/${id}/`,
       providesTags: ["Template"],
@@ -74,6 +88,7 @@ const extendedApi = api.injectEndpoints({
 
 export const {
   useGetTemplatesQuery,
+  useGetTemplatesByUserQuery,
   useGetTemplateQuery,
   useCreateTemplateMutation,
   useUpdateTemplateMutation,

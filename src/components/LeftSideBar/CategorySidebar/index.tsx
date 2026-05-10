@@ -19,7 +19,7 @@ import { FcDataConfiguration } from "react-icons/fc";
 
 const categories = [
   { id: "branding", icon: FcDataConfiguration, label: "branding" },
-  { id: "designes", icon: FaFolder, label: "my designs" },
+  { id: "designs", icon: FaFolder, label: "my designs" },
   { id: "templates", icon: HiTemplate, label: "templates" },
   { id: "text", icon: CgFormatText, label: "text" },
   { id: "frame", icon: LuFrame, label: "Frame" },

@@ -9,7 +9,8 @@ export type ActiveCategoryType =
   | "icons"
   | "qrCode"
   | "branding"
-  | "designes";
+  | "designs"
+  | "templates";
 
 interface UiState {
   activeCategory: ActiveCategoryType;
