@@ -18,7 +18,22 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
 
-const TEMPLATE_USER_ID = 119;
+const getTemplateUserIdForEnv = (): number => {
+  const stored = localStorage.getItem("apiBaseUrl");
+  const base = (
+    stored ?? (typeof window !== "undefined" ? window.location.origin : "")
+  ).toLowerCase();
+
+  if (
+    base.includes("beta") ||
+    base.includes("staging") ||
+    base.includes("dev")
+  ) {
+    return 119;
+  }
+
+  return 109;
+};
 
 const getTemplateUserId = (template: TemplateData): number | null => {
   const value = (template as TemplateData & { user?: unknown }).user;
@@ -53,7 +68,7 @@ export default function TemplatesPanel() {
     isLoading: isTemplatesLoading,
     isFetching: isTemplatesFetching,
     refetch,
-  } = useGetTemplatesByUserQuery({ userId: TEMPLATE_USER_ID, lang });
+  } = useGetTemplatesByUserQuery({ userId: getTemplateUserIdForEnv(), lang });
   const [deleteTemplate, { isLoading: isDeleting }] =
     useDeleteTemplateMutation();
 
