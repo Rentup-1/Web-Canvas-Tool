@@ -595,7 +595,7 @@ const CanvasExportImport: FC = () => {
             ) : (
               <>
                 <FaImage className="mr-1" />
-                Save as PNG {projectIdMixer}
+                Download PNG
               </>
             )}
           </Button>

@@ -17,7 +17,7 @@ export function SaveToDataBase() {
   return (
     <Dialog defaultOpen={false}>
       <DialogTrigger asChild>
-        <Button variant="default">Save</Button>
+        <Button variant="default">Save Template</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader className="shrink-0 mb-2">
