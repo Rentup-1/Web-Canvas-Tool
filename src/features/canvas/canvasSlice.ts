@@ -49,6 +49,76 @@ const snapshot = (state: WritableDraft<CanvasState>) => {
   state.future = [];
 };
 
+const getOwningRootId = (
+  elements: CanvasElement[],
+  elementId: string,
+): string => {
+  const elementMap = new Map(elements.map((el) => [el.id, el]));
+  const visited = new Set<string>();
+  let currentId = elementId;
+
+  while (!visited.has(currentId)) {
+    visited.add(currentId);
+    const currentElement = elementMap.get(currentId);
+
+    if (!currentElement?.frameId) {
+      return currentId;
+    }
+
+    currentId = currentElement.frameId;
+  }
+
+  return elementId;
+};
+
+const getElementBlocks = (elements: CanvasElement[]) => {
+  const blocks = new Map<string, CanvasElement[]>();
+  const blockOrder: string[] = [];
+
+  for (const element of elements) {
+    const rootId = getOwningRootId(elements, element.id);
+
+    if (!blocks.has(rootId)) {
+      blocks.set(rootId, []);
+      blockOrder.push(rootId);
+    }
+
+    blocks.get(rootId)?.push(element);
+  }
+
+  return blockOrder.map((rootId) => ({
+    rootId,
+    elements: blocks.get(rootId) ?? [],
+  }));
+};
+
+const moveElementBlock = (
+  state: WritableDraft<CanvasState>,
+  elementId: string,
+  direction: 1 | -1,
+) => {
+  const blocks = getElementBlocks(state.elements);
+  const rootId = getOwningRootId(state.elements, elementId);
+  const blockIndex = blocks.findIndex((block) => block.rootId === rootId);
+
+  if (blockIndex === -1) {
+    return;
+  }
+
+  const targetIndex = blockIndex + direction;
+
+  if (targetIndex < 0 || targetIndex >= blocks.length) {
+    return;
+  }
+
+  snapshot(state);
+  [blocks[blockIndex], blocks[targetIndex]] = [
+    blocks[targetIndex],
+    blocks[blockIndex],
+  ];
+  state.elements = blocks.flatMap((block) => block.elements);
+};
+
 const createBaseElement = (id: string): Omit<CanvasElement, "type"> => {
   const width = 150;
   const height = 100;
@@ -407,24 +477,10 @@ const canvasSlice = createSlice({
       }
     },
     moveElementUp: (state, action: PayloadAction<string>) => {
-      const index = state.elements.findIndex((el) => el.id === action.payload);
-      if (index < state.elements.length - 1) {
-        snapshot(state);
-        [state.elements[index], state.elements[index + 1]] = [
-          state.elements[index + 1],
-          state.elements[index],
-        ];
-      }
+      moveElementBlock(state, action.payload, 1);
     },
     moveElementDown: (state, action: PayloadAction<string>) => {
-      const index = state.elements.findIndex((el) => el.id === action.payload);
-      if (index > 0) {
-        snapshot(state);
-        [state.elements[index], state.elements[index - 1]] = [
-          state.elements[index - 1],
-          state.elements[index],
-        ];
-      }
+      moveElementBlock(state, action.payload, -1);
     },
     toggleElementVisibility(state, action: PayloadAction<string>) {
       const element = state.elements.find((el) => el.id === action.payload);
