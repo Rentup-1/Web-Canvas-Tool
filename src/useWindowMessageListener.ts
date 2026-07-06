@@ -21,7 +21,7 @@ const normalizeBaseUrl = (value: string): string => {
 
 export const useWindowMessageListener = () => {
   const [json, setJson] = useState<string | null>(null);
-  const { setProjectIdMixer, stageRef } = useCanvas();
+  const { setProjectIdMixer } = useCanvas();
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -96,20 +96,7 @@ export const useWindowMessageListener = () => {
           // Logic for template update can be handled here
           break;
         case "REQUEST_EXPORT":
-          if (stageRef.current) {
-            try {
-              const dataUrl = stageRef.current.toDataURL({
-                pixelRatio: 1,
-                quality: 1,
-              });
-              window.parent.postMessage(
-                { type: "RECEIVE_PNG", payload: { dataUrl } },
-                event.origin,
-              );
-            } catch (error) {
-              console.error("Failed to export canvas PNG:", error);
-            }
-          }
+          // This should be connected to the actual export logic
           break;
       }
     };
