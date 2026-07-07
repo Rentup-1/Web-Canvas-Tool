@@ -21,10 +21,60 @@ const normalizeBaseUrl = (value: string): string => {
 
 export const useWindowMessageListener = () => {
   const [json, setJson] = useState<string | null>(null);
-  const { setProjectIdMixer } = useCanvas();
+  const [isEditMode, setIsEditMode] = useState(false);
+  const { setProjectIdMixer, projectIdMixer, stageRef } = useCanvas();
+
+  const downloadDataUrl = (dataUrl: string) => {
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = "canvas.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const uploadCanvasPng = async (dataUrl: string, origin: string) => {
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+
+    const formData = new FormData();
+    formData.append("image", blob, "canvas.png");
+    formData.append("name", "myCanvasImage");
+    formData.append("type", "mixer_image");
+    formData.append("public", "true");
+    formData.append("project", String(projectIdMixer));
+
+    const rawBaseUrl = localStorage.getItem("apiBaseUrl") || "https://api.markomlabs.com/";
+    const apiBaseUrl = rawBaseUrl.trim().replace(/^['\"]+|['\"]+$/g, "").replace(/\/+$/, "");
+    const uploadRes = await fetch(`${apiBaseUrl}/creatives/assets/`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!uploadRes.ok) {
+      const errorBody = await uploadRes.text();
+      throw new Error(`Upload failed (${uploadRes.status} ${uploadRes.statusText}): ${errorBody}`);
+    }
+
+    const result = await uploadRes.json();
+
+    if (result?.image) {
+      const normalizedImagePath = String(result.image).startsWith("/")
+        ? result.image
+        : `/${result.image}`;
+      const fullImageUrl = `${apiBaseUrl}${normalizedImagePath}`;
+      window.parent.postMessage(
+        {
+          type: "IMAGE_SELECTED",
+          payload: { url: fullImageUrl, id: result.id },
+        },
+        origin,
+      );
+    }
+  };
 
   useEffect(() => {
-    const onMessage = (event: MessageEvent) => {
+    const onMessage = async (event: MessageEvent) => {
       const { data } = event;
       if (!data || typeof data !== "object" || !data.type) return;
 
@@ -72,6 +122,8 @@ export const useWindowMessageListener = () => {
           break;
         }
         case "INIT":
+          setIsEditMode(Boolean(data?.payload?.editMode));
+
           if (data?.payload?.apiBaseUrl) {
             const normalizedBaseUrl = normalizeBaseUrl(
               asString(data.payload.apiBaseUrl),
@@ -96,14 +148,33 @@ export const useWindowMessageListener = () => {
           // Logic for template update can be handled here
           break;
         case "REQUEST_EXPORT":
-          // This should be connected to the actual export logic
+          if (!stageRef.current) return;
+
+          try {
+            const dataUrl = stageRef.current.toDataURL({
+              pixelRatio: 1,
+              quality: 1,
+            });
+
+            if (isEditMode) {
+              window.parent.postMessage(
+                { type: "RECEIVE_PNG", payload: { dataUrl } },
+                event.origin,
+              );
+            } else {
+              await uploadCanvasPng(dataUrl, event.origin);
+              downloadDataUrl(dataUrl);
+            }
+          } catch (error) {
+            console.error("Failed to export canvas PNG:", error);
+          }
           break;
       }
     };
 
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [setProjectIdMixer]);
+  }, [setProjectIdMixer, isEditMode, projectIdMixer, stageRef]);
 
   return { json };
 };
