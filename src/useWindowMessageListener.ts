@@ -144,6 +144,10 @@ export const useWindowMessageListener = () => {
         }
         case "INIT":
           setIsEditMode(Boolean(data?.payload?.editMode));
+          localStorage.setItem(
+            "designToolEditMode",
+            Boolean(data?.payload?.editMode).toString(),
+          );
 
           if (data?.payload?.apiBaseUrl) {
             const normalizedBaseUrl = normalizeBaseUrl(

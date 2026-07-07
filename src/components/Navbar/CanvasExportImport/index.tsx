@@ -514,6 +514,19 @@ const CanvasExportImport: FC = () => {
       if (!stage) return;
 
       const dataURL = stage.toDataURL({ pixelRatio: 1, quality: 1 });
+      const isEditMode = localStorage.getItem("designToolEditMode") === "true";
+
+      if (isEditMode) {
+        window.parent.postMessage(
+          {
+            type: "RECEIVE_PNG",
+            payload: { dataUrl: dataURL },
+          },
+          "*",
+        );
+        return;
+      }
+
       const response = await fetch(dataURL);
       const blob = await response.blob();
 
@@ -531,10 +544,32 @@ const CanvasExportImport: FC = () => {
         .trim()
         .replace(/^['\"]+|['\"]+$/g, "")
         .replace(/\/+$/, "");
+      const accessToken = localStorage.getItem("accessToken")?.trim();
+      const userId = localStorage.getItem("userId")?.trim();
+
+      if (userId) {
+        formData.append("user", userId);
+      }
+
       const uploadRes = await fetch(`${apiBaseUrl}/creatives/assets/`, {
         method: "POST",
         body: formData,
+        headers: accessToken
+          ? {
+              Authorization: `Token ${accessToken}`,
+              Accept: "application/json",
+            }
+          : {
+              Accept: "application/json",
+            },
       });
+
+      if (!uploadRes.ok) {
+        const errorBody = await uploadRes.text();
+        throw new Error(
+          `Upload failed (${uploadRes.status} ${uploadRes.statusText}): ${errorBody}`,
+        );
+      }
 
       const result = await uploadRes.json();
 
