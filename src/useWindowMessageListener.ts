@@ -44,8 +44,12 @@ export const useWindowMessageListener = () => {
     formData.append("public", "true");
     formData.append("project", String(projectIdMixer));
 
-    const rawBaseUrl = localStorage.getItem("apiBaseUrl") || "https://api.markomlabs.com/";
-    const apiBaseUrl = rawBaseUrl.trim().replace(/^['\"]+|['\"]+$/g, "").replace(/\/+$/, "");
+    const rawBaseUrl =
+      localStorage.getItem("apiBaseUrl") || "https://api.markomlabs.com/";
+    const apiBaseUrl = rawBaseUrl
+      .trim()
+      .replace(/^['\"]+|['\"]+$/g, "")
+      .replace(/\/+$/, "");
     const uploadRes = await fetch(`${apiBaseUrl}/creatives/assets/`, {
       method: "POST",
       body: formData,
@@ -53,7 +57,9 @@ export const useWindowMessageListener = () => {
 
     if (!uploadRes.ok) {
       const errorBody = await uploadRes.text();
-      throw new Error(`Upload failed (${uploadRes.status} ${uploadRes.statusText}): ${errorBody}`);
+      throw new Error(
+        `Upload failed (${uploadRes.status} ${uploadRes.statusText}): ${errorBody}`,
+      );
     }
 
     const result = await uploadRes.json();
