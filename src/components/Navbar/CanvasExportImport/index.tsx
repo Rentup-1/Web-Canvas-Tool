@@ -531,10 +531,32 @@ const CanvasExportImport: FC = () => {
         .trim()
         .replace(/^['\"]+|['\"]+$/g, "")
         .replace(/\/+$/, "");
+      const accessToken = localStorage.getItem("accessToken")?.trim();
+      const userId = localStorage.getItem("userId")?.trim();
+
+      if (userId) {
+        formData.append("user", userId);
+      }
+
       const uploadRes = await fetch(`${apiBaseUrl}/creatives/assets/`, {
         method: "POST",
         body: formData,
+        headers: accessToken
+          ? {
+              Authorization: `Token ${accessToken}`,
+              Accept: "application/json",
+            }
+          : {
+              Accept: "application/json",
+            },
       });
+
+      if (!uploadRes.ok) {
+        const errorBody = await uploadRes.text();
+        throw new Error(
+          `Upload failed (${uploadRes.status} ${uploadRes.statusText}): ${errorBody}`,
+        );
+      }
 
       const result = await uploadRes.json();
 
