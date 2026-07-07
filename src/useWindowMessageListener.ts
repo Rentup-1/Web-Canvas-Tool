@@ -95,7 +95,7 @@ export const useWindowMessageListener = () => {
   };
 
   useEffect(() => {
-    const onMessage = async (event: MessageEvent) => {
+    const onMessage = (event: MessageEvent) => {
       const { data } = event;
       if (!data || typeof data !== "object" || !data.type) return;
 
@@ -187,8 +187,11 @@ export const useWindowMessageListener = () => {
                 event.origin,
               );
             } else {
-              await uploadCanvasPng(dataUrl, event.origin);
-              downloadDataUrl(dataUrl);
+              void uploadCanvasPng(dataUrl, event.origin)
+                .then(() => downloadDataUrl(dataUrl))
+                .catch((error) => {
+                  console.error("Failed to upload canvas PNG:", error);
+                });
             }
           } catch (error) {
             console.error("Failed to export canvas PNG:", error);
