@@ -6,6 +6,7 @@ import {
   setElements,
   setStageSize,
   setAspectRatio,
+  deselectAllElements,
 } from "@/features/canvas/canvasSlice";
 import {
   DropdownMenu,
@@ -509,6 +510,10 @@ const CanvasExportImport: FC = () => {
   const handleExportPNGToParent = async () => {
     try {
       setIsLoading(true);
+      dispatch(deselectAllElements());
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve()),
+      );
 
       const stage = stageRef.current;
       if (!stage) return;

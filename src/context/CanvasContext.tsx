@@ -13,6 +13,7 @@ import {
   setAspectRatio,
   setElements,
   setStageSize,
+  deselectAllElements,
 } from "@/features/canvas/canvasSlice";
 import { addColor, addFont } from "@/features/branding/brandingSlice";
 
@@ -45,6 +46,9 @@ export const CanvasProvider: FC<{
   const [projectIdMixer, setProjectIdMixer] = useState(0);
   const [imageSrc, setImageSrc] = useState("");
 
+  const waitForNextFrame = () =>
+    new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
   const handleExportJSON = () => {
     const keyMappingsByType = {
       text: {
@@ -70,7 +74,7 @@ export const CanvasProvider: FC<{
     const transformedElements = transformElementsKeys(
       elements,
       keyMappingsByType,
-      fallbackMapping
+      fallbackMapping,
     );
 
     const exportData = {
@@ -99,12 +103,14 @@ export const CanvasProvider: FC<{
     URL.revokeObjectURL(url);
   };
 
-  const handleExportPNG = () => {
+  const handleExportPNG = async () => {
     if (!stageRef.current) {
       alert("Stage is not available.");
       return;
     }
     try {
+      dispatch(deselectAllElements());
+      await waitForNextFrame();
       const dataURL = stageRef.current.toDataURL({
         mimeType: "image/png",
         quality: 1,
@@ -168,7 +174,7 @@ export const CanvasProvider: FC<{
           setStageSize({
             height: importedData.stage.height,
             width: importedData.stage.width,
-          })
+          }),
         );
 
         // ✅ Aspect Ratio
@@ -179,7 +185,7 @@ export const CanvasProvider: FC<{
           Object.entries(importedData.branding.colors).forEach(
             ([key, value]) => {
               dispatch(addColor({ key, value: String(value) }));
-            }
+            },
           );
         }
 
@@ -193,9 +199,9 @@ export const CanvasProvider: FC<{
                   value: fontData.value,
                   isFile: fontData.isFile,
                   variant: fontData.variant,
-                })
+                }),
               );
-            }
+            },
           );
         }
 
