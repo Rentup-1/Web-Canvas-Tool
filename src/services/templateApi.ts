@@ -1,6 +1,8 @@
 // src/services/templateApi.ts
 import { api } from "./api";
 
+export type Visibility = "public" | "internal" | "private";
+
 // Data types matching the form schema
 export type TemplateData = {
   id: number;
@@ -12,7 +14,9 @@ export type TemplateData = {
   projects?: number[];
   aspect_ratio: "SQUARE" | "VERTICAL" | "HORIZONTAL";
   raw_input: string;
-  is_public: boolean;
+  // Permissions v2: three-tier visibility replaces the old `is_public` boolean.
+  visibility: Visibility | null;
+  organization?: number | null;
   default_primary: string;
   default_secondary_color: string;
   icon?: string;

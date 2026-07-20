@@ -3,7 +3,6 @@
 import React from "react";
 
 import { Button } from "@/components/ui/Button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -76,7 +75,7 @@ const formSchema = z.object({
     },
     { message: "Raw input must be valid JSON" },
   ),
-  is_public: z.boolean(),
+  visibility: z.enum(["public", "internal", "private"]),
   default_primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex color"),
   default_secondary_color: z
     .string()
@@ -351,7 +350,7 @@ export default function GeneralForm() {
       projects: [],
       aspect_ratio: "SQUARE",
       raw_input: handleJSON(),
-      is_public: true,
+      visibility: "public",
       lang: "en",
       default_primary: rgbaToHex(brandingColors?.primary || "#000000"),
       default_secondary_color: rgbaToHex(
@@ -388,7 +387,7 @@ export default function GeneralForm() {
           : "commercial_ads",
         tags: specificTemplateData.tags || [],
         projects: specificTemplateData.projects || [],
-        is_public: specificTemplateData.is_public ?? true,
+        visibility: specificTemplateData.visibility ?? "public",
         raw_input: handleJSON(),
         aspect_ratio: "SQUARE",
         lang: ["en", "ar"].includes(specificTemplateData.lang as string)
@@ -459,7 +458,7 @@ export default function GeneralForm() {
         formData.append("aspect_ratio", values.aspect_ratio);
         formData.append("lang", values.lang);
         formData.append("raw_input", values.raw_input);
-        formData.append("is_public", values.is_public.toString());
+        formData.append("visibility", values.visibility);
         formData.append("default_primary", values.default_primary);
         formData.append(
           "default_secondary_color",
@@ -845,21 +844,26 @@ export default function GeneralForm() {
 
           <FormField
             control={form.control}
-            name="is_public"
+            name="visibility"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Make this template public</FormLabel>
-                  <FormDescription>
-                    Public templates can be viewed and used by other users
-                  </FormDescription>
-                </div>
+              <FormItem>
+                <FormLabel>Visibility</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select visibility" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="public">Public</SelectItem>
+                    <SelectItem value="internal">Internal</SelectItem>
+                    <SelectItem value="private">Private</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Public: anyone on the platform. Internal: your organization. Private: creator only.
+                </FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />

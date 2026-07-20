@@ -17,7 +17,9 @@ export interface ImageData {
   tags: Tag[];
   name: string;
   type: "image";
-  public: boolean;
+  // Permissions v2: three-tier visibility replaces the old `public` boolean.
+  visibility: "public" | "internal" | "private" | null;
+  organization?: number | null;
   image: string;
   video: string | null;
   asset_desc: string;

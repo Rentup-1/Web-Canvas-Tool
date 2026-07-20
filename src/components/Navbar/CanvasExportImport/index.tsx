@@ -526,7 +526,7 @@ const CanvasExportImport: FC = () => {
       formData.append("image", blob, "canvas.png");
       formData.append("name", "myCanvasImage");
       formData.append("type", "mixer_image");
-      formData.append("public", "true");
+      formData.append("visibility", "public");
       formData.append("project", projectIdMixer as any);
 
       // Use dynamic API base URL from localStorage (set by parent app)
