@@ -6,6 +6,7 @@ import {
   setStageSize,
 } from "./features/canvas/canvasSlice";
 import { addColor, addFont } from "./features/branding/brandingSlice";
+import { getAssetUrl } from "./services/api";
 
 export const useTemplateImporter = () => {
   const dispatch = useDispatch();
@@ -46,7 +47,7 @@ export const useTemplateImporter = () => {
                   ? "fill"
                   : "stretch";
 
-              const imageUrl = `https://api.markomlabs.com${frame.assets[0].image_url}`;
+              const imageUrl = getAssetUrl(frame.assets[0].image_url);
 
               // Create a promise to load the image and get natural dimensions
               const imageLoadPromise = new Promise<void>((resolve) => {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FC } from "react";
 import { FaFileImport, FaImage, FaSave } from "react-icons/fa";
+import { getAssetUrl, getBaseUrl } from "@/services/api";
 import { Button } from "../../ui/Button";
 import { useAppDispatch } from "@/hooks/useRedux";
 import {
@@ -169,7 +170,7 @@ const CanvasExportImport: FC = () => {
                   y: frameElement.y,
                   width: frameElement.width,
                   height: frameElement.height,
-                  src: `https://api.markomlabs.com${frame.assets[0].image_url}`,
+                  src: getAssetUrl(frame.assets[0].image_url),
                   originalWidth: frame.assets[0].width || frameElement.width,
                   originalHeight: frame.assets[0].height || frameElement.height,
                   fitMode,
@@ -292,9 +293,6 @@ const CanvasExportImport: FC = () => {
                   frame.objectFit || frame.fitMode || "fill",
                 );
 
-                const apiBaseUrl =
-                  localStorage.getItem("apiBaseUrl") ||
-                  "https://api.markomlabs.com/";
                 const imageElement = {
                   id: `image-${frameElement.id}`,
                   type: "image",
@@ -303,7 +301,7 @@ const CanvasExportImport: FC = () => {
                   y: frameElement.y,
                   width: frameElement.width,
                   height: frameElement.height,
-                  src: `${apiBaseUrl}${frame.assets[0].image_url}`,
+                  src: getAssetUrl(frame.assets[0].image_url),
                   originalWidth: frame.assets[0].width || frameElement.width,
                   originalHeight: frame.assets[0].height || frameElement.height,
                   fitMode,
@@ -415,9 +413,6 @@ const CanvasExportImport: FC = () => {
                 frame.objectFit || frame.fitMode || "fill",
               );
 
-              const apiBaseUrl =
-                localStorage.getItem("apiBaseUrl") ||
-                "https://api.markomlabs.com/";
               const imageElement = {
                 id: `image-${frameElement.id}`,
                 type: "image",
@@ -426,7 +421,7 @@ const CanvasExportImport: FC = () => {
                 y: frameElement.y,
                 width: frameElement.width,
                 height: frameElement.height,
-                src: `${apiBaseUrl}${frame.assets[0].image_url}`,
+                src: getAssetUrl(frame.assets[0].image_url),
                 originalWidth: frame.assets[0].width || frameElement.width,
                 originalHeight: frame.assets[0].height || frameElement.height,
                 fitMode,
@@ -530,12 +525,7 @@ const CanvasExportImport: FC = () => {
       formData.append("project", projectIdMixer as any);
 
       // Use dynamic API base URL from localStorage (set by parent app)
-      const rawBaseUrl =
-        localStorage.getItem("apiBaseUrl") || "https://api.markomlabs.com/";
-      const apiBaseUrl = rawBaseUrl
-        .trim()
-        .replace(/^['\"]+|['\"]+$/g, "")
-        .replace(/\/+$/, "");
+      const apiBaseUrl = getBaseUrl().replace(/\/+$/, "");
       const accessToken = localStorage.getItem("accessToken")?.trim();
       const userId = localStorage.getItem("userId")?.trim();
 

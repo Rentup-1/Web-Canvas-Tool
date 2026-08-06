@@ -1,3 +1,5 @@
+import { getAssetUrl } from "@/services/api";
+
 type ImportedData = {
   elements: any[];
   width: number;
@@ -86,8 +88,6 @@ export const buildTemplateFromJson = (
       if (frame.assets?.[0]?.image_url) {
         const fitMode = mapFitMode(frame.objectFit || frame.fitMode || "fill");
 
-        const apiBaseUrl =
-          localStorage.getItem("apiBaseUrl") || "https://api.markomlabs.com/";
         const imageElement = {
           id: `image-${frameElement.id}`,
           type: "image",
@@ -96,7 +96,7 @@ export const buildTemplateFromJson = (
           y: frameElement.y,
           width: frameElement.width,
           height: frameElement.height,
-          src: `${apiBaseUrl}${frame.assets[0].image_url}`,
+          src: getAssetUrl(frame.assets[0].image_url),
           originalWidth: frame.assets[0].width || frameElement.width,
           originalHeight: frame.assets[0].height || frameElement.height,
           fitMode,

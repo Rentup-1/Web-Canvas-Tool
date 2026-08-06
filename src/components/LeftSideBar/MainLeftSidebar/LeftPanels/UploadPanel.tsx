@@ -8,7 +8,7 @@ import { CloudUpload } from "lucide-react";
 
 import { addImageElement } from "@/features/canvas/canvasSlice";
 
-import { BASE_API_URL } from "@/services/api";
+import { getAssetUrl } from "@/services/api";
 import {
   useGetAssetsQuery,
   useLazyGetAssetsQuery,
@@ -117,7 +117,7 @@ export function UploadPanel() {
   const handleRemoteClick = (asset: ImageDataWithId) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
-    const imageUrl = `${BASE_API_URL}${asset.image}`;
+    const imageUrl = getAssetUrl(asset.image);
 
     img.onload = () => {
       dispatch(
@@ -223,7 +223,7 @@ export function UploadPanel() {
                       className="rounded-lg border hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all overflow-hidden"
                     >
                       <img
-                        src={`${BASE_API_URL}${asset.image}`}
+                        src={getAssetUrl(asset.image)}
                         alt={asset.name}
                         className="w-full h-32 object-contain"
                       />

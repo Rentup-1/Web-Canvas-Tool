@@ -10,6 +10,15 @@ const asString = (value: unknown): string => {
   return typeof value === "string" ? value : "";
 };
 
+/** Writes a value, or removes the key entirely when the parent didn't supply one. */
+const setOrClear = (key: string, value: string): void => {
+  if (value) {
+    localStorage.setItem(key, value);
+  } else {
+    localStorage.removeItem(key);
+  }
+};
+
 const normalizeBaseUrl = (value: string): string => {
   const cleaned = value.trim().replace(/^['\"]+|['\"]+$/g, "");
   if (!cleaned) {
@@ -71,27 +80,24 @@ export const useWindowMessageListener = () => {
           setJson(newJson);
           break;
         }
-        case "INIT":
-          if (data?.payload?.apiBaseUrl) {
-            const normalizedBaseUrl = normalizeBaseUrl(
-              asString(data.payload.apiBaseUrl),
-            );
-            if (normalizedBaseUrl) {
-              localStorage.setItem("apiBaseUrl", normalizedBaseUrl);
-            }
-          }
+        case "INIT": {
+          // Each INIT replaces the previous session's values rather than merging
+          // with them. This tool is one deployment shared by beta and production,
+          // and its localStorage is per-browser, so a value left over from an
+          // earlier parent would silently point everything at the wrong
+          // environment — as the wrong user.
+          const normalizedBaseUrl = normalizeBaseUrl(
+            asString(data?.payload?.apiBaseUrl),
+          );
+          setOrClear("apiBaseUrl", normalizedBaseUrl);
 
           // Backward-compatible auth bootstrap for standalone parent flows.
-          if (data?.payload?.auth?.token) {
-            localStorage.setItem("accessToken", data.payload.auth.token);
-          }
-
-          if (data?.payload?.auth?.userId) {
-            localStorage.setItem("userId", data.payload.auth.userId);
-          }
+          setOrClear("accessToken", asString(data?.payload?.auth?.token));
+          setOrClear("userId", asString(data?.payload?.auth?.userId));
 
           window.parent.postMessage({ type: "TOOL_READY" }, event.origin);
           break;
+        }
         case "UPDATE_TEMPLATE":
           // Logic for template update can be handled here
           break;

@@ -4,7 +4,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { BASE_API_URL } from "@/services/api";
+import { getAssetUrl } from "@/services/api";
 import {
   useDeleteTemplateMutation,
   type TemplateData,
@@ -159,7 +159,7 @@ export default function TemplatesPanel() {
                 <img
                   src={
                     template.icon
-                      ? `${BASE_API_URL}${template.icon}`
+                      ? getAssetUrl(template.icon)
                       : `https://placehold.co/500x500.png?text=${encodeURIComponent(
                           template.name,
                         )}`

@@ -1,3 +1,5 @@
+import { getAssetUrl } from "@/services/api";
+
 export type ProcessedCanvasData = {
   elements: any[];
   stage: {
@@ -54,7 +56,7 @@ export const processImportedJson = (importedData: any) => {
           y: frameElement.y,
           width: frameElement.width,
           height: frameElement.height,
-          src: `https://api.markomlabs.com${image.image_url}`,
+          src: getAssetUrl(image.image_url),
           originalWidth: image.width || frameElement.width,
           originalHeight: image.height || frameElement.height,
           fitMode,

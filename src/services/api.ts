@@ -16,13 +16,31 @@ const normalizeBaseUrl = (value: string): string => {
   return cleaned.endsWith("/") ? cleaned : `${cleaned}/`;
 };
 
-const getBaseUrl = () => {
+/**
+ * The API host to talk to, as set by the parent app's INIT message.
+ *
+ * Always read this at call time, never cache it in a module-level constant:
+ * this file can be imported before the INIT message arrives, and the tool is a
+ * single deployment shared by beta and production, so a stale value silently
+ * points the whole UI at the wrong environment.
+ */
+export const getBaseUrl = () => {
   const fromStorage =
     localStorage.getItem("apiBaseUrl") || "https://api.markomlabs.com/";
   return normalizeBaseUrl(fromStorage);
 };
 
-export const BASE_API_URL = getBaseUrl();
+/**
+ * Joins a media path from the API onto the current host.
+ * Tolerates a leading slash on the path and a trailing one on the base, and
+ * passes through URLs that are already absolute.
+ */
+export const getAssetUrl = (path: string | null | undefined): string => {
+  if (!path) return "";
+  if (/^(https?:|data:|blob:)/i.test(path)) return path;
+
+  return `${getBaseUrl().replace(/\/+$/, "")}/${String(path).replace(/^\/+/, "")}`;
+};
 
 const baseQuery = fetchBaseQuery({
   baseUrl: "/",
