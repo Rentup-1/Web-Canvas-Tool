@@ -554,17 +554,22 @@ const CanvasExportImport: FC = () => {
       }
 
       const result = await uploadRes.json();
+      const asset = result?.asset ?? result;
+      const imagePath = asset?.image ?? asset?.url ?? asset?.file;
+      const assetId = asset?.id;
 
-      if (result?.image) {
+      if (imagePath) {
         // Send full URL using the same base URL
-        const normalizedImagePath = String(result.image).startsWith("/")
-          ? result.image
-          : `/${result.image}`;
-        const fullImageUrl = `${apiBaseUrl}${normalizedImagePath}`;
+        const normalizedImagePath = String(imagePath).startsWith("/")
+          ? imagePath
+          : `/${imagePath}`;
+        const fullImageUrl = normalizedImagePath.startsWith("http")
+          ? normalizedImagePath
+          : `${apiBaseUrl}${normalizedImagePath}`;
         window.parent.postMessage(
           {
             type: "IMAGE_SELECTED",
-            payload: { url: fullImageUrl, id: result.id },
+            payload: { url: fullImageUrl, id: assetId },
           },
           "*",
         );
