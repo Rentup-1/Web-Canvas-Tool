@@ -4,6 +4,7 @@ import type { CanvasElement } from "@/features/canvas/types";
 import { useSelector } from "react-redux";
 import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
+import RotationProperties from "../CommonProperties/RotationProperties";
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
 import { LuRadius } from "react-icons/lu";
@@ -124,6 +125,7 @@ export function ImageProperties({ element }: { element: CanvasElement }) {
       {/* Common Shape Properties */}
       <PositionProperties element={element} />
       <ScaleProperties element={element} />
+      <RotationProperties element={globalFrame || element} />
       <TextInput
         label={<LuRadius />}
         type="number"

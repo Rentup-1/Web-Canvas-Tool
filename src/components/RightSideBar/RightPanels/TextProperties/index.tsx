@@ -382,14 +382,14 @@ export default function TextProperties({
             <Button
               size="sm"
               variant={
-                element.fontWeight === "bold" || element.fontWeight === 700 || element.fontWeight === "700"
+                element.fontWeight === "bold" || element.fontWeight === "700"
                   ? "default"
                   : "outline"
               }
               onClick={() =>
                 update({
                   fontWeight:
-                    element.fontWeight === "bold" || element.fontWeight === "700" || element.fontWeight === 700
+                    element.fontWeight === "bold" || element.fontWeight === "700"
                       ? "normal"
                       : "bold",
                 })
