@@ -43,6 +43,7 @@ export const ImageRenderer = forwardRef<Konva.Image, ElementRendererProps>(
         <Group
           x={frame.x}
           y={frame.y}
+          rotation={frame.rotation ?? element.rotation ?? 0}
           draggable={draggable}
           onDragMove={(e) => {
             const node = e.target as Konva.Group;
@@ -269,6 +270,7 @@ export const ImageRenderer = forwardRef<Konva.Image, ElementRendererProps>(
             y={element.y}
             width={element.width}
             height={element.height}
+            rotation={element.rotation ?? 0}
             draggable={draggable}
             onClick={() => {
               if (onSelect) {
