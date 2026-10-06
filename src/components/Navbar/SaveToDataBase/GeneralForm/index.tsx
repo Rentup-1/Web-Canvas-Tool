@@ -30,6 +30,9 @@ import {
 import {
   useCreateTemplateMutation,
   useGetTemplateQuery,
+  useGetTemplateDocumentQuery,
+  usePatchTemplateMetadataMutation,
+  useUpdateTemplateDocumentMutation,
   useUpdateTemplateMutation,
 } from "@/services/templateApi";
 import transformElementsKeys from "@/utils/transformElementKeys";
@@ -179,11 +182,17 @@ export default function GeneralForm() {
     isLoading: isTemplateLoading,
     error: templateError,
   } = useGetTemplateQuery(templateId!, { skip: !templateId });
-  const { stageRef } = useCanvas();
+  const { data: specificDocumentData } = useGetTemplateDocumentQuery(
+    templateId!,
+    { skip: !templateId }
+  );
+  const { stageRef, getV2Document } = useCanvas();
   const [createTemplate, { isLoading: isCreating }] =
     useCreateTemplateMutation();
   const [updateTemplate, { isLoading: isUpdating }] =
     useUpdateTemplateMutation();
+  const [updateTemplateDocument] = useUpdateTemplateDocumentMutation();
+  const [patchTemplateMetadata] = usePatchTemplateMetadataMutation();
   const [loadProjects] = useLazyGetProjectsQuery();
   const dispatch = useDispatch();
   const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
@@ -445,9 +454,11 @@ export default function GeneralForm() {
       }
 
       const userId = localStorage.getItem("userId")?.trim() || "";
-      console.log(userId);
 
       try {
+        const v2Doc = getV2Document();
+        const v2DocJSON = JSON.stringify(v2Doc);
+
         const formData = new FormData();
         formData.append("user", userId);
         formData.append("name", values.name);
@@ -457,7 +468,8 @@ export default function GeneralForm() {
         values.tags.forEach((tag) => formData.append("tags", tag.toString()));
         formData.append("aspect_ratio", values.aspect_ratio);
         formData.append("lang", values.lang);
-        formData.append("raw_input", values.raw_input);
+        formData.append("document", v2DocJSON);
+        formData.append("raw_input", v2DocJSON);
         formData.append("visibility", values.visibility);
         formData.append("default_primary", values.default_primary);
         formData.append(
@@ -471,24 +483,39 @@ export default function GeneralForm() {
         if (iconFile) {
           formData.append("icon", iconFile);
         }
-        let response;
+
         if (actionType === "addNew") {
-          response = await createTemplate(formData).unwrap();
+          const response = await createTemplate(formData).unwrap();
           dispatch(addTemplateId(response.id));
           toast.success("Template created successfully!");
         } else if (templateId || actionType === "update") {
-          response = await updateTemplate({
+          // If we have an etag, update document first with If-Match
+          if (specificDocumentData?.etag) {
+            try {
+              await updateTemplateDocument({
+                id: templateId as number,
+                document: v2Doc,
+                etag: specificDocumentData.etag,
+              }).unwrap();
+            } catch (docErr: any) {
+              if (docErr?.status === 412) {
+                toast.error(
+                  "Document was changed on the server. Please reload latest template."
+                );
+                return;
+              }
+            }
+          }
+
+          await patchTemplateMetadata({
             id: templateId as number,
             data: formData,
           }).unwrap();
-          toast.success(
-            "Template updated successfully! Now you can update frames and texts.",
-          );
+
+          toast.success("Template updated successfully!");
         } else {
           throw new Error("Template ID is missing for update action");
         }
-
-        dispatch(addTemplateId(response.id));
       } catch (error) {
         console.error("Failed to submit template:", error);
         toast.error("Failed to save template. Please try again.");
@@ -496,9 +523,12 @@ export default function GeneralForm() {
     },
     [
       hasAuthContext,
+      getV2Document,
       captureStageAsPNG,
       createTemplate,
-      updateTemplate,
+      updateTemplateDocument,
+      patchTemplateMetadata,
+      specificDocumentData?.etag,
       dispatch,
       templateId,
     ],

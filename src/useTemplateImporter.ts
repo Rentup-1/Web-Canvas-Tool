@@ -1,3 +1,4 @@
+// src/useTemplateImporter.ts
 import { useDispatch } from "react-redux";
 import { useCallback } from "react";
 import {
@@ -7,21 +8,61 @@ import {
 } from "./features/canvas/canvasSlice";
 import { addColor, addFont } from "./features/branding/brandingSlice";
 import { getAssetUrl } from "./services/api";
+import { isV2Document, v2DocumentToCanvas } from "./utils/v2DocumentConverter";
+import type { AspectRatio } from "./features/canvas/types";
+
+const deriveAspectRatio = (width: number, height: number): AspectRatio => {
+  if (!width || !height) return "1:1";
+  const ratio = width / height;
+  if (Math.abs(ratio - 1) < 0.05) return "1:1";
+  if (Math.abs(ratio - 9 / 16) < 0.05) return "9:16";
+  if (Math.abs(ratio - 16 / 9) < 0.05) return "16:9";
+  return ratio > 1 ? "16:9" : ratio < 1 ? "9:16" : "1:1";
+};
 
 export const useTemplateImporter = () => {
   const dispatch = useDispatch();
 
   const importTemplate = useCallback(
-    async (json: string | null) => {
-      if (!json) return;
+    async (input: string | Record<string, unknown> | null) => {
+      if (!input) return;
 
       try {
-        const importedData = JSON.parse(json);
-        if (!importedData || !Array.isArray(importedData.elements)) return;
+        let importedData: any = input;
+        if (typeof input === "string") {
+          importedData = JSON.parse(input);
+        }
+
+        if (!importedData) return;
+
+        // 1. Check if Schema V2 Template Document
+        if (isV2Document(importedData)) {
+          const elements = v2DocumentToCanvas(importedData);
+          const stageW = importedData.stage?.width || 1080;
+          const stageH = importedData.stage?.height || 1080;
+
+          dispatch(setElements(elements));
+          dispatch(setStageSize({ width: stageW, height: stageH }));
+          dispatch(setAspectRatio(deriveAspectRatio(stageW, stageH)));
+          return;
+        }
+
+        // 2. Check if object has document inside (e.g. TemplateData with .document)
+        if (importedData.document && isV2Document(importedData.document)) {
+          const elements = v2DocumentToCanvas(importedData.document);
+          const stageW = importedData.document.stage?.width || 1080;
+          const stageH = importedData.document.stage?.height || 1080;
+
+          dispatch(setElements(elements));
+          dispatch(setStageSize({ width: stageW, height: stageH }));
+          dispatch(setAspectRatio(deriveAspectRatio(stageW, stageH)));
+          return;
+        }
+
+        // 3. Fallback: Legacy Template Importer
+        if (!Array.isArray(importedData.elements)) return;
 
         const elements = [...importedData.elements];
-
-        // Process frames and load images asynchronously
         const imageLoadPromises: Promise<void>[] = [];
 
         importedData.frames?.forEach((frame: any) => {
@@ -49,7 +90,6 @@ export const useTemplateImporter = () => {
 
               const imageUrl = getAssetUrl(frame.assets[0].image_url);
 
-              // Create a promise to load the image and get natural dimensions
               const imageLoadPromise = new Promise<void>((resolve) => {
                 const img = new Image();
                 img.crossOrigin = "anonymous";
@@ -59,9 +99,11 @@ export const useTemplateImporter = () => {
                   const frameAspect = frameElement.width / frameElement.height;
                   const imgAspect = imgW / imgH;
 
-                  let newWidth, newHeight, offsetX, offsetY;
+                  let newWidth = frameElement.width;
+                  let newHeight = frameElement.height;
+                  let offsetX = 0;
+                  let offsetY = 0;
 
-                  // Calculate dimensions based on fitMode
                   switch (fitMode) {
                     case "fit":
                       if (imgAspect > frameAspect) {
@@ -74,6 +116,7 @@ export const useTemplateImporter = () => {
                       break;
 
                     case "fill":
+                    default:
                       if (imgAspect < frameAspect) {
                         newWidth = frameElement.width;
                         newHeight = frameElement.width / imgAspect;
@@ -86,16 +129,6 @@ export const useTemplateImporter = () => {
                     case "stretch":
                       newWidth = frameElement.width;
                       newHeight = frameElement.height;
-                      break;
-
-                    default:
-                      if (imgAspect < frameAspect) {
-                        newWidth = frameElement.width;
-                        newHeight = frameElement.width / imgAspect;
-                      } else {
-                        newHeight = frameElement.height;
-                        newWidth = frameElement.height * imgAspect;
-                      }
                       break;
                   }
 
@@ -121,24 +154,6 @@ export const useTemplateImporter = () => {
                   resolve();
                 };
                 img.onerror = () => {
-                  // Fallback to frame dimensions if image fails to load
-                  const imageElement = {
-                    id: `image-${frameElement.id}`,
-                    type: "image",
-                    frameId: frameElement.id,
-                    x: frameElement.x,
-                    y: frameElement.y,
-                    width: frameElement.width,
-                    height: frameElement.height,
-                    src: imageUrl,
-                    originalWidth: frame.assets[0].width || frameElement.width,
-                    originalHeight:
-                      frame.assets[0].height || frameElement.height,
-                    fitMode,
-                    opacity: frameElement.opacity ?? 1,
-                    zIndex: 0,
-                  };
-                  elements.splice(frameIndex + 1, 0, imageElement);
                   resolve();
                 };
                 img.src = imageUrl;
@@ -149,19 +164,34 @@ export const useTemplateImporter = () => {
           }
         });
 
-        // Wait for all images to load
         await Promise.all(imageLoadPromises);
 
         elements.sort((a: any, b: any) => (a.zIndex || 0) - (b.zIndex || 0));
 
         dispatch(setElements(elements));
-        dispatch(
-          setStageSize({
-            width: importedData.width,
-            height: importedData.height,
-          })
-        );
-        dispatch(setAspectRatio(importedData.scale));
+        if (importedData.width && importedData.height) {
+          dispatch(
+            setStageSize({
+              width: importedData.width,
+              height: importedData.height,
+            })
+          );
+        } else if (importedData.stage?.width && importedData.stage?.height) {
+          dispatch(
+            setStageSize({
+              width: importedData.stage.width,
+              height: importedData.stage.height,
+            })
+          );
+        }
+
+        if (importedData.scale || importedData.stage?.aspectRatio) {
+          dispatch(
+            setAspectRatio(
+              importedData.scale || importedData.stage?.aspectRatio
+            )
+          );
+        }
 
         if (importedData.branding) {
           const { colors, fonts } = importedData.branding;

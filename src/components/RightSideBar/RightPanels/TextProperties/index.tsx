@@ -1,9 +1,8 @@
+// src/components/RightSideBar/RightPanels/TextProperties/index.tsx
 import { ColorInput } from "@/components/ui/controlled-inputs/ColorInput";
 import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
 import { updateElement } from "@/features/canvas/canvasSlice";
 import type {
-  BrandingType,
-  CanvasElement,
   CanvasTextElement,
 } from "@/features/canvas/types";
 import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
@@ -17,500 +16,483 @@ import {
   FaAlignRight,
   FaBold,
   FaItalic,
+  FaUnderline,
 } from "react-icons/fa";
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
 import { MdBlurOn } from "react-icons/md";
-import { toPercentFontSize } from "@/hooks/usePercentConverter";
 import { useGetGoogleFontsQuery } from "@/services/googleFontsApi";
-import {
-  useGetAllTextLabelsQuery,
-  usePostTextLabelMutation,
-} from "@/services/textLabelsApi";
-import { useEffect, useState } from "react";
-import { useBrandingResolver } from "@/hooks/useBrandingResolver"; // Added to resolve branded fonts
-import { useGetAllTagQuery, usePostFrameTagMutation } from "@/services/TagsApi";
-
-// Utility function to detect if text contains Arabic characters
-const containsArabic = (text: string): boolean => {
-  const arabicPattern =
-    /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
-  return arabicPattern.test(text);
-};
-
-// Utility function to load Google Fonts dynamically with Arabic support
-const loadGoogleFont = (fontFamily: string) => {
-  // Check if font is already loaded to avoid duplicates
-  if (
-    document.querySelector(`link[href*="${fontFamily.replace(/\s+/g, "+")}"]`)
-  ) {
-    return;
-  }
-
-  // Create link element to load the font with Arabic subset
-  const link = document.createElement("link");
-  link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(
-    /\s+/g,
-    "+",
-  )}:wght@400;700&subset=arabic,latin&display=swap`;
-  link.rel = "stylesheet";
-  document.head.appendChild(link);
-};
-
-// Utility type guard for text elements
-function isTextElement(element: CanvasElement): element is CanvasTextElement {
-  return element.type === "text";
-}
+import { useCanvas } from "@/context/CanvasContext";
+import { useGetTemplateVocabularyQuery } from "@/services/templateVocabularyApi";
+import NumberInput from "@/components/ui/controlled-inputs/NumberInput";
+import type {
+  BrandColorRole,
+  BrandFontRole,
+  TextCopySource,
+} from "@/types/templateDocumentV2";
 
 export default function TextProperties({
   element,
 }: {
   element: CanvasTextElement;
 }) {
-  const {
-    data: tagsData,
-    isLoading: tagsLoading,
-    error: errorTags,
-  } = useGetAllTagQuery();
-  const [postFrameTag, { isLoading: postTagLoading, error: postTagError }] =
-    usePostFrameTagMutation();
-  // Normalize tagsData.results to options format
-  const tagOptions = tagsData
-    ? tagsData.map((item) => ({
-        id: String(item.id),
-        tag: item.tag,
-      }))
-    : [];
-
-  // Extract error message from errors
-  const errorMessage = errorTags
-    ? "Failed to load tags. Please try again."
-    : postTagError
-      ? (postTagError as any).data?.tag?.[0] ||
-        "Failed to create tag. Please try again."
-      : null;
-  const handleTagsChange = async (val: string | string[]) => {
-    const values = Array.isArray(val) ? val : val ? [val] : [];
-    const currentTags = tagOptions.map((opt) => opt.tag);
-
-    // Identify new tags (not in tagOptions)
-    const newTags = values.filter(
-      (tag) => tag && !currentTags.includes(tag) && tag.trim().length > 0,
+  const { projectIdMixer } = useCanvas();
+  const { data: vocabData, isLoading: vocabLoading } =
+    useGetTemplateVocabularyQuery(
+      { projectId: projectIdMixer },
+      { skip: !projectIdMixer }
     );
-    // Post new tags to the API
-    for (const newTag of newTags) {
-      try {
-        await postFrameTag({ tag: newTag }).unwrap();
-      } catch (err) {
-        console.error("Failed to create tag:", newTag, err);
-      }
-    }
 
-    // Update element.tags with the final values
-    update({ tags: values });
-  };
   const {
     data: fontsData,
     isLoading: fontsLoading,
-    error: fontsError,
   } = useGetGoogleFontsQuery();
-  const {
-    data: labelsData,
-    isLoading: labelsLoading,
-    error: errorLabels,
-  } = useGetAllTextLabelsQuery();
-  const [
-    postTextLabel,
-    { isLoading: postTextLabelLoading, error: postTextLabelError },
-  ] = usePostTextLabelMutation();
-  const { resolveFont } = useBrandingResolver(); // Added to resolve font branding
-  const stageWidth = useAppSelector((s) => s.canvas.stageWidth);
-  const stageHeight = useAppSelector((s) => s.canvas.stageHeight);
+
   const dispatch = useAppDispatch();
 
-  // Detect if current text contains Arabic
-  const isArabicText = containsArabic(element.text || "");
-
-  // Normalize labelsData.results to options format
-  const labelOptions = labelsData
-    ? labelsData.map((item) => ({
-        id: String(item.id),
-        label: item.label,
-        example_en: item.example_en,
-        example_ar: item.example_ar,
-      }))
-    : [];
-  // get label option by label
-  const getLabelOption = (label: string) => {
-    return labelOptions.find((opt) => opt.label === label);
-  };
-  // Handle tag creation and selection
-  const handleLabelsChange = async (val: string | string[]) => {
-    const label = typeof val === "string" ? val.trim() : "";
-
-    if (!label) {
-      update({ toi_labels: "" });
-      return;
-    }
-
-    const currentTags = labelOptions.map((opt) => opt.label);
-
-    if (!currentTags.includes(label)) {
-      try {
-        await postTextLabel({ label }).unwrap();
-      } catch (err) {
-        console.error("Failed to create label:", label, err);
-      }
-    }
-    update({ toi_labels: getLabelOption(label)?.label });
-    /*     update({ initialValue: getLabelOption(label)?.example });
-    update({ labelId: parseInt(getLabelOption(label)?.id || "0") }); */
-    // console.log(element);
-  };
-
-  const update = <T extends CanvasTextElement>(updates: Partial<T>) => {
+  const update = (updates: Partial<CanvasTextElement>) => {
     dispatch(updateElement({ id: element.id, updates }));
   };
 
-  /* Start Branding Handlers */
-  // Get colors from store
-  const brandingColors = useAppSelector((state) => state.branding.colors);
-  const [branding, setBranding] = useState<string[]>([]);
+  // Content Source
+  const currentSource: "static" | "copy" | "toi" =
+    element.content?.source ||
+    element.contentSource ||
+    (element.toi_labels ? "toi" : "static");
 
-  // Populate branding options from brandingColors
-  useEffect(() => {
-    const keysArray = Object.keys(brandingColors);
-    setBranding(keysArray);
-  }, [brandingColors]);
+  const currentCopyKey =
+    element.content?.source === "copy"
+      ? element.content.key
+      : (element.contentKey as TextCopySource) || "headline";
 
-  // Get fonts from store
-  const brandingFamilies = useAppSelector(
-    (state) => state.branding.fontFamilies,
+  const currentToiKey =
+    element.content?.source === "toi"
+      ? element.content.key
+      : element.toi_labels || element.contentKey || "";
+
+  const copyKeyOptions = (vocabData?.copy_keys || ["headline", "punchline", "cta"]).map(
+    (key) => ({
+      value: key,
+      label: key.charAt(0).toUpperCase() + key.slice(1),
+    })
   );
-  const [brandingFamily, setBrandingFamily] = useState<string[]>([]);
 
-  useEffect(() => {
-    const keysArray = Object.keys(brandingFamilies);
-    setBrandingFamily(keysArray);
-  }, [brandingFamilies]);
-  /* End Branding Handlers */
+  const toiOptions = (vocabData?.toi_labels || []).map((toi) => ({
+    value: toi.label,
+    label: `${toi.label}${!toi.has_value ? " (No value for project)" : ""}`,
+    hasValue: toi.has_value,
+    example: toi.example_en || toi.example_ar || "",
+  }));
+
+  const brandColorRoleOptions = [
+    { value: "none", label: "Custom Hex Color" },
+    { value: "primary", label: "Brand Primary" },
+    { value: "secondary", label: "Brand Secondary" },
+    { value: "accent", label: "Brand Accent" },
+  ];
+
+  const brandFontRoleOptions = [
+    { value: "none", label: "Custom Font Family" },
+    { value: "primary", label: "Brand Primary Font" },
+    { value: "secondary", label: "Brand Secondary Font" },
+  ];
+
+  const googleFontOptions = fontsData
+    ? fontsData.map((f: any) => ({
+        value: f.family,
+        label: f.family,
+      }))
+    : [
+        { value: "Inter", label: "Inter" },
+        { value: "Montserrat", label: "Montserrat" },
+        { value: "Roboto", label: "Roboto" },
+      ];
+
+  const handleSourceChange = (newSource: "static" | "copy" | "toi") => {
+    if (newSource === "static") {
+      update({
+        contentSource: "static",
+        contentKey: null,
+        content: { source: "static", key: null },
+        toi_labels: "",
+      });
+    } else if (newSource === "copy") {
+      const key = (vocabData?.copy_keys?.[0] as TextCopySource) || "headline";
+      update({
+        contentSource: "copy",
+        contentKey: key,
+        content: { source: "copy", key },
+        toi_labels: "",
+      });
+    } else if (newSource === "toi") {
+      const key = vocabData?.toi_labels?.[0]?.label || "Price";
+      update({
+        contentSource: "toi",
+        contentKey: key,
+        content: { source: "toi", key },
+        toi_labels: key,
+      });
+    }
+  };
 
   return (
     <div className="space-y-4">
       <PositionProperties element={element} />
       <ScaleProperties element={element} />
       <RotationProperties element={element} />
-      {isTextElement(element) && (
-        <>
-          <div className="grid grid-cols-2 gap-4">
+
+      {/* Text Binding / Source Section */}
+      <div className="p-3 border rounded-md space-y-3 bg-card">
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Text Content & Binding
+        </div>
+
+        <div className="grid grid-cols-3 gap-1 p-1 bg-muted rounded-md text-xs">
+          <button
+            type="button"
+            className={`py-1.5 rounded text-center transition-all ${
+              currentSource === "static"
+                ? "bg-background shadow font-semibold text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => handleSourceChange("static")}
+          >
+            Static
+          </button>
+          <button
+            type="button"
+            className={`py-1.5 rounded text-center transition-all ${
+              currentSource === "copy"
+                ? "bg-background shadow font-semibold text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => handleSourceChange("copy")}
+          >
+            Ad Copy
+          </button>
+          <button
+            type="button"
+            className={`py-1.5 rounded text-center transition-all ${
+              currentSource === "toi"
+                ? "bg-background shadow font-semibold text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => handleSourceChange("toi")}
+          >
+            Fact (TOI)
+          </button>
+        </div>
+
+        {currentSource === "copy" && (
+          <SelectInput
+            isSearchable
+            label="Ad Copy Slot"
+            value={currentCopyKey}
+            options={copyKeyOptions}
+            onChange={(val) => {
+              if (typeof val === "string") {
+                const copyKey = val as TextCopySource;
+                update({
+                  contentSource: "copy",
+                  contentKey: copyKey,
+                  content: { source: "copy", key: copyKey },
+                });
+              }
+            }}
+          />
+        )}
+
+        {currentSource === "toi" && (
+          <SelectInput
+            isLoading={vocabLoading}
+            isSearchable
+            label="Project Fact (TOI Label)"
+            value={String(currentToiKey)}
+            options={toiOptions}
+            onChange={(val) => {
+              if (typeof val === "string") {
+                update({
+                  contentSource: "toi",
+                  contentKey: val,
+                  content: { source: "toi", key: val },
+                  toi_labels: val,
+                });
+              }
+            }}
+            placeholder="Select TOI Label..."
+          />
+        )}
+
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-foreground">
+            {currentSource === "static" ? "Text Content" : "Fallback / Sample Preview Text"}
+          </label>
+          <TextInput
+            value={element.text ?? ""}
+            onChange={(val) => update({ text: val })}
+            placeholder="Type text here..."
+          />
+        </div>
+      </div>
+
+      {/* Typography & Font Section */}
+      <div className="p-3 border rounded-md space-y-3 bg-card">
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Typography & Styling
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <SelectInput
+            className="col-span-full"
+            label="Brand Font Role"
+            value={element.fontRole || "none"}
+            options={brandFontRoleOptions}
+            onChange={(val) => {
+              const role = val === "none" ? null : (val as BrandFontRole);
+              update({
+                fontRole: role,
+                fontBrandingType: role ? "dynamic" : "fixed",
+              });
+            }}
+          />
+
+          {!element.fontRole && (
+            <SelectInput
+              isLoading={fontsLoading}
+              isSearchable
+              className="col-span-full"
+              label="Font Family"
+              value={element.fontFamily || "Inter"}
+              options={googleFontOptions}
+              onChange={(val) => {
+                if (typeof val === "string") {
+                  update({ fontFamily: val });
+                }
+              }}
+            />
+          )}
+
+          <NumberInput
+            label="Font Size"
+            value={element.fontSize ?? 32}
+            onChange={(val) => update({ fontSize: Number(val) || 12 })}
+            min={8}
+            max={200}
+          />
+
+          <NumberInput
+            label="Line Height"
+            value={element.lineHeight ?? 1.2}
+            onChange={(val) => update({ lineHeight: Number(val) || 1.2 })}
+            min={0.5}
+            max={4}
+          />
+
+          <NumberInput
+            label="Letter Spacing"
+            value={element.letterSpacing ?? 0}
+            onChange={(val) => update({ letterSpacing: Number(val) || 0 })}
+            min={-10}
+            max={50}
+          />
+
+          <SelectInput
+            label="Direction"
+            value={element.direction || "auto"}
+            options={[
+              { value: "auto", label: "Auto" },
+              { value: "ltr", label: "LTR (English)" },
+              { value: "rtl", label: "RTL (Arabic)" },
+            ]}
+            onChange={(val) => {
+              if (typeof val === "string") {
+                update({ direction: val as "auto" | "ltr" | "rtl" });
+              }
+            }}
+          />
+
+          <SelectInput
+            label="Wrap Mode"
+            value={element.wrap || (element.white_space === "nowrap" ? "none" : "word")}
+            options={[
+              { value: "word", label: "Word Wrap" },
+              { value: "none", label: "Single Line (None)" },
+            ]}
+            onChange={(val) => {
+              if (typeof val === "string") {
+                update({
+                  wrap: val as "word" | "none",
+                  white_space: val === "none" ? "nowrap" : "normal",
+                });
+              }
+            }}
+          />
+
+          <SelectInput
+            label="Auto-Fit (Shrink)"
+            value={element.fitTextMode || "none"}
+            options={[
+              { value: "none", label: "None" },
+              { value: "shrink", label: "Shrink to Fit" },
+            ]}
+            onChange={(val) => {
+              if (typeof val === "string") {
+                update({
+                  fitTextMode: val as "none" | "shrink",
+                  fitText: {
+                    mode: val as "none" | "shrink",
+                    minSize: element.fitTextMinSize ?? 12,
+                  },
+                });
+              }
+            }}
+          />
+        </div>
+
+        {/* Alignment and Style Buttons */}
+        <div className="flex items-center justify-between gap-2 pt-2 border-t">
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant={element.align === "left" || !element.align ? "default" : "outline"}
+              onClick={() => update({ align: "left" })}
+            >
+              <FaAlignLeft className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              variant={element.align === "center" ? "default" : "outline"}
+              onClick={() => update({ align: "center" })}
+            >
+              <FaAlignCenter className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              variant={element.align === "right" ? "default" : "outline"}
+              onClick={() => update({ align: "right" })}
+            >
+              <FaAlignRight className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant={
+                element.fontWeight === "bold" || element.fontWeight === 700 || element.fontWeight === "700"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() =>
+                update({
+                  fontWeight:
+                    element.fontWeight === "bold" || element.fontWeight === "700" || element.fontWeight === 700
+                      ? "normal"
+                      : "bold",
+                })
+              }
+            >
+              <FaBold className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              variant={element.fontStyle === "italic" ? "default" : "outline"}
+              onClick={() =>
+                update({
+                  fontStyle: element.fontStyle === "italic" ? "normal" : "italic",
+                })
+              }
+            >
+              <FaItalic className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              variant={element.textDecoration === "underline" ? "default" : "outline"}
+              onClick={() =>
+                update({
+                  textDecoration: element.textDecoration === "underline" ? "none" : "underline",
+                })
+              }
+            >
+              <FaUnderline className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Colors & Background */}
+      <div className="p-3 border rounded-md space-y-3 bg-card">
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Colors & Background
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <SelectInput
+            className="col-span-full"
+            label="Text Color Brand Role"
+            value={element.fillRole || "none"}
+            options={brandColorRoleOptions}
+            onChange={(val) => {
+              const role = val === "none" ? null : (val as BrandColorRole);
+              update({
+                fillRole: role,
+                fillBrandingType: role ? "dynamic" : "fixed",
+              });
+            }}
+          />
+
+          {!element.fillRole && (
             <ColorInput
               className="col-span-full"
-              showOpacity
               label="Text Color"
               value={element.fill ?? "#000000"}
               onChange={(val) => update({ fill: val })}
             />
+          )}
+
+          <div className="col-span-full flex items-center justify-between">
             <ColorInput
-              className="col-span-full"
-              showOpacity
-              label="Background"
-              value={element.background as string}
+              label="Background Color"
+              value={element.background || "#ffffff"}
               onChange={(val) => update({ background: val })}
-              disabled={element.fillBrandingType !== "fixed"}
             />
-          </div>
-          <SelectInput
-            isClearable={false}
-            className="col-span-full"
-            label="Background Branding"
-            value={element.fillBrandingType as string}
-            onChange={(val) => {
-              if (val !== "fixed") {
-                update({
-                  fillBrandingType: val as (typeof branding)[number],
-                  background: brandingColors[val as (typeof branding)[number]],
-                });
-              } else {
-                update({
-                  fillBrandingType: "fixed",
-                  background: element.background,
-                });
-              }
-            }}
-            options={["fixed", ...branding]}
-          />
-
-          <div className="text-sm font-medium mb-1">
-            <div>Transparent</div>
-            <Button
-              size="sm"
-              variant={"outline"}
-              className="mr-2 text-gray-500 font-bold"
-              onClick={() => update({ background: "transparent" })}
-            >
-              <MdBlurOn />
-            </Button>
+            <div>
+              <div className="text-xs font-medium mb-1">Transparent</div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => update({ background: "transparent" })}
+              >
+                <MdBlurOn className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
-          <Button
-            size="sm"
-            variant={"outline"}
-            className="mr-2 text-gray-500 font-bold"
-            onClick={() => update({ align: "left" })}
-          >
-            <FaAlignLeft />
-          </Button>
-          <Button
-            size="sm"
-            variant={"outline"}
-            className="mr-2 text-gray-500 font-bold"
-            onClick={() => update({ align: "center" })}
-          >
-            <FaAlignCenter />
-          </Button>
-          <Button
-            size="sm"
-            variant={"outline"}
-            className="mr-2 text-gray-500 font-bold"
-            onClick={() => update({ align: "right" })}
-          >
-            <FaAlignRight />
-          </Button>
-
-          <Button
-            size="sm"
-            variant={"outline"}
-            className="mr-2 text-gray-400 font-bold"
-            onClick={() =>
-              update({
-                fontWeight: element.fontWeight === "bold" ? "normal" : "bold",
-              })
-            }
-          >
-            <FaBold />
-          </Button>
-
-          <Button
-            size="sm"
-            variant={"outline"}
-            className="mr-2 text-gray-400 font-bold"
-            onClick={() =>
-              update({
-                fontStyle: element.fontStyle === "italic" ? "normal" : "italic",
-              })
-            }
-          >
-            <FaItalic />
-          </Button>
-
-          <TextInput
-            label="Font Size"
-            type="number"
-            value={(
-              parseInt(element.fontSize!.toString() || "") ?? 24
-            ).toString()}
-            onChange={(val) =>
-              update({
-                fontSize: Number.parseInt(val),
-                fontSize_percent: toPercentFontSize(
-                  Number(Number.parseInt(val)),
-                  stageWidth,
-                  stageHeight,
-                ),
-              } as Partial<CanvasTextElement>)
-            }
-          />
-
-          {/* Updated Font Family SelectInput to handle both Google Fonts and branded fonts */}
-          <SelectInput
-            isClearable={false}
-            isLoading={fontsLoading}
-            error={fontsError ? "Something went wrong" : null}
-            label="Font Family"
-            value={
-              element.fontBrandingType === "fixed"
-                ? (element.fontFamily ?? "Arial")
-                : "Arial"
-            }
-            onChange={(val) => {
-              if (
-                typeof val === "string" &&
-                element.fontBrandingType === "fixed"
-              ) {
-                // Load Google Font only if fontBrandingType is "fixed"
-                loadGoogleFont(val);
-                update({
-                  fontFamily: val,
-                  fontBrandingType: "fixed",
-                } as Partial<CanvasTextElement>);
-              }
-            }}
-            options={
-              element.fontBrandingType === "fixed"
-                ? (fontsData?.items
-                    .filter((font) => {
-                      // If text contains Arabic, show only fonts with Arabic subset
-                      // Otherwise, show all fonts (or optionally filter for latin)
-                      if (isArabicText) {
-                        return font.subsets?.includes("arabic");
-                      }
-                      return true; // Show all fonts for non-Arabic text
-                    })
-                    .map((font) => ({
-                      label: font.family,
-                      value: font.family,
-                    })) ?? [])
-                : brandingFamily.map((key) => ({
-                    label: key,
-                    value: key,
-                  }))
-            }
-            disabled={element.fontBrandingType !== "fixed"} // Disable if using branded font
-          />
-
-          {/* Updated Font Branding SelectInput to resolve branded fonts */}
-          <SelectInput
-            className="col-span-full"
-            label="Font Branding"
-            value={element.fontBrandingType ?? "fixed"}
-            onChange={(val) => {
-              const fontBrandingType = val as string;
-              if (fontBrandingType !== "fixed") {
-                // Resolve the branded font and load it if it's a Google Font
-                const isBrandingType = (value: any): value is BrandingType =>
-                  value === "fixed" || value === "dynamic";
-
-                const validBrandingType = isBrandingType(fontBrandingType)
-                  ? fontBrandingType
-                  : undefined;
-
-                const resolvedFont = resolveFont("", validBrandingType);
-                if (resolvedFont.isFile) {
-                  loadGoogleFont(resolvedFont.value);
-                }
-                update({
-                  fontBrandingType,
-                  fontFamily: resolvedFont.value,
-                  fontVariant: resolvedFont.variant,
-                } as Partial<CanvasTextElement>);
-              } else {
-                // Revert to default font when switching to "fixed"
-                update({
-                  fontBrandingType: "fixed",
-                  fontFamily: element.fontFamily,
-                  fontVariant: element.fontVariant,
-                } as Partial<CanvasTextElement>);
-              }
-            }}
-            options={["fixed", ...brandingFamily]}
-          />
-
-          <TextInput
+          <NumberInput
             label="Padding"
-            type="number"
-            value={(element.padding ?? 10).toString()}
-            onChange={(val) =>
-              update<CanvasTextElement>({ padding: Number.parseFloat(val) })
-            }
+            value={element.padding ?? 0}
+            onChange={(val) => update({ padding: Number(val) || 0 })}
+            min={0}
+            max={100}
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <TextInput
-              label="Top Left Radius"
-              type="number"
-              value={(element.borderRadius?.topLeft ?? 0).toString()}
-              onChange={(val) =>
-                update<CanvasTextElement>({
-                  borderRadius: {
-                    ...element.borderRadius,
-                    topLeft: Number.parseFloat(val),
-                  },
-                })
-              }
-            />
-            <TextInput
-              label="Top Right Radius"
-              type="number"
-              value={(element.borderRadius?.topRight ?? 0).toString()}
-              onChange={(val) =>
-                update<CanvasTextElement>({
-                  borderRadius: {
-                    ...element.borderRadius,
-                    topRight: Number.parseFloat(val),
-                  },
-                })
-              }
-            />
-            <TextInput
-              label="Bottom Right Radius"
-              type="number"
-              value={(element.borderRadius?.bottomRight ?? 0).toString()}
-              onChange={(val) =>
-                update<CanvasTextElement>({
-                  borderRadius: {
-                    ...element.borderRadius,
-                    bottomRight: Number.parseFloat(val),
-                  },
-                })
-              }
-            />
-            <TextInput
-              label="Bottom Left Radius"
-              type="number"
-              value={(element.borderRadius?.bottomLeft ?? 0).toString()}
-              onChange={(val) =>
-                update<CanvasTextElement>({
-                  borderRadius: {
-                    ...element.borderRadius,
-                    bottomLeft: Number.parseFloat(val),
-                  },
-                })
-              }
-            />
-          </div>
-          {/* whiteSapce wrap or stretch text */}
-          <SelectInput
-            isClearable={false}
-            label="White Space"
-            value={element.white_space as string}
-            onChange={(val) => update({ white_space: val as string })}
-            options={[
-              { label: "stretch", value: "stretch" },
-              { label: "wrap", value: "wrap" },
-            ]}
-          />
-          <SelectInput
-            creatable
-            isSearchable
-            className="col-span-full"
-            label="Label"
-            value={element.toi_labels ?? []}
-            options={labelOptions}
-            valueKey="label"
-            labelKey="label"
-            isLoading={labelsLoading || postTextLabelLoading}
-            onChange={handleLabelsChange}
-            error={
-              errorLabels || postTextLabelError ? "Something went wrong" : null
+          <NumberInput
+            label="Corner Radius"
+            value={
+              typeof element.cornerRadius === "number"
+                ? element.cornerRadius
+                : element.borderRadiusSpecial ?? 0
             }
-            placeholder="Create or select labels..."
+            onChange={(val) =>
+              update({
+                cornerRadius: Number(val) || 0,
+                borderRadiusSpecial: Number(val) || 0,
+              })
+            }
+            min={0}
+            max={100}
           />
-          <SelectInput
-            creatable
-            isMulti
-            isSearchable
-            className="col-span-full"
-            label="Tags"
-            value={element.tags as string[]}
-            options={tagOptions}
-            valueKey="tag"
-            labelKey="tag"
-            onChange={handleTagsChange}
-            isLoading={tagsLoading || postTagLoading}
-            error={errorMessage}
-            placeholder="Create or select tags..."
-          />
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }

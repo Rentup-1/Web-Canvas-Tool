@@ -4,6 +4,7 @@ import type {
   BaseQueryFn,
   FetchArgs,
   FetchBaseQueryError,
+  FetchBaseQueryMeta,
 } from "@reduxjs/toolkit/query";
 
 // Get API base URL from localStorage (set by parent app) or fallback to production
@@ -56,7 +57,9 @@ const baseQuery = fetchBaseQuery({
 const dynamicBaseQuery: BaseQueryFn<
   string | FetchArgs,
   unknown,
-  FetchBaseQueryError
+  FetchBaseQueryError,
+  {},
+  FetchBaseQueryMeta
 > = (args, api, extraOptions) => {
   const latestBaseUrl = getBaseUrl().replace(/\/$/, "");
 
@@ -99,6 +102,8 @@ export const api = createApi({
     "TemplateTextBoxes",
     "Assets",
     "Projects",
+    "Vocabulary",
+    "TemplateRevisions",
   ],
   endpoints: () => ({}),
 });

@@ -1,4 +1,5 @@
-import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
+// src/components/RightSideBar/RightPanels/ShapeProperties/index.tsx
+import { useAppDispatch } from "@/hooks/useRedux";
 import { updateElement } from "@/features/canvas/canvasSlice";
 import type { CanvasElement, RectangleShape } from "@/features/canvas/types";
 import { TextInput } from "@/components/ui/controlled-inputs/TextInput";
@@ -19,25 +20,17 @@ import PositionProperties from "../CommonProperties/PositionProperties";
 import ScaleProperties from "../CommonProperties/ScaleProperties";
 import RotationProperties from "../CommonProperties/RotationProperties";
 import SelectInput from "@/components/ui/controlled-inputs/SelectInput";
+import NumberInput from "@/components/ui/controlled-inputs/NumberInput";
+import type { BrandColorRole } from "@/types/templateDocumentV2";
 
 const isRectangleElement = (el: CanvasElement): el is RectangleShape => {
-  return el.type === "rectangle";
+  return el.type === "rectangle" || el.shapeKind === "rect";
 };
 
 export function ShapeProperties({ element }: { element: CanvasElement }) {
   const dispatch = useAppDispatch();
   const [individualCorners, setIndividualCorners] = useState(false);
-  // get colors from store
-  const brandingColors = useAppSelector((state) => state.branding.colors);
 
-  const [branding, setBranding] = useState<string[]>([]);
-
-  // Populate branding options from brandingColors
-  useEffect(() => {
-    const keysArray = Object.keys(brandingColors);
-    setBranding(keysArray);
-  }, [brandingColors]);
-  // Check if corners are already different when component mounts (for rectangles)
   useEffect(() => {
     if (isRectangleElement(element)) {
       const br = element.borderRadius || {};
@@ -56,12 +49,19 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
     dispatch(updateElement({ id: element.id, updates }));
   };
 
+  const brandColorRoleOptions = [
+    { value: "none", label: "Custom Hex Color" },
+    { value: "primary", label: "Brand Primary" },
+    { value: "secondary", label: "Brand Secondary" },
+    { value: "accent", label: "Brand Accent" },
+  ];
+
   return (
     <div className="space-y-4">
-      {/* Common Shape Properties */}
       <PositionProperties element={element} />
       <ScaleProperties element={element} />
       <RotationProperties element={element} />
+
       <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2">
           <div className="col-span-full my-2">
@@ -71,63 +71,55 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
               onChange={(val) => update({ opacity: val })}
             />
           </div>
+
           <div className="grid grid-cols-2 col-span-full gap-4">
-            <ColorInput
-              className="col-span-full"
-              showOpacity
-              label="Fill Color"
-              value={element.fill}
-              onChange={(val) => update({ fill: val })}
-              disabled={element.fillBrandingType !== "fixed"}
-            />
-            <ColorInput
-              showOpacity
-              className="col-span-full"
-              label="Stroke Color"
-              value={element.stroke ?? "#000000"}
-              onChange={(val) => update({ stroke: val })}
-              disabled={element.strokeBrandingType !== "fixed"}
-            />
             <SelectInput
-              isClearable={false}
               className="col-span-full"
-              label="Fill Branding"
-              value={element.fillBrandingType ?? "fixed"}
+              label="Fill Brand Role"
+              value={element.fillRole || "none"}
+              options={brandColorRoleOptions}
               onChange={(val) => {
-                if (val !== "fixed") {
-                  update({
-                    fill: brandingColors[val as (typeof branding)[number]],
-                    fillBrandingType: val as (typeof branding)[number],
-                  });
-                } else {
-                  update({
-                    fill: element.fill,
-                    fillBrandingType: val as (typeof branding)[number],
-                  });
-                }
+                const role = val === "none" ? null : (val as BrandColorRole);
+                update({
+                  fillRole: role,
+                  fillBrandingType: role ? "dynamic" : "fixed",
+                });
               }}
-              options={["fixed", ...branding]}
             />
+
+            {!element.fillRole && (
+              <ColorInput
+                className="col-span-full"
+                showOpacity
+                label="Fill Color"
+                value={element.fill}
+                onChange={(val) => update({ fill: val })}
+              />
+            )}
+
             <SelectInput
-              isClearable={false}
               className="col-span-full"
-              label="Stroke Branding"
-              value={element.strokeBrandingType ?? "fixed"}
+              label="Stroke Brand Role"
+              value={element.strokeRole || "none"}
+              options={brandColorRoleOptions}
               onChange={(val) => {
-                if (val !== "fixed") {
-                  update({
-                    stroke: brandingColors[val as (typeof branding)[number]],
-                    strokeBrandingType: val as (typeof branding)[number],
-                  });
-                } else {
-                  update({
-                    stroke: element.stroke,
-                    strokeBrandingType: val as (typeof branding)[number],
-                  });
-                }
+                const role = val === "none" ? null : (val as BrandColorRole);
+                update({
+                  strokeRole: role,
+                  strokeBrandingType: role ? "dynamic" : "fixed",
+                });
               }}
-              options={["fixed", ...branding]}
             />
+
+            {!element.strokeRole && (
+              <ColorInput
+                showOpacity
+                className="col-span-full"
+                label="Stroke Color"
+                value={element.stroke ?? "#000000"}
+                onChange={(val) => update({ stroke: val })}
+              />
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-x-4 col-span-full items-center text-sm">
@@ -138,12 +130,60 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
               min={0}
               value={element.strokeWidth?.toString() ?? "0"}
               onChange={(val) =>
-                update({ strokeWidth: Number.parseFloat(val) })
+                update({ strokeWidth: Number.parseFloat(val) || 0 })
               }
             />
           </div>
         </div>
       </div>
+
+      {/* Polygon Specific (Sides) */}
+      {(element.type === "regularPolygon" || element.shapeKind === "polygon") && (
+        <div className="space-y-2">
+          <NumberInput
+            label="Polygon Sides"
+            value={element.sides ?? 5}
+            onChange={(val) => update({ sides: Number(val) || 3 })}
+            min={3}
+            max={20}
+          />
+        </div>
+      )}
+
+      {/* Star Specific (Points & Inner Ratio) */}
+      {(element.type === "star" || element.shapeKind === "star") && (
+        <div className="space-y-3">
+          <NumberInput
+            label="Star Points"
+            value={element.numPoints ?? 5}
+            onChange={(val) => update({ numPoints: Number(val) || 3 })}
+            min={3}
+            max={30}
+          />
+          <InputRange
+            label="Inner Radius Ratio"
+            value={element.innerRatio ?? 0.5}
+            onChange={(val) => update({ innerRatio: val })}
+            min={0.1}
+            max={0.9}
+            step={0.05}
+          />
+        </div>
+      )}
+
+      {/* Ring Specific (Inner Ratio) */}
+      {(element.type === "ring" || element.shapeKind === "ring") && (
+        <div className="space-y-2">
+          <InputRange
+            label="Inner Radius Ratio"
+            value={element.innerRatio ?? 0.5}
+            onChange={(val) => update({ innerRatio: val })}
+            min={0.1}
+            max={0.9}
+            step={0.05}
+          />
+        </div>
+      )}
 
       {/* Rectangle Corner Radius */}
       {isRectangleElement(element) && (
@@ -155,7 +195,7 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
               variant="outline"
               size="sm"
               onClick={() => setIndividualCorners(!individualCorners)}
-              aria-label="Toggle C"
+              aria-label="Toggle Corners"
             >
               {individualCorners === false ? <FaLock /> : <FaUnlock />}
             </Button>
@@ -165,7 +205,7 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
                 type="number"
                 value={((element.cornerRadius as number) || 0).toString()}
                 onChange={(val) => {
-                  const radius = Number.parseFloat(val);
+                  const radius = Number.parseFloat(val) || 0;
                   update<RectangleShape>({
                     cornerRadius: radius,
                     borderRadius: {
@@ -187,7 +227,7 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
                     update<RectangleShape>({
                       borderRadius: {
                         ...element.borderRadius,
-                        topLeft: Number.parseFloat(val),
+                        topLeft: Number.parseFloat(val) || 0,
                       },
                     })
                   }
@@ -200,7 +240,7 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
                     update<RectangleShape>({
                       borderRadius: {
                         ...element.borderRadius,
-                        topRight: Number.parseFloat(val),
+                        topRight: Number.parseFloat(val) || 0,
                       },
                     })
                   }
@@ -213,7 +253,7 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
                     update<RectangleShape>({
                       borderRadius: {
                         ...element.borderRadius,
-                        bottomLeft: Number.parseFloat(val),
+                        bottomLeft: Number.parseFloat(val) || 0,
                       },
                     })
                   }
@@ -226,7 +266,7 @@ export function ShapeProperties({ element }: { element: CanvasElement }) {
                     update<RectangleShape>({
                       borderRadius: {
                         ...element.borderRadius,
-                        bottomRight: Number.parseFloat(val),
+                        bottomRight: Number.parseFloat(val) || 0,
                       },
                     })
                   }

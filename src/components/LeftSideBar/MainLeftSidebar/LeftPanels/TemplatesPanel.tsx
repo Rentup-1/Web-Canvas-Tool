@@ -78,14 +78,14 @@ export default function TemplatesPanel() {
   };
 
   const dispatch = useDispatch();
-  const handleEdit = (templateID: number, jsonData: string) => {
+  const handleEdit = (templateID: number, template: TemplateData) => {
     dispatch(addTemplateId(templateID));
-    handleImport(jsonData);
+    handleImport(template.document || template.raw_input || "");
   };
 
   const handleClone = (template: TemplateData) => {
     dispatch(removeTemplateId());
-    handleImport(template.raw_input);
+    handleImport(template.document || template.raw_input || "");
     toast.success("Template loaded to canvas. Save to create a new template.");
   };
 
@@ -144,7 +144,7 @@ export default function TemplatesPanel() {
                     {canEdit && (
                       <DropdownMenuItem
                         onClick={() =>
-                          handleEdit(template.id, template.raw_input)
+                          handleEdit(template.id, template)
                         }
                       >
                         Edit

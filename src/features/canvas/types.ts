@@ -1,4 +1,15 @@
-import { group } from "console";
+// src/features/canvas/types.ts
+import type {
+  BrandColorRole,
+  BrandFontRole,
+  FrameAssetType,
+  FrameFit,
+  ShapeKind,
+  TextContent,
+  TextCopySource,
+  TextFitText,
+} from "@/types/templateDocumentV2";
+
 export type ElementType =
   | "text"
   | "frame"
@@ -16,14 +27,15 @@ export type ElementType =
   | "ring"
   | "arrow"
   | "icon"
+  | "shape"
   | "group";
 
 export type FitMode = "fill" | "fit" | "stretch";
-
 export type BrandingType = "fixed" | "dynamic";
 
 export interface CanvasElement {
   id: string;
+  name?: string;
   type: ElementType;
   x: number;
   y: number;
@@ -41,61 +53,111 @@ export interface CanvasElement {
   strokeWidth?: number;
   fillBrandingType?: string;
   strokeBrandingType?: string;
-  // frame specific
+  fillRole?: BrandColorRole;
+  strokeRole?: BrandColorRole;
+  locked?: boolean;
+  visible?: boolean;
+  zIndex?: number;
+
+  // Frame specific
   dash?: number[];
   frameId?: string | null;
   tags?: string[];
-  // img
-  src?: string;
+  slotIndex?: number;
+  assetType?: FrameAssetType | string;
   fitMode?: string;
+  objectFit?: "cover" | "contain" | "fill";
+  frame_position_in_template?: string | number;
+  label?: string;
+
+  // Image specific
+  src?: string;
+  assetId?: number;
   originalWidth?: number;
   originalHeight?: number;
-  // icons
+
+  // Icon specific
   icon?: string;
   iconName?: string;
   color?: string;
-  text?: string;
   path?: string;
-  // for percentage
-  newWidth?: number;
-  newHeight?: number;
+
+  // Text specific
+  text?: string;
   fontSize?: number;
-  isSelected?: string;
-  scaleX?: number;
-  scaleY?: number;
-  radius?: number;
-  fontSize_percent?: number;
-  visible?: boolean;
-  borderRadiusSpecial?: number;
-  // line
-  points?: number[];
-  // star
+  fontFamily?: string;
+  fontVariant?: string;
+  fontWeight?: string | number;
+  fontStyle?: string;
+  fontRole?: BrandFontRole;
+  fontBrandingType?: BrandingType;
+  background?: string;
+  backgroundStroke?: string;
+  backgroundStrokeWidth?: number;
+  padding?: number;
+  textDecoration?: "none" | "underline";
+  align?: "left" | "center" | "right";
+  verticalAlign?: "top" | "middle" | "bottom";
+  lineHeight?: number;
+  letterSpacing?: number;
+  direction?: "auto" | "ltr" | "rtl";
+  wrap?: "word" | "none";
+  white_space?: string;
+  contentSource?: "copy" | "toi" | "static";
+  contentKey?: TextCopySource | string | null;
+  content?: TextContent;
+  toi_labels?: string;
+  fitTextMode?: "none" | "shrink";
+  fitTextMinSize?: number | null;
+  fitText?: TextFitText;
+
+  // Shapes & Geometry
+  shapeKind?: ShapeKind;
+  sides?: number;
+  numPoints?: number;
   innerRadius?: number;
   outerRadius?: number;
-  // ellipse
+  innerRatio?: number;
+  radius?: number;
   radiusX?: number;
   radiusY?: number;
-
-  // wedge
   angle?: number;
+  points?: number[];
+  pointerLength?: number;
+  pointerWidth?: number;
+  cornerRadius?: number | [number, number, number, number];
+  borderRadiusSpecial?: number;
+  borderRadius?: {
+    topLeft?: number;
+    topRight?: number;
+    bottomRight?: number;
+    bottomLeft?: number;
+  };
 
-  fontWeight?: string;
-  fontStyle?: string;
-  white_space?: string;
-  objectFit?: "cover" | "contain" | "fill";
+  // Grouping
   groupId?: string;
   childEl?: CanvasElement[];
   grouped?: boolean;
   parentGroupId?: string;
+
+  // Dynamic / Transformation
+  scaleX?: number;
+  scaleY?: number;
+  newWidth?: number;
+  newHeight?: number;
+  fontSize_percent?: number;
+  isSelected?: string;
 }
+
 export interface CanvasFrameElement extends CanvasElement {
   type: "frame";
   dash: number[];
   frameId: string | null;
   tags: string[];
   label: string;
-  assetType: string;
+  assetType: FrameAssetType | string;
   frame_position_in_template: string;
+  slotIndex?: number;
 }
 
 export interface CanvasTextElement extends CanvasElement {
@@ -109,11 +171,21 @@ export interface CanvasTextElement extends CanvasElement {
   backgroundStroke?: string;
   backgroundStrokeWidth: number;
   fontBrandingType?: BrandingType;
+  fontRole?: BrandFontRole;
+  contentSource?: "copy" | "toi" | "static";
+  contentKey?: TextCopySource | string | null;
+  content?: TextContent;
   toi_labels?: string;
   fontWeight: string;
   fontStyle: string;
   textDecoration?: "none" | "underline";
   align?: "left" | "center" | "right";
+  verticalAlign?: "top" | "middle" | "bottom";
+  lineHeight?: number;
+  letterSpacing?: number;
+  direction?: "auto" | "ltr" | "rtl";
+  wrap?: "word" | "none";
+  fitText?: TextFitText;
   borderRadius?: {
     topLeft?: number;
     topRight?: number;
@@ -126,6 +198,7 @@ export interface CanvasTextElement extends CanvasElement {
 export interface CanvasImageElement extends CanvasElement {
   type: "image";
   src?: string;
+  assetId?: number;
   fitMode?: FitMode;
   originalWidth?: number;
 }
@@ -146,7 +219,7 @@ export interface RectangleShape extends CanvasElement {
   type: "rectangle";
   width: number;
   height: number;
-  cornerRadius?: number | number[];
+  cornerRadius?: number | [number, number, number, number];
   borderRadius?: {
     topLeft?: number;
     topRight?: number;

@@ -1,3 +1,4 @@
+// src/context/CanvasContext.tsx
 import {
   createContext,
   useContext,
@@ -7,7 +8,6 @@ import {
 } from "react";
 import Konva from "konva";
 import { useAppSelector } from "@/hooks/useRedux";
-import transformElementsKeys from "@/utils/transformElementKeys";
 import { useDispatch } from "react-redux";
 import {
   setAspectRatio,
@@ -16,6 +16,22 @@ import {
   deselectAllElements,
 } from "@/features/canvas/canvasSlice";
 import { addColor, addFont } from "@/features/branding/brandingSlice";
+import {
+  canvasToV2Document,
+  isV2Document,
+  v2DocumentToCanvas,
+} from "@/utils/v2DocumentConverter";
+import type { TemplateDocumentV2 } from "@/types/templateDocumentV2";
+import type { AspectRatio } from "@/features/canvas/types";
+
+const deriveAspectRatio = (width: number, height: number): AspectRatio => {
+  if (!width || !height) return "1:1";
+  const ratio = width / height;
+  if (Math.abs(ratio - 1) < 0.05) return "1:1";
+  if (Math.abs(ratio - 9 / 16) < 0.05) return "9:16";
+  if (Math.abs(ratio - 16 / 9) < 0.05) return "16:9";
+  return ratio > 1 ? "16:9" : ratio < 1 ? "9:16" : "1:1";
+};
 
 interface CanvasContextType {
   stageRef: RefObject<Konva.Stage>;
@@ -23,7 +39,9 @@ interface CanvasContextType {
   handleExportPNG: () => void;
   handleExportSVG: () => void;
   handleExportSummary: () => void;
-  handleImport: (jsonData: string) => void;
+  handleImport: (jsonData: string | Record<string, unknown>) => void;
+  getV2Document: () => TemplateDocumentV2;
+  getV2DocumentJSON: () => string;
   projectIdMixer: number;
   setProjectIdMixer: (val: number) => void;
   imageSrc: string;
@@ -49,54 +67,26 @@ export const CanvasProvider: FC<{
   const waitForNextFrame = () =>
     new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
+  const getV2Document = (): TemplateDocumentV2 => {
+    return canvasToV2Document(elements, stageWidth, stageHeight, {
+      colors: brandingColors,
+      fonts: brandingFonts,
+    });
+  };
+
+  const getV2DocumentJSON = (): string => {
+    return JSON.stringify(getV2Document(), null, 2);
+  };
+
   const handleExportJSON = () => {
-    const keyMappingsByType = {
-      text: {
-        backgroundStrokeWidth: "borderWidth",
-        backgroundStroke: "borderColor",
-        dashed: "borderStyle",
-      },
-      frame: {
-        dash: "borderStyle",
-        strokeWidth: "borderWidth",
-        stroke: "borderColor",
-      },
-    };
-
-    const fallbackMapping = {
-      stroke: "borderColor",
-      strokeWidth: "borderWidth",
-      backgroundStroke: "borderColor",
-      backgroundStrokeWidth: "borderWidth",
-      dashed: "borderStyle",
-    };
-
-    const transformedElements = transformElementsKeys(
-      elements,
-      keyMappingsByType,
-      fallbackMapping,
-    );
-
-    const exportData = {
-      elements: transformedElements,
-      stage: {
-        height: stageHeight,
-        width: stageWidth,
-        aspectRatio: aspectRatio,
-      },
-      branding: {
-        colors: brandingColors,
-        fonts: brandingFonts,
-      },
-    };
-
-    const dataStr = JSON.stringify(exportData, null, 2);
+    const v2Doc = getV2Document();
+    const dataStr = JSON.stringify(v2Doc, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = "canvas-design.json";
+    link.download = "canvas-template-v2.json";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -133,8 +123,6 @@ export const CanvasProvider: FC<{
       return;
     }
     try {
-      // Konva doesn't natively support SVG export, so we use toDataURL as a fallback
-      // Alternatively, you could use a library like konva2svg if available
       const dataURL = stageRef.current.toDataURL({
         mimeType: "image/svg+xml",
       });
@@ -154,42 +142,74 @@ export const CanvasProvider: FC<{
     }
   };
 
-  const handleImport = (jsonData: string) => {
+  const handleImport = (input: string | Record<string, unknown>) => {
     try {
-      const importedData = JSON.parse(jsonData);
+      let importedData: any = input;
+      if (typeof input === "string") {
+        importedData = JSON.parse(input);
+      }
 
+      if (!importedData) {
+        alert("Invalid input data.");
+        return;
+      }
+
+      // Check if Schema V2 document
+      if (isV2Document(importedData)) {
+        const convertedElements = v2DocumentToCanvas(importedData);
+        const stageW = importedData.stage?.width || 1080;
+        const stageH = importedData.stage?.height || 1080;
+
+        dispatch(setElements(convertedElements));
+        dispatch(setStageSize({ width: stageW, height: stageH }));
+        dispatch(setAspectRatio(deriveAspectRatio(stageW, stageH)));
+        return;
+      }
+
+      // Check if wrapper object has .document (v2)
+      if (importedData.document && isV2Document(importedData.document)) {
+        const convertedElements = v2DocumentToCanvas(importedData.document);
+        const stageW = importedData.document.stage?.width || 1080;
+        const stageH = importedData.document.stage?.height || 1080;
+
+        dispatch(setElements(convertedElements));
+        dispatch(setStageSize({ width: stageW, height: stageH }));
+        dispatch(setAspectRatio(deriveAspectRatio(stageW, stageH)));
+        return;
+      }
+
+      // Legacy document format
       if (
-        importedData &&
         Array.isArray(importedData.elements) &&
         importedData.stage &&
         importedData.stage.height &&
-        importedData.stage.width &&
-        importedData.stage.aspectRatio
+        importedData.stage.width
       ) {
-        // ✅ عناصر الكنڤا
         dispatch(setElements(importedData.elements));
-
-        // ✅ حجم الستيج
         dispatch(
           setStageSize({
             height: importedData.stage.height,
             width: importedData.stage.width,
-          }),
+          })
+        );
+        dispatch(
+          setAspectRatio(
+            importedData.stage.aspectRatio ||
+              deriveAspectRatio(
+                importedData.stage.width,
+                importedData.stage.height
+              )
+          )
         );
 
-        // ✅ Aspect Ratio
-        dispatch(setAspectRatio(importedData.stage.aspectRatio));
-
-        // ✅ ألوان البراندينج
         if (importedData.branding?.colors) {
           Object.entries(importedData.branding.colors).forEach(
             ([key, value]) => {
               dispatch(addColor({ key, value: String(value) }));
-            },
+            }
           );
         }
 
-        // ✅ خطوط البراندينج
         if (importedData.branding?.fonts) {
           Object.entries(importedData.branding.fonts).forEach(
             ([key, fontData]: [string, any]) => {
@@ -199,72 +219,49 @@ export const CanvasProvider: FC<{
                   value: fontData.value,
                   isFile: fontData.isFile,
                   variant: fontData.variant,
-                }),
+                })
               );
-            },
+            }
           );
         }
-
-        console.log("✅ Import successful");
       } else {
-        alert("❌ Invalid file structure.");
+        alert("Invalid template structure.");
       }
     } catch (error) {
-      alert("❌ Failed to import. Invalid JSON format.");
+      alert("Failed to import template. Invalid format.");
       console.error("Import error:", error);
     }
   };
 
   const handleExportSummary = () => {
-    const frames: {
-      assetType: string | null;
-      fitMode: string | null;
-      objectFit: string | null;
-      tags: string[];
-      frame_position_in_template: number | null;
-    }[] = [];
-
-    const texts: {
-      id: string;
-      tags: string[];
-      toi_labels: string[];
-    }[] = [];
-
-    elements.forEach((el) => {
-      if (el.type === "frame") {
-        const frameEl = el as {
-          assetType?: string;
-          fitMode?: string;
-          objectFit?: string;
-          tags?: string[];
-          frame_position_in_template?: number;
+    const v2Doc = getV2Document();
+    const frames = v2Doc.elements
+      .filter((el) => el.type === "frame")
+      .map((el) => {
+        const f = el as import("@/types/templateDocumentV2").FrameElementV2;
+        return {
+          slotIndex: f.slot.index,
+          assetType: f.slot.assetType,
+          tags: f.slot.tags,
+          fit: f.fit,
         };
-        console.log(el);
+      });
 
-        frames.push({
-          assetType: frameEl.assetType || null,
-          fitMode: frameEl.fitMode || null,
-          objectFit: frameEl.objectFit || null,
-          tags: frameEl.tags || [],
-          frame_position_in_template:
-            frameEl.frame_position_in_template ?? null,
-        });
-      } else if (el.type === "text") {
-        const textEl = el as {
-          id: string;
-          tags: string[];
-          toi_labels?: string[];
+    const texts = v2Doc.elements
+      .filter((el) => el.type === "text")
+      .map((el) => {
+        const t = el as import("@/types/templateDocumentV2").TextElementV2;
+        return {
+          id: t.id,
+          content: t.content,
+          text: t.text,
+          fontFamily: t.font.family,
+          fontRole: t.font.role,
         };
-
-        texts.push({
-          id: textEl.id,
-          tags: textEl.tags || [],
-          toi_labels: textEl.toi_labels || [],
-        });
-      }
-    });
+      });
 
     const summary = {
+      stage: v2Doc.stage,
       frames,
       texts,
     };
@@ -275,7 +272,7 @@ export const CanvasProvider: FC<{
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = "canvas-summary.json";
+    link.download = "template-v2-summary.json";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -289,6 +286,8 @@ export const CanvasProvider: FC<{
     handleExportPNG,
     handleExportSVG,
     handleImport,
+    getV2Document,
+    getV2DocumentJSON,
     projectIdMixer,
     setProjectIdMixer,
     imageSrc,
