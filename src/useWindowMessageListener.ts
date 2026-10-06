@@ -38,9 +38,17 @@ export const useWindowMessageListener = () => {
       if (!data || typeof data !== "object" || !data.type) return;
 
       switch (data.type) {
-        case "SEND_JSON":
-          setJson(data.payload.json);
+        case "SEND_JSON": {
+          const rawPayload = data.payload?.json;
+          if (rawPayload) {
+            const jsonString =
+              typeof rawPayload === "string"
+                ? rawPayload
+                : JSON.stringify(rawPayload);
+            setJson(jsonString);
+          }
           break;
+        }
         case "PROJECT_SELECTED":
           if (data?.payload) {
             const projectId = parseProjectId(data.payload.projectId);

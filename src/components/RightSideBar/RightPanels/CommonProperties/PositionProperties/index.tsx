@@ -26,7 +26,7 @@ export default function PositionProperties({
           label={<FaX />}
           type="number"
           id="x"
-          value={element.x.toFixed(0)}
+          value={typeof element.x === "number" ? element.x.toFixed(0) : "0"}
           onChange={(val) =>
             update({
               x: Number(val),
@@ -37,7 +37,7 @@ export default function PositionProperties({
         <TextInput
           label={<FaY />}
           type="number"
-          value={element.y.toFixed(0)}
+          value={typeof element.y === "number" ? element.y.toFixed(0) : "0"}
           onChange={(val) =>
             update({
               y: Number(val),

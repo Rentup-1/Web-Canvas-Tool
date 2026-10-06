@@ -44,10 +44,10 @@ export default function ScaleProperties({
             <TextInput
               label={<FaW />}
               type="number"
-              value={rect.width.toFixed(0)}
+              value={typeof rect.width === "number" ? rect.width.toFixed(0) : "0"}
               onChange={(val) => {
                 const newWidth = Number(val);
-                const ratio = rect.height / rect.width;
+                const ratio = (rect.height || 1) / (rect.width || 1);
                 update({
                   width: newWidth,
                   width_percent: toPercent(newWidth, stageWidth),
@@ -61,10 +61,10 @@ export default function ScaleProperties({
             <TextInput
               label={<FaH />}
               type="number"
-              value={rect.height.toFixed(0)}
+              value={typeof rect.height === "number" ? rect.height.toFixed(0) : "0"}
               onChange={(val) => {
                 const newHeight = Number(val);
-                const ratio = rect.width / rect.height;
+                const ratio = (rect.width || 1) / (rect.height || 1);
                 update({
                   height: newHeight,
                   height_percent: toPercent(newHeight, stageHeight),
@@ -86,7 +86,7 @@ export default function ScaleProperties({
           <TextInput
             label="Size"
             type="number"
-            value={tri.radius.toFixed(0)}
+            value={typeof tri.radius === "number" ? tri.radius.toFixed(0) : "0"}
             onChange={(val) => update({ radius: Number(val) })}
           />
         );
@@ -99,7 +99,7 @@ export default function ScaleProperties({
           <TextInput
             label="Radius"
             type="number"
-            value={circ.radius.toFixed(0)}
+            value={typeof circ.radius === "number" ? circ.radius.toFixed(0) : "0"}
             onChange={(val) => update({ radius: Number(val) })}
           />
         );
@@ -113,10 +113,10 @@ export default function ScaleProperties({
             <TextInput
               label="Radius X"
               type="number"
-              value={ell.radiusX.toFixed(0)}
+              value={typeof ell.radiusX === "number" ? ell.radiusX.toFixed(0) : "0"}
               onChange={(val) => {
                 const newX = Number(val);
-                const ratio = ell.radiusY / ell.radiusX;
+                const ratio = (ell.radiusY || 1) / (ell.radiusX || 1);
                 update({
                   radiusX: newX,
                   ...(lockAspect && { radiusY: newX * ratio }),
@@ -126,10 +126,10 @@ export default function ScaleProperties({
             <TextInput
               label="Radius Y"
               type="number"
-              value={ell.radiusY.toFixed(0)}
+              value={typeof ell.radiusY === "number" ? ell.radiusY.toFixed(0) : "0"}
               onChange={(val) => {
                 const newY = Number(val);
-                const ratio = ell.radiusX / ell.radiusY;
+                const ratio = (ell.radiusX || 1) / (ell.radiusY || 1);
                 update({
                   radiusY: newY,
                   ...(lockAspect && { radiusX: newY * ratio }),
@@ -148,13 +148,13 @@ export default function ScaleProperties({
             <TextInput
               label="Radius"
               type="number"
-              value={wedge.radius.toFixed(0)}
+              value={typeof wedge.radius === "number" ? wedge.radius.toFixed(0) : "0"}
               onChange={(val) => update({ radius: Number(val) })}
             />
             <TextInput
               label="Angle"
               type="number"
-              value={wedge.angle.toFixed(0)}
+              value={typeof wedge.angle === "number" ? wedge.angle.toFixed(0) : "0"}
               onChange={(val) => update({ angle: Number(val) })}
             />
           </div>
@@ -169,10 +169,10 @@ export default function ScaleProperties({
             <TextInput
               label="Inner Radius"
               type="number"
-              value={ring.innerRadius.toFixed(0)}
+              value={typeof ring.innerRadius === "number" ? ring.innerRadius.toFixed(0) : "0"}
               onChange={(val) => {
                 const newInner = Number(val);
-                const ratio = ring.outerRadius / ring.innerRadius;
+                const ratio = (ring.outerRadius || 1) / (ring.innerRadius || 1);
                 update({
                   innerRadius: newInner,
                   ...(lockAspect && { outerRadius: newInner * ratio }),
@@ -182,10 +182,10 @@ export default function ScaleProperties({
             <TextInput
               label="Outer Radius"
               type="number"
-              value={ring.outerRadius.toFixed(0)}
+              value={typeof ring.outerRadius === "number" ? ring.outerRadius.toFixed(0) : "0"}
               onChange={(val) => {
                 const newOuter = Number(val);
-                const ratio = ring.innerRadius / ring.outerRadius;
+                const ratio = (ring.innerRadius || 1) / (ring.outerRadius || 1);
                 update({
                   outerRadius: newOuter,
                   ...(lockAspect && { innerRadius: newOuter * ratio }),
@@ -204,16 +204,16 @@ export default function ScaleProperties({
             <TextInput
               label="Points"
               type="number"
-              value={star.numPoints}
+              value={star.numPoints ?? 5}
               onChange={(val) => update({ numPoints: Number(val) })}
             />
             <TextInput
               label="Inner Radius"
               type="number"
-              value={star.innerRadius.toFixed(0)}
+              value={typeof star.innerRadius === "number" ? star.innerRadius.toFixed(0) : "0"}
               onChange={(val) => {
                 const newInner = Number(val);
-                const ratio = star.outerRadius / star.innerRadius;
+                const ratio = (star.outerRadius || 1) / (star.innerRadius || 1);
                 update({
                   innerRadius: newInner,
                   ...(lockAspect && { outerRadius: newInner * ratio }),
@@ -223,10 +223,10 @@ export default function ScaleProperties({
             <TextInput
               label="Outer Radius"
               type="number"
-              value={star.outerRadius.toFixed(0)}
+              value={typeof star.outerRadius === "number" ? star.outerRadius.toFixed(0) : "0"}
               onChange={(val) => {
                 const newOuter = Number(val);
-                const ratio = star.innerRadius / star.outerRadius;
+                const ratio = (star.innerRadius || 1) / (star.outerRadius || 1);
                 update({
                   outerRadius: newOuter,
                   ...(lockAspect && { innerRadius: newOuter * ratio }),
