@@ -39,7 +39,7 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
     dispatch(updateElement({ id: element.id, updates }));
   };
 
-  const assetTypeOptions = vocabData?.asset_types
+  const assetTypeOptions = Array.isArray(vocabData?.asset_types)
     ? vocabData.asset_types.map((type) => ({
         value: type,
         label:
@@ -65,13 +65,13 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
   ];
 
   // Combine tags from vocabulary (with counts) and fallback tagsData
-  const tagOptions = vocabData?.tags
+  const tagOptions = Array.isArray(vocabData?.tags)
     ? vocabData.tags.map((t) => ({
         id: t.tag,
         tag: t.count > 0 ? `${t.tag} (${t.count})` : t.tag,
         rawValue: t.tag,
       }))
-    : tagsData
+    : Array.isArray(tagsData)
     ? tagsData.map((item) => ({
         id: String(item.id),
         tag: item.tag,
@@ -139,7 +139,7 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
           <NumberInput
             label="Border Width"
             value={element.strokeWidth ?? 0}
-            onChange={(val) => update({ strokeWidth: Number(val) || 0 })}
+            onChange={(val: number) => update({ strokeWidth: Number(val) || 0 })}
             min={0}
             max={50}
           />
@@ -151,7 +151,7 @@ export function FrameProperties({ element }: { element: CanvasFrameElement }) {
                 ? element.cornerRadius
                 : element.borderRadiusSpecial ?? 0
             }
-            onChange={(val) =>
+            onChange={(val: number) =>
               update({
                 cornerRadius: Number(val) || 0,
                 borderRadiusSpecial: Number(val) || 0,

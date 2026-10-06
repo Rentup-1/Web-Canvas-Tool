@@ -69,14 +69,18 @@ export default function TextProperties({
       ? element.content.key
       : element.toi_labels || element.contentKey || "";
 
-  const copyKeyOptions = (vocabData?.copy_keys || ["headline", "punchline", "cta"]).map(
-    (key) => ({
-      value: key,
-      label: key.charAt(0).toUpperCase() + key.slice(1),
-    })
-  );
+  const copyKeyOptions = (
+    Array.isArray(vocabData?.copy_keys)
+      ? vocabData.copy_keys
+      : ["headline", "punchline", "cta"]
+  ).map((key) => ({
+    value: key,
+    label: key.charAt(0).toUpperCase() + key.slice(1),
+  }));
 
-  const toiOptions = (vocabData?.toi_labels || []).map((toi) => ({
+  const toiOptions = (
+    Array.isArray(vocabData?.toi_labels) ? vocabData.toi_labels : []
+  ).map((toi) => ({
     value: toi.label,
     label: `${toi.label}${!toi.has_value ? " (No value for project)" : ""}`,
     hasValue: toi.has_value,
@@ -96,7 +100,7 @@ export default function TextProperties({
     { value: "secondary", label: "Brand Secondary Font" },
   ];
 
-  const googleFontOptions = fontsData
+  const googleFontOptions = Array.isArray(fontsData)
     ? fontsData.map((f: any) => ({
         value: f.family,
         label: f.family,
