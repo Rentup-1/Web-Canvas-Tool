@@ -115,6 +115,7 @@ export const useTemplateImporter = () => {
                     originalHeight: imgH,
                     fitMode,
                     opacity: frameElement.opacity ?? 1,
+                    rotation: frameElement.rotation ?? 0,
                     zIndex: 0,
                   };
                   elements.splice(frameIndex + 1, 0, imageElement);
@@ -136,6 +137,7 @@ export const useTemplateImporter = () => {
                       frame.assets[0].height || frameElement.height,
                     fitMode,
                     opacity: frameElement.opacity ?? 1,
+                    rotation: frameElement.rotation ?? 0,
                     zIndex: 0,
                   };
                   elements.splice(frameIndex + 1, 0, imageElement);

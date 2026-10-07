@@ -1,7 +1,7 @@
 // d:\web-canvas-tool\src\components\ui\renderers\TextRenderer.tsx
 
 import { updateElement } from "@/features/canvas/canvasSlice";
-import { CanvasTextElement } from "@/features/canvas/types";
+import { BrandingType, CanvasTextElement } from "@/features/canvas/types";
 import { useBrandingResolver } from "@/hooks/useBrandingResolver";
 import {
   toPercentFontSize,
@@ -89,7 +89,7 @@ export const TextRenderer = forwardRef<Konva.Text, ElementRendererProps>(
       brandingType,
     );
 
-    const isBrandingType = (value: any) =>
+    const isBrandingType = (value: any): value is BrandingType =>
       value === "fixed" || value === "dynamic";
     const getBrandedFillText = (element: CanvasTextElement) => {
       const bType = isBrandingType(element.fillBrandingType)
@@ -146,26 +146,8 @@ export const TextRenderer = forwardRef<Konva.Text, ElementRendererProps>(
         return prev;
       });
 
-      if (
-        exists &&
-        (Math.abs((textElement.width || 0) - box.width) > 0.5 ||
-          Math.abs((textElement.height || 0) - box.height) > 0.5)
-      ) {
-        dispatch(
-          updateElement({
-            id: String(textElement.id),
-            updates: {
-              width: box.width,
-              height: box.height,
-            },
-          }),
-        );
-      }
-
       node.getLayer()?.batchDraw();
     }, [
-      exists,
-      dispatch,
       fontStyle,
       fontWeight,
       textAlign,
