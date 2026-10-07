@@ -23,9 +23,13 @@ type InnerAppProps = {
 const InnerApp = ({ stageRef }: InnerAppProps) => {
   const { json } = useWindowMessageListener();
   const { importTemplate } = useTemplateImporter();
+  const lastImportedJsonRef = useRef<string | null>(null);
 
   useEffect(() => {
-    importTemplate(json);
+    if (json && json !== lastImportedJsonRef.current) {
+      lastImportedJsonRef.current = json;
+      importTemplate(json);
+    }
   }, [json, importTemplate]);
 
   return (

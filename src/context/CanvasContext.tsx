@@ -2,6 +2,9 @@ import {
   createContext,
   useContext,
   useState,
+  useRef,
+  useCallback,
+  useMemo,
   type FC,
   type RefObject,
 } from "react";
@@ -29,6 +32,8 @@ interface CanvasContextType {
   setProjectIdMixer: (val: number) => void;
   imageSrc: string;
   setImageSrc: (val: string) => void;
+  isTemplateEditMode: boolean;
+  setIsTemplateEditMode: (val: boolean) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -46,11 +51,42 @@ export const CanvasProvider: FC<{
   const brandingFonts = useAppSelector((state) => state.branding.fontFamilies);
   const [projectIdMixer, setProjectIdMixer] = useState(0);
   const [imageSrc, setImageSrc] = useState("");
+  const [isTemplateEditMode, setIsTemplateEditMode] = useState(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      return (
+        searchParams.get("intent") === "templateEdit" ||
+        searchParams.get("mode") === "template-generator"
+      );
+    } catch {
+      return false;
+    }
+  });
 
-  const waitForNextFrame = () =>
-    new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  const stateRef = useRef({
+    elements,
+    stageHeight,
+    stageWidth,
+    aspectRatio,
+    brandingColors,
+    brandingFonts,
+  });
+  stateRef.current = {
+    elements,
+    stageHeight,
+    stageWidth,
+    aspectRatio,
+    brandingColors,
+    brandingFonts,
+  };
 
-  const handleExportJSON = () => {
+  const waitForNextFrame = useCallback(
+    () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())),
+    [],
+  );
+
+  const handleExportJSON = useCallback(() => {
+    const { elements: currentElements, stageHeight: currentHeight, stageWidth: currentWidth, aspectRatio: currentAspect, brandingColors: currentColors, brandingFonts: currentFonts } = stateRef.current;
     const keyMappingsByType = {
       text: {
         backgroundStrokeWidth: "borderWidth",
@@ -73,7 +109,7 @@ export const CanvasProvider: FC<{
     };
 
     const transformedElements = transformElementsKeys(
-      elements,
+      currentElements,
       keyMappingsByType,
       fallbackMapping,
     );
@@ -81,13 +117,13 @@ export const CanvasProvider: FC<{
     const exportData = {
       elements: transformedElements,
       stage: {
-        height: stageHeight,
-        width: stageWidth,
-        aspectRatio: aspectRatio,
+        height: currentHeight,
+        width: currentWidth,
+        aspectRatio: currentAspect,
       },
       branding: {
-        colors: brandingColors,
-        fonts: brandingFonts,
+        colors: currentColors,
+        fonts: currentFonts,
       },
     };
 
@@ -102,9 +138,10 @@ export const CanvasProvider: FC<{
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  };
+  }, []);
 
-  const handleExportTemplateToParent = () => {
+  const handleExportTemplateToParent = useCallback(() => {
+    const { elements: currentElements, stageHeight: currentHeight, stageWidth: currentWidth, aspectRatio: currentAspect, brandingColors: currentColors, brandingFonts: currentFonts } = stateRef.current;
     const keyMappingsByType = {
       text: {
         backgroundStrokeWidth: "borderWidth",
@@ -127,7 +164,7 @@ export const CanvasProvider: FC<{
     };
 
     // Filter out temporary image elements that were placed inside frames
-    const filteredElements = elements.filter((el) => el.type !== "image");
+    const filteredElements = currentElements.filter((el) => el.type !== "image");
 
     const transformedElements = transformElementsKeys(
       filteredElements,
@@ -138,13 +175,13 @@ export const CanvasProvider: FC<{
     const exportData = {
       elements: transformedElements,
       stage: {
-        height: stageHeight,
-        width: stageWidth,
-        aspectRatio: aspectRatio,
+        height: currentHeight,
+        width: currentWidth,
+        aspectRatio: currentAspect,
       },
       branding: {
-        colors: brandingColors,
-        fonts: brandingFonts,
+        colors: currentColors,
+        fonts: currentFonts,
       },
     };
 
@@ -157,9 +194,9 @@ export const CanvasProvider: FC<{
       },
       "*",
     );
-  };
+  }, []);
 
-  const handleExportPNG = async () => {
+  const handleExportPNG = useCallback(async () => {
     if (!stageRef.current) {
       alert("Stage is not available.");
       return;
@@ -181,16 +218,14 @@ export const CanvasProvider: FC<{
       alert("Failed to export PNG.");
       console.error(error);
     }
-  };
+  }, [dispatch, stageRef, waitForNextFrame]);
 
-  const handleExportSVG = () => {
+  const handleExportSVG = useCallback(() => {
     if (!stageRef.current) {
       alert("Stage is not available.");
       return;
     }
     try {
-      // Konva doesn't natively support SVG export, so we use toDataURL as a fallback
-      // Alternatively, you could use a library like konva2svg if available
       const dataURL = stageRef.current.toDataURL({
         mimeType: "image/svg+xml",
       });
@@ -208,70 +243,67 @@ export const CanvasProvider: FC<{
       alert("Failed to export SVG.");
       console.error(error);
     }
-  };
+  }, [stageRef]);
 
-  const handleImport = (jsonData: string) => {
-    try {
-      const importedData = JSON.parse(jsonData);
+  const handleImport = useCallback(
+    (jsonData: string) => {
+      try {
+        const importedData = JSON.parse(jsonData);
 
-      if (
-        importedData &&
-        Array.isArray(importedData.elements) &&
-        importedData.stage &&
-        importedData.stage.height &&
-        importedData.stage.width &&
-        importedData.stage.aspectRatio
-      ) {
-        // ✅ عناصر الكنڤا
-        dispatch(setElements(importedData.elements));
-
-        // ✅ حجم الستيج
-        dispatch(
-          setStageSize({
-            height: importedData.stage.height,
-            width: importedData.stage.width,
-          }),
-        );
-
-        // ✅ Aspect Ratio
-        dispatch(setAspectRatio(importedData.stage.aspectRatio));
-
-        // ✅ ألوان البراندينج
-        if (importedData.branding?.colors) {
-          Object.entries(importedData.branding.colors).forEach(
-            ([key, value]) => {
-              dispatch(addColor({ key, value: String(value) }));
-            },
+        if (
+          importedData &&
+          Array.isArray(importedData.elements) &&
+          importedData.stage &&
+          importedData.stage.height &&
+          importedData.stage.width &&
+          importedData.stage.aspectRatio
+        ) {
+          dispatch(setElements(importedData.elements));
+          dispatch(
+            setStageSize({
+              height: importedData.stage.height,
+              width: importedData.stage.width,
+            }),
           );
-        }
+          dispatch(setAspectRatio(importedData.stage.aspectRatio));
 
-        // ✅ خطوط البراندينج
-        if (importedData.branding?.fonts) {
-          Object.entries(importedData.branding.fonts).forEach(
-            ([key, fontData]: [string, any]) => {
-              dispatch(
-                addFont({
-                  key,
-                  value: fontData.value,
-                  isFile: fontData.isFile,
-                  variant: fontData.variant,
-                }),
-              );
-            },
-          );
-        }
+          if (importedData.branding?.colors) {
+            Object.entries(importedData.branding.colors).forEach(
+              ([key, value]) => {
+                dispatch(addColor({ key, value: String(value) }));
+              },
+            );
+          }
 
-        console.log("✅ Import successful");
-      } else {
-        alert("❌ Invalid file structure.");
+          if (importedData.branding?.fonts) {
+            Object.entries(importedData.branding.fonts).forEach(
+              ([key, fontData]: [string, any]) => {
+                dispatch(
+                  addFont({
+                    key,
+                    value: fontData.value,
+                    isFile: fontData.isFile,
+                    variant: fontData.variant,
+                  }),
+                );
+              },
+            );
+          }
+
+          console.log("✅ Import successful");
+        } else {
+          alert("❌ Invalid file structure.");
+        }
+      } catch (error) {
+        alert("❌ Failed to import. Invalid JSON format.");
+        console.error("Import error:", error);
       }
-    } catch (error) {
-      alert("❌ Failed to import. Invalid JSON format.");
-      console.error("Import error:", error);
-    }
-  };
+    },
+    [dispatch],
+  );
 
-  const handleExportSummary = () => {
+  const handleExportSummary = useCallback(() => {
+    const { elements: currentElements } = stateRef.current;
     const frames: {
       assetType: string | null;
       fitMode: string | null;
@@ -286,7 +318,7 @@ export const CanvasProvider: FC<{
       toi_labels: string[];
     }[] = [];
 
-    elements.forEach((el) => {
+    currentElements.forEach((el) => {
       if (el.type === "frame") {
         const frameEl = el as {
           assetType?: string;
@@ -295,7 +327,6 @@ export const CanvasProvider: FC<{
           tags?: string[];
           frame_position_in_template?: number;
         };
-        console.log(el);
 
         frames.push({
           assetType: frameEl.assetType || null,
@@ -336,21 +367,37 @@ export const CanvasProvider: FC<{
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  };
+  }, []);
 
-  const value: CanvasContextType = {
-    stageRef,
-    handleExportSummary,
-    handleExportJSON,
-    handleExportTemplateToParent,
-    handleExportPNG,
-    handleExportSVG,
-    handleImport,
-    projectIdMixer,
-    setProjectIdMixer,
-    imageSrc,
-    setImageSrc,
-  };
+  const value: CanvasContextType = useMemo(
+    () => ({
+      stageRef,
+      handleExportSummary,
+      handleExportJSON,
+      handleExportTemplateToParent,
+      handleExportPNG,
+      handleExportSVG,
+      handleImport,
+      projectIdMixer,
+      setProjectIdMixer,
+      imageSrc,
+      setImageSrc,
+      isTemplateEditMode,
+      setIsTemplateEditMode,
+    }),
+    [
+      stageRef,
+      handleExportSummary,
+      handleExportJSON,
+      handleExportTemplateToParent,
+      handleExportPNG,
+      handleExportSVG,
+      handleImport,
+      projectIdMixer,
+      imageSrc,
+      isTemplateEditMode,
+    ],
+  );
 
   return (
     <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>

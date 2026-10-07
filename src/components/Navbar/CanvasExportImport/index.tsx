@@ -33,6 +33,7 @@ const CanvasExportImport: FC = () => {
     stageRef,
     projectIdMixer,
     setImageSrc,
+    isTemplateEditMode,
   } = useCanvas();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileViaBackEndInputRef = useRef<HTMLInputElement>(null);
@@ -586,13 +587,15 @@ const CanvasExportImport: FC = () => {
     <>
       <div className="flex flex-col items-center justify-center gap-4">
         <div className="flex flex-row items-center justify-center gap-2">
-          <Button
-            variant="default"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
-            onClick={handleExportTemplateToParent}
-          >
-            <FaSave className="mr-1.5" /> Apply to Template
-          </Button>
+          {isTemplateEditMode && (
+            <Button
+              variant="default"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+              onClick={handleExportTemplateToParent}
+            >
+              <FaSave className="mr-1.5" /> Apply to Template
+            </Button>
+          )}
 
           <Button
             variant="secondary"
@@ -665,9 +668,11 @@ const CanvasExportImport: FC = () => {
               <DropdownMenuLabel>Save As</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={handleExportTemplateToParent}>
-                  Apply to Template Generator
-                </DropdownMenuItem>
+                {isTemplateEditMode && (
+                  <DropdownMenuItem onClick={handleExportTemplateToParent}>
+                    Apply to Template Generator
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={handleExportPNG}>
                   PNG
                 </DropdownMenuItem>

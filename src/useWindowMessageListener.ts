@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCanvas } from "./context/CanvasContext";
 
 const parseProjectId = (value: unknown): number => {
@@ -30,7 +30,20 @@ const normalizeBaseUrl = (value: string): string => {
 
 export const useWindowMessageListener = () => {
   const [json, setJson] = useState<string | null>(null);
-  const { setProjectIdMixer, handleExportTemplateToParent } = useCanvas();
+  const {
+    setProjectIdMixer,
+    handleExportTemplateToParent,
+    setIsTemplateEditMode,
+  } = useCanvas();
+
+  const setProjectIdMixerRef = useRef(setProjectIdMixer);
+  setProjectIdMixerRef.current = setProjectIdMixer;
+
+  const handleExportTemplateToParentRef = useRef(handleExportTemplateToParent);
+  handleExportTemplateToParentRef.current = handleExportTemplateToParent;
+
+  const setIsTemplateEditModeRef = useRef(setIsTemplateEditMode);
+  setIsTemplateEditModeRef.current = setIsTemplateEditMode;
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -39,7 +52,12 @@ export const useWindowMessageListener = () => {
 
       switch (data.type) {
         case "SEND_JSON":
-          setJson(data.payload.json);
+          if (data.payload?.intent === "templateEdit") {
+            setIsTemplateEditModeRef.current(true);
+          }
+          if (typeof data.payload?.json === "string") {
+            setJson(data.payload.json);
+          }
           break;
         case "PROJECT_SELECTED":
           if (data?.payload) {
@@ -47,7 +65,7 @@ export const useWindowMessageListener = () => {
             const token = asString(data.payload.token);
             const userId = asString(data.payload.userId);
 
-            setProjectIdMixer(projectId);
+            setProjectIdMixerRef.current(projectId);
 
             if (token) {
               localStorage.setItem("accessToken", token);
@@ -81,6 +99,9 @@ export const useWindowMessageListener = () => {
           break;
         }
         case "INIT": {
+          if (data.payload?.intent === "templateEdit") {
+            setIsTemplateEditModeRef.current(true);
+          }
           // Each INIT replaces the previous session's values rather than merging
           // with them. This tool is one deployment shared by beta and production,
           // and its localStorage is per-browser, so a value left over from an
@@ -102,14 +123,14 @@ export const useWindowMessageListener = () => {
           // Logic for template update can be handled here
           break;
         case "REQUEST_EXPORT":
-          handleExportTemplateToParent();
+          handleExportTemplateToParentRef.current();
           break;
       }
     };
 
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [setProjectIdMixer, handleExportTemplateToParent]);
+  }, []);
 
   return { json };
 };
