@@ -1,6 +1,7 @@
 // d:\web-canvas-tool\src\components\ui\renderers\ShapeRenderers.tsx
 
 import {
+  BrandingType,
   CanvasElement,
   CircleShape,
   EllipseShape,
@@ -33,7 +34,7 @@ import { calculateGuidelines, calculateSnappingPosition } from "./utils";
 
 const useShapeProps = (element: CanvasElement) => {
   const { resolveColor } = useBrandingResolver();
-  const isBrandingType = (value: any) =>
+  const isBrandingType = (value: any): value is BrandingType =>
     value === "fixed" || value === "dynamic";
 
   const getBrandedFill = (el: CanvasElement) => {
@@ -306,7 +307,7 @@ export const EllipseRenderer = forwardRef<Konva.Ellipse, ElementRendererProps>(
         onTransformEnd={(e) => {
           const node = e.target;
           const newRadiusX = ellipseEl.radiusX * node.scaleX();
-          const newRadiusY = ellipseElement.radiusY * node.scaleY();
+          const newRadiusY = ellipseEl.radiusY * node.scaleY();
           const adjustedX = node.x() - newRadiusX;
           const adjustedY = node.y() - newRadiusY;
           onChange({
