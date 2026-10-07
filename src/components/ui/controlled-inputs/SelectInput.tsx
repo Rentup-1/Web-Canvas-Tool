@@ -260,9 +260,11 @@ const SelectInput = memo(
 
     // Normalize options to always be OptionType[] format with dynamic valueKey and labelKey
     const normalizedOptions = useMemo<OptionType[]>(() => {
+      if (!Array.isArray(options)) return [];
       return options.map((option) => {
-        if (typeof option === "string") {
-          return { [valueKey]: option, [labelKey]: option };
+        if (!option) return { [valueKey]: "", [labelKey]: "" };
+        if (typeof option === "string" || typeof option === "number") {
+          return { [valueKey]: option, [labelKey]: String(option) };
         }
         // Ensure the option has the required keys, fallback to string if missing
         const value = option[valueKey] ?? option.value ?? String(option);
