@@ -30,7 +30,7 @@ const normalizeBaseUrl = (value: string): string => {
 
 export const useWindowMessageListener = () => {
   const [json, setJson] = useState<string | null>(null);
-  const { setProjectIdMixer } = useCanvas();
+  const { setProjectIdMixer, handleExportTemplateToParent } = useCanvas();
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -102,14 +102,14 @@ export const useWindowMessageListener = () => {
           // Logic for template update can be handled here
           break;
         case "REQUEST_EXPORT":
-          // This should be connected to the actual export logic
+          handleExportTemplateToParent();
           break;
       }
     };
 
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [setProjectIdMixer]);
+  }, [setProjectIdMixer, handleExportTemplateToParent]);
 
   return { json };
 };

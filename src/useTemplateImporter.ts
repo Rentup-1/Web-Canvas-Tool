@@ -155,13 +155,26 @@ export const useTemplateImporter = () => {
         elements.sort((a: any, b: any) => (a.zIndex || 0) - (b.zIndex || 0));
 
         dispatch(setElements(elements));
+        const stageWidth =
+          importedData.width ||
+          importedData.stage?.width ||
+          1080;
+        const stageHeight =
+          importedData.height ||
+          importedData.stage?.height ||
+          1080;
+        const stageScale =
+          importedData.scale ||
+          importedData.stage?.aspectRatio ||
+          "SQUARE";
+
         dispatch(
           setStageSize({
-            width: importedData.width,
-            height: importedData.height,
+            width: stageWidth,
+            height: stageHeight,
           })
         );
-        dispatch(setAspectRatio(importedData.scale));
+        dispatch(setAspectRatio(stageScale));
 
         if (importedData.branding) {
           const { colors, fonts } = importedData.branding;

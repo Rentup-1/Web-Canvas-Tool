@@ -20,6 +20,7 @@ import { addColor, addFont } from "@/features/branding/brandingSlice";
 interface CanvasContextType {
   stageRef: RefObject<Konva.Stage>;
   handleExportJSON: () => void;
+  handleExportTemplateToParent: () => void;
   handleExportPNG: () => void;
   handleExportSVG: () => void;
   handleExportSummary: () => void;
@@ -101,6 +102,61 @@ export const CanvasProvider: FC<{
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handleExportTemplateToParent = () => {
+    const keyMappingsByType = {
+      text: {
+        backgroundStrokeWidth: "borderWidth",
+        backgroundStroke: "borderColor",
+        dashed: "borderStyle",
+      },
+      frame: {
+        dash: "borderStyle",
+        strokeWidth: "borderWidth",
+        stroke: "borderColor",
+      },
+    };
+
+    const fallbackMapping = {
+      stroke: "borderColor",
+      strokeWidth: "borderWidth",
+      backgroundStroke: "borderColor",
+      backgroundStrokeWidth: "borderWidth",
+      dashed: "borderStyle",
+    };
+
+    // Filter out temporary image elements that were placed inside frames
+    const filteredElements = elements.filter((el) => el.type !== "image");
+
+    const transformedElements = transformElementsKeys(
+      filteredElements,
+      keyMappingsByType,
+      fallbackMapping,
+    );
+
+    const exportData = {
+      elements: transformedElements,
+      stage: {
+        height: stageHeight,
+        width: stageWidth,
+        aspectRatio: aspectRatio,
+      },
+      branding: {
+        colors: brandingColors,
+        fonts: brandingFonts,
+      },
+    };
+
+    window.parent.postMessage(
+      {
+        type: "TEMPLATE_EXPORTED",
+        payload: {
+          json: JSON.stringify(exportData, null, 2),
+        },
+      },
+      "*",
+    );
   };
 
   const handleExportPNG = async () => {
@@ -286,6 +342,7 @@ export const CanvasProvider: FC<{
     stageRef,
     handleExportSummary,
     handleExportJSON,
+    handleExportTemplateToParent,
     handleExportPNG,
     handleExportSVG,
     handleImport,

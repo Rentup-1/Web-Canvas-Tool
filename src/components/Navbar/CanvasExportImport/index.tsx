@@ -26,6 +26,7 @@ const CanvasExportImport: FC = () => {
   const dispatch = useAppDispatch();
   const {
     handleExportJSON,
+    handleExportTemplateToParent,
     handleExportPNG,
     handleExportSVG,
     handleExportSummary,
@@ -586,6 +587,14 @@ const CanvasExportImport: FC = () => {
       <div className="flex flex-col items-center justify-center gap-4">
         <div className="flex flex-row items-center justify-center gap-2">
           <Button
+            variant="default"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            onClick={handleExportTemplateToParent}
+          >
+            <FaSave className="mr-1.5" /> Apply to Template
+          </Button>
+
+          <Button
             variant="secondary"
             onClick={handleExportPNGToParent}
             disabled={isLoading}
@@ -656,6 +665,9 @@ const CanvasExportImport: FC = () => {
               <DropdownMenuLabel>Save As</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
+                <DropdownMenuItem onClick={handleExportTemplateToParent}>
+                  Apply to Template Generator
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleExportPNG}>
                   PNG
                 </DropdownMenuItem>
